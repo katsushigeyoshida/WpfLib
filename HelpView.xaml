@@ -1,0 +1,16 @@
+﻿<Window x:Class="WpfLib.HelpView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfLib"
+        mc:Ignorable="d"
+        Title="HelpView" Height="280" Width="450" Closing="Window_Closing" Loaded="Window_Loaded">
+    <Grid Margin="0,0,0,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="10,0,5,30" >
+            <TextBlock x:Name="HelpTb" TextWrapping="Wrap"/>
+        </ScrollViewer>
+        <Label Content="PDFファイル" Width="70" Height="25" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+        <ComboBox Name="CbPdfFile" Height="25" VerticalAlignment="Bottom" Margin="80,0,0,0" SelectionChanged="CbPdfFile_SelectionChanged" />
+    </Grid>
+</Window>

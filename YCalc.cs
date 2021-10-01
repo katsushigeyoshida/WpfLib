@@ -1,0 +1,793 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace WpfLib
+{
+    /// <summary>
+    /// 計算式を評価して計算をおこなう。計算式に対して引数を設定して計算を行うこともできる
+    /// 引数なしの計算
+    ///     expression(計算式) :　計算式(引数なし)の演算処理を行う
+    /// 引数ありの計算
+    ///     setExpression(計算式)  :　引数ありの計算式を設定する
+    ///     getArgKey()             : 設定された計算式から引数名のリストを取得
+    ///     setArgData(key,data)    : 引数のデータ値を設定
+    ///     replaceArg()            : 引数ありの計算式にデータ値を設定する
+    ///     calculate()             : 引数をデータ値に置き換えた計算式を計算する
+    ///  計算後のエラー
+    ///     エラーの有無  mError = true
+    ///     エラーの内容  mErrorMsg
+    ///     
+    /// 
+    /// int setExpression(String str)
+    /// double calculate()
+    /// int argKeySet(String str)
+    /// void setArgValue(String key, String data)
+    /// Dictionary<String, String> getArgDic()
+    /// String[] getArgKey()
+    /// String replaceArg()
+    /// List<String> expressList(String str)
+    /// int getBracketSize(String str, int start)
+    /// int getMonadicString(String str, int start)
+    /// String[] stringSeperate(String str)
+    /// double monadicExpression(String str)
+    /// int express3(int i, ref double x, List<String> expList)
+    /// int express2(int i, ref double x, List<String> expList)
+    /// double expression(String str)
+    /// double asinh(double x)
+    /// double acosh(double x)
+    /// double atanh(double x)
+    /// int permutation(int n, int r)
+    /// int combination(int n, int k)
+    /// double factorial(int x)
+    /// double fibonacci(int n)
+    /// double sum(String express, int n, int k)
+    /// double product(String express, int n, int k)
+    /// double deg2dms(double deg)
+    /// double dms2deg(double dms)
+    /// </summary>
+    public class YCalc
+    {
+        private String mExpression;
+        private Dictionary<String, String> mArgDic;
+        public bool mError = false;
+        public String mErrorMsg;
+
+        public YCalc()
+        {
+            mArgDic = new Dictionary<string, string>();
+        }
+
+        /// <summary>
+        /// 計算式を入れて引数を設定する
+        /// </summary>
+        /// <param name="str">計算式</param>
+        /// <returns>引数の数</returns>
+        public int setExpression(String str)
+        {
+            mExpression = str;
+            return argKeySet(mExpression);
+        }
+
+        /// <summary>
+        /// 設定された計算式で計算する
+        /// </summary>
+        /// <returns>計算結果</returns>
+        public double calculate()
+        {
+            String express = replaceArg();
+            return expression(express);
+        }
+
+        /// <summary>
+        /// 計算式から引数([]内)を取り出しHashTableに保存 
+        /// </summary>
+        /// <param name="str">計算式</param>
+        /// <returns>引数の数</returns>
+        private int argKeySet(String str)
+        {
+            String buf = "";
+            int i = 0;
+            mArgDic.Clear();
+            while (i < str.Length) {
+                if (str[i] == '[') {
+                    buf += str[i];
+                } else if (str[i] == ']') {
+                    buf += str[i];
+                    if (!mArgDic.ContainsKey(buf)) {
+                        mArgDic.Add(buf, "");
+                    }
+                    buf = "";
+                } else {
+                    if (0 < buf.Length)
+                        buf += str[i];
+                }
+                i++;
+            }
+            return mArgDic.Count;
+        }
+
+        /// <summary>
+        /// 引数リストに値を設定する
+        /// key がない場合は設定されない
+        /// </summary>
+        /// <param name="key">引数名</param>
+        /// <param name="data">引数の値</param>
+        public void setArgValue(String key, String data)
+        {
+            if (mArgDic.ContainsKey(key))
+                mArgDic[key] = data;
+        }
+
+        /// <summary>
+        /// 計算式の引数のHashTableを取り出す
+        /// このHashTableを編集して計算式をつく直す
+        /// </summary>
+        /// <returns>引数のHashTable</returns>
+        public Dictionary<String, String> getArgDic()
+        {
+            return mArgDic;
+        }
+
+        /// <summary>
+        /// 引数のキーワードを文字列の配列で取得
+        /// </summary>
+        /// <returns>引数のキーワード</returns>
+        public String[] getArgKey()
+        {
+            String[] keys = new String[mArgDic.Count];
+            int i = 0;
+            foreach (String key in mArgDic.Keys) {
+                keys[i++] = key;
+            }
+            return keys;
+        }
+
+        /// <summary>
+        /// 引数を数値に置き換えた式を作成する
+        /// </summary>
+        /// <returns>引数を置き換えた計算式</returns>
+        public String replaceArg()
+        {
+            String exprrss = mExpression;
+            foreach (KeyValuePair<String, String> kvp in mArgDic) {
+                //Console.WriteLine(kvp.Key + " " + kvp.Value);
+                if (0 < kvp.Value.Length)
+                    exprrss = exprrss.Replace(kvp.Key, kvp.Value);
+            }
+            return exprrss;
+        }
+
+
+        /// <summary>
+        /// 文字列を数値と演算子と括弧内文字列に分解してLISTを作る
+        /// 例: 1+23*4+sin(1.57)+(1+2)*5
+        ///     →  1,+,23,*,sin(1.57),+,(1+2),*,5
+        /// </summary>
+        /// <param name="str">計算式文字列</param>
+        /// <returns>List配列</returns>
+        private List<String> expressList(String str)
+        {
+            List<String> expList = new List<string>();
+            expList.Clear();
+            String buf = "";
+            for (int i = 0; i < str.Length; i++) {
+                if (Char.IsNumber(str[i]) || str[i] == '.' ||
+                    (i == 0 && str[i] == '-') ||
+                    (0 < i && (str[i] == 'E' || str[i] == 'e') && Char.IsNumber(str[i - 1])) ||
+                    (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && str[i] == '-')) {
+                    //  数値
+                    buf += str[i];
+                } else if (str[i] == ' ') {
+                    //  空白は読み飛ばす
+                } else {
+                    if (0 < buf.Length) {
+                        //  バッファの文字列をリストに格納
+                        expList.Add(buf);
+                        buf = "";
+                    }
+                    if (str[i] == '(') {
+                        //  括弧内の文字列を格納(括弧を含む)
+                        int n = getBracketSize(str, i);
+                        buf = str.Substring(i, n + 2);
+                        expList.Add(buf);
+                        buf = "";
+                        i += n + 1;
+                    } else if (str[i] == '+' || str[i] == '-' || str[i] == '*' ||
+                               str[i] == '/' || str[i] == '%' || str[i] == '^') {
+                        //  2項演算子を格納
+                        expList.Add(str[i].ToString());
+                    } else if (Char.IsLetter(str[i])) {     //  アルファベットの確認(a-z,A-Z,全角も)
+                        //  定数または単項演算子を格納
+                        int n = getMonadicString(str, i);
+                        if (0 < n) {
+                            expList.Add(str.Substring(i, n));
+                            i += n - 1;
+                        }
+                    } else {
+                        //  上記以外の記号は無視
+                    }
+                }
+            }
+            if (0 < buf.Length)
+                expList.Add(buf);
+            return expList;
+        }
+
+        /// <summary>
+        /// 文字列内の括弧の対を検索しその中の文字数を求める(括弧は含めない)
+        /// 括弧の対が見つからなかった場合は0を返す
+        /// 例： express(sin(23)+5)+25
+        /// </summary>
+        /// <param name="str">文字式</param>
+        /// <param name="start">開始位置</param>
+        /// <returns>括弧内の文字数</returns>
+        private int getBracketSize(String str, int start)
+        {
+            int bracketCount = 0;
+            int bracketStart = 0;
+            for (int i = start; i < str.Length; i++) {
+                if (str[i] == '(') {
+                    bracketCount++;
+                    if (bracketCount == 1)
+                        bracketStart = i;
+                } else if (str[i] == ')') {
+                    bracketCount--;
+                    if (bracketCount == 0)
+                        return i - bracketStart - 1;
+                }
+            }
+            if (0 < bracketCount) {
+                mError = true;
+                mErrorMsg = "括弧があっていない";
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// 定数または単項演算子の場合のサイズを返す(括弧を含む)
+        /// 例: 定数 PI､Eなど+-*/%を末尾として開始位置からの文字数を返す
+        /// 　　単項演算子の場合は sin(...)など対括弧の終わりを末尾として文字数を返す
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <param name="start">開始位置</param>
+        /// <returns>開始位置からの文字数</returns>
+        private int getMonadicString(String str, int start)
+        {
+            int i = start;
+            while (i < str.Length) {
+                if (str[i] == '(') {
+                    int n = getBracketSize(str, i);
+                    return i - start + n + 2;
+                } else if (str[i] == '+' || str[i] == '-' || str[i] == '*' ||
+                    str[i] == '/' || str[i] == '%' || str[i] == '^') {
+                    return i - start;
+                }
+                i++;
+            }
+            return i - start;
+        }
+
+        /// <summary>
+        /// 文字列を括弧を考慮してカンマで分割して配列で返す(括弧の中は分割しない)
+        /// 例:  (12),pow(1,2))
+        ///     → (12) , pow(1,2)
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <returns>分割した配列</returns>
+        private String[] stringSeperate(String str)
+        {
+            List<String> strList = new List<string>();
+            int i = 0;
+            int bracketCount = 0;
+            String buf = "";
+            while (i < str.Length) {
+                if (str[i] == '(') {
+                    bracketCount++;
+                } else if (str[i] == ')') {
+                    bracketCount--;
+                }
+                if (bracketCount == 0 && str[i] == ',') {
+                    strList.Add(buf);
+                    buf = "";
+                } else {
+                    buf += str[i];
+                }
+                i++;
+            }
+            if (0 < bracketCount) {
+                mError = true;
+                mErrorMsg = "括弧があっていない";
+            }
+            if (0 < buf.Length)
+                strList.Add(buf);
+            String[] strArray = strList.ToArray();
+            return strArray;
+        }
+
+        /// <summary>
+        /// 定数と単項演算子の計算
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <returns>計算結果</returns>
+        private double monadicExpression(String str)
+        {
+            double result = 0;
+            double x, y;
+            if (str.IndexOf('(') < 0) {
+                //  定数
+                if (str.CompareTo("PI") == 0) {
+                    result = Math.PI;                       //  円周率
+                } else if (str.CompareTo("E") == 0) {
+                    result = Math.E;                        //  自然対数の底e
+                } else {
+                    mError = true;
+                    mErrorMsg = "未サポート定数 " + str;
+                }
+                return result;
+            }
+            String ope = str.Substring(0, str.IndexOf('('));
+            String data = str.Substring(str.IndexOf('(') + 1, str.Length - str.IndexOf('(') - 2);
+            //Console.WriteLine(ope+" "+data);
+            String[] datas = stringSeperate(data);
+            if (0 == datas.Length) {
+            } else if (1 == datas.Length) {
+                //  引数が1個の単項演算子
+                x = expression(datas[0]);
+                if (ope.CompareTo("RAD") == 0) {            //  degree→radian
+                    result = x * Math.PI / 180d;
+                } else if (ope.CompareTo("DEG") == 0) {     //  radian→degree
+                    result = x * 180d / Math.PI;
+                } else if (ope.CompareTo("deg2dms") == 0) { //  度 → 度分秒
+                    result = deg2dms(x);
+                } else if (ope.CompareTo("dms2deg") == 0) { //  度分秒 → 度
+                    result = dms2deg(x);
+                } else if (ope.CompareTo("fact") == 0) {    //  階乗
+                    result = factorial((int)x);
+                } else if (ope.CompareTo("fib") == 0) {     //  フィボナッチ数列
+                    result = fibonacci((int)x);
+                } else if (ope.CompareTo("sin") == 0) {     //  正弦
+                    result = Math.Sin(x);
+                } else if (ope.CompareTo("cos") == 0) {     //  余弦
+                    result = Math.Cos(x);
+                } else if (ope.CompareTo("tan") == 0) {     //  正接
+                    result = Math.Tan(x);
+                } else if (ope.CompareTo("asin") == 0) {    //  逆正弦
+                    result = Math.Asin(x);
+                } else if (ope.CompareTo("acos") == 0) {    //  逆余弦
+                    result = Math.Acos(x);
+                } else if (ope.CompareTo("atan") == 0) {    //  逆正接
+                    result = Math.Atan(x);
+                } else if (ope.CompareTo("sinh") == 0) {    //  双曲線正弦
+                    result = Math.Sinh(x);
+                } else if (ope.CompareTo("cosh") == 0) {    //  双曲線余弦
+                    result = Math.Cosh(x);
+                } else if (ope.CompareTo("tanh") == 0) {    //  双曲線正接
+                    result = Math.Tanh(x);
+                } else if (ope.CompareTo("asinh") == 0) {    //  逆双曲線正弦
+                    result = asinh(x);
+                } else if (ope.CompareTo("acosh") == 0) {    //  逆双曲線余弦
+                    result = acosh(x);
+                } else if (ope.CompareTo("atanh") == 0) {    //  逆双曲線正接
+                    result = atanh(x);
+                } else if (ope.CompareTo("exp") == 0) {     //  eの累乗値
+                    result = Math.Exp(x);
+                } else if (ope.CompareTo("ln") == 0) {      //  eを底とする自然対数
+                    result = Math.Log(x);
+                } else if (ope.CompareTo("log") == 0) {     //  10を底とする対数
+                    result = Math.Log10(x);
+                } else if (ope.CompareTo("sqrt") == 0) {    //  平方根
+                    result = Math.Sqrt(x);
+                } else if (ope.CompareTo("abs") == 0) {     //  絶対値
+                    result = Math.Abs(x);
+                } else if (ope.CompareTo("ceil") == 0) {    //  (切上げ)指定の数以上で最小の整数値
+                    result = Math.Ceiling(x);
+                } else if (ope.CompareTo("floor") == 0) {   //  (切捨て)小数点以下の数の内最大の整数値
+                    result = Math.Floor(x);
+                } else if (ope.CompareTo("round") == 0) {   //  (四捨五入)最も近い整数値に丸める
+                    result = Math.Round(x);
+                } else if (ope.CompareTo("trunc") == 0) {   //  浮動小数点の整数部を返す
+                    result = Math.Truncate(x);
+                } else if (ope.CompareTo("sign") == 0) {    //  符号を示す値を返す
+                    result = Math.Sign(x);
+                } else {
+                    mError = true;
+                    mErrorMsg = "未サポート関数 " + ope;
+                }
+            } else if (2 == datas.Length) {
+                //  引数が2個の単項演算子
+                x = expression(datas[0]);
+                y = expression(datas[1]);
+                if (ope.CompareTo("pow") == 0) {            //  べき乗(累乗)
+                    result = Math.Pow(x, y);
+                } else if (ope.CompareTo("mod") == 0) {     //  剰余
+                    result = x % y;
+                } else if (ope.CompareTo("atan2") == 0) {   //  逆正接
+                    result = Math.Atan2(x, y);
+                } else if (ope.CompareTo("log") == 0) {     //  指定した底の対数
+                    result = Math.Log(x, y);
+                } else if (ope.CompareTo("max") == 0) {     //  大きい方の値を返す
+                    result = Math.Max(x, y);
+                } else if (ope.CompareTo("min") == 0) {     //  小さい方の値を返す
+                    result = Math.Min(x, y);
+                } else if (ope.CompareTo("gcd") == 0) {     //  最大公約数
+                    result = Gcd((int)x, (int)y);
+                } else if (ope.CompareTo("lcm") == 0) {     //  最小公倍数
+                    result = Lcm((int)x, (int)y);
+                } else if (ope.CompareTo("combi") == 0) {   //  組合せの数
+                    result = combination((int)x, (int)y);
+                } else if (ope.CompareTo("permu") == 0) {   //  順列の数
+                    result = permutation((int)x, (int)y);
+                } else if (ope.CompareTo("equals") == 0) {  //  比較  x==y ⇒ 1 x!=y ⇒ 0
+                    result = x == y ? 1 : 0;
+                } else if (ope.CompareTo("compare") == 0) { //  比較  x > y ⇒ 1 x == y ⇒ 0 x < y ⇒ -1
+                    result = x > y ? 1 : (x < y ? -1 : 0);
+                } else {
+                    mError = true;
+                    mErrorMsg = "未サポート関数 " + ope;
+                }
+            } else if (3 == datas.Length) {
+                x = expression(datas[1]);
+                y = expression(datas[2]);
+                if (ope.CompareTo("sum") == 0) {            //  級数の和
+                    result = sum(datas[0], (int)x, (int)y);
+                } else if (ope.CompareTo("product") == 0) { //  級数の積
+                    result = product(datas[0], (int)x, (int)y);
+                } else {
+                    mError = true;
+                    mErrorMsg = "未サポート関数 " + ope;
+                }
+            } else {
+                mError = true;
+                mErrorMsg = "不正引数 " + ope;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 後ろのべき乗のみを優先して計算
+        /// 2^3^4 は 2^(3^4) と同じ
+        /// </summary>
+        /// <param name="i">計算式の位置</param>
+        /// <param name="x">計算結果</param>
+        /// <param name="expList">計算式の配列リスト</param>
+        /// <returns>次の計算式の位置</returns>
+        private int express3(int i, ref double x, List<String> expList)
+        {
+            double y;
+            double z = 0;
+            String ope = "";
+            if (i + 2 < expList.Count()) {
+                //Console.WriteLine("express3 "+i+" "+expList[i]+" "+expList[i+1]+" "+expList[i+2]);
+                y = expression(expList[i]);
+                ope = expList[i + 1];
+                z = expression(expList[i + 2]);
+                //Console.WriteLine("express3   in  "+i+"/"+expList.Count()+" "+y+" "+ope+" "+z);
+                if (ope.CompareTo("^") == 0) {
+                    i = express3(i + 2, ref z, expList);
+                    x = Math.Pow(y, z);
+                }
+                //Console.WriteLine("express3   out "+i+"/"+expList.Count()+" "+y+" "+ope+" "+z+" → "+x);
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// 剰余のみ優先して計算するための関数
+        /// 一つ先の演算を確認して*/%があれば先に計算する
+        /// </summary>
+        /// <param name="i">計算式の位置</param>
+        /// <param name="x">計算結果</param>
+        /// <param name="expList">計算式の配列List</param>
+        /// <returns>次の計算式の位置</returns>
+        private int express2(int i, ref double x, List<String> expList)
+        {
+            double y;
+            double z = 0;
+            String ope = "";
+            if (i + 2 < expList.Count()) {
+                //Console.WriteLine("express2 "+i+" "+expList[i]+" "+expList[i+1]+" "+expList[i+2]);
+                y = expression(expList[i]);
+                while (i + 2 < expList.Count()) {
+                    ope = expList[i + 1];
+                    z = expression(expList[i + 2]);
+                    //Console.WriteLine("express2   in  " + i + "/" + expList.Count() + " " + y + " " + ope + " " + z);
+                    if (ope.CompareTo("*") == 0) {
+                        i = express2(i + 2, ref z, expList);
+                        x = y * z;
+                    } else if (ope.CompareTo("/") == 0) {
+                        i = express2(i + 2, ref z, expList);
+                        if (z == 0d)
+                            return -1;
+                        x = y / z;
+                    } else if (ope.CompareTo("%") == 0) {
+                        i = express2(i + 2, ref z, expList);
+                        if (z == 0d)
+                            return -1;
+                        x = y % z;
+                    } else if (ope.CompareTo("^") == 0) {
+                        i = express3(i + 2, ref z, expList);
+                        x = Math.Pow(y, z);
+                    } else {
+                        return i;
+                    }
+                    //Console.WriteLine("express2   out " + i + "/" + expList.Count() + " " + y + " " + ope + " " + z + " → " + x);
+                    y = x;
+                }
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// 計算式の実行
+        /// </summary>
+        /// <param name="str">計算式文字列</param>
+        /// <returns>計算結果</returns>
+        public double expression(String str)
+        {
+            //Console.WriteLine("expression:"+str);
+            List<String> expList;
+            mError = false;
+            //  文字列を数値と演算子、括弧内の分解リストを作成
+            expList = expressList(str);
+            //  分解リストを順次計算していく
+            double result = 0;
+            double x;
+            String ope = "";
+            int i = 0;
+            try {
+                while (i < expList.Count()) {
+                    bool success = true;
+                    if (expList[i][0] == '(') {
+                        //  括弧内を計算
+                        x = expression(expList[i].Substring(1, expList[i].Length - 2));
+                    } else if (Char.IsLetter(expList[i][0])) {
+                        //  単項演算子の計算
+                        x = monadicExpression(expList[i]);
+                    } else {
+                        //  数値の判定、数値であればxに返す
+                        success = Double.TryParse(expList[i], out x);
+                    }
+                    //Console.WriteLine("expression in  "+i+"/"+expList.Count()+" "+result+" "+ope+" "+x);
+                    //  数値の場合、前の演算子で計算する
+                    if (success) {
+                        if (ope.CompareTo("+") == 0) {
+                            i = express2(i, ref x, expList);     //  剰除が先にあれば計算しておく
+                            result += x;
+                        } else if (ope.CompareTo("-") == 0) {
+                            i = express2(i, ref x, expList);     //  剰除が先にあれば計算しておく
+                            result -= x;
+                        } else if (ope.CompareTo("*") == 0) {
+                            i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
+                            result *= x;
+                        } else if (ope.CompareTo("/") == 0) {
+                            i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
+                            if (x == 0d)
+                                return -1;
+                            result /= x;
+                        } else if (ope.CompareTo("%") == 0) {
+                            i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
+                            if (x == 0d)
+                                return -1;
+                            result %= x;
+                        } else if (ope.CompareTo("^") == 0) {
+                            i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
+                            result = Math.Pow(result, x);
+                        } else {
+                            if (0 < i) {
+                                mError = true;
+                                mErrorMsg = "未演算子";
+                            } else
+                                result = x;
+                        }
+                        ope = "";
+                    } else {
+                        ope = expList[i];
+                    }
+                    if (i < 0)
+                        return -1;
+                    i++;
+                    //Console.WriteLine("expression out "+i+"/"+expList.Count()+" "+ope+" "+x+" → "+result);
+                }
+            } catch (Exception e) {
+                mError = true;
+                mErrorMsg = e.Message;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 逆双曲関数 sinh^-1 = log(x±√(x^2+1))
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public double asinh(double x)
+        {
+            return Math.Log(x + Math.Sqrt(x * x + 1));
+        }
+
+        /// <summary>
+        /// 逆双曲関数 cosh^-1 = log(x±√(x^2-1))
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public double acosh(double x)
+        {
+            return Math.Log(x + Math.Sqrt(x * x - 1));
+        }
+
+        /// <summary>
+        /// 逆双曲関数 tanh^-1 = 1/2log((1+x)/(1-x))
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public double atanh(double x)
+        {
+            return Math.Log((1 + x) / (1 - x)) / 2.0;
+        }
+
+
+        /// <summary>
+        /// 順列の組合せの数(nPr)
+        /// n個の中からr個を取出した時の順列の数
+        /// nPr = n(n-1)(n-2)...(n-r+1)
+        /// </summary>
+        /// <param name="n">全体の数</param>
+        /// <param name="r">選択した数</param>
+        /// <returns>順列の数</returns>
+        public int permutation(int n, int r)
+        {
+            int result = 1;
+            if (1 < n && 1 < r && r < n)
+                for (int i = r; i <= n; i++)
+                    result *= i;
+            else
+                result = 1;
+            return result;
+        }
+
+        /// <summary>
+        /// 組み合わせの数 n個の中からk個選ぶ nCk
+        /// nCk = n(n-1)(n-2)...(n-k+1) / 1*2*3....k
+        /// </summary>
+        /// <param name="n">全体の数</param>
+        /// <param name="k">選択する数</param>
+        /// <returns>組み合わせの数</returns>
+        public int combination(int n, int k)
+        {
+            if (k == 0 || k == n)
+                return 1;
+            else
+                return combination(n - 1, k - 1) + combination(n - 1, k);
+        }
+
+        /// <summary>
+        /// 階乗の計算 n!
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public double factorial(int x)
+        {
+            double result = 1;
+            if (1 < x) {
+                for (int n = 2; n <= x; n++)
+                    result *= n;
+            } else
+                result = 1;
+            return result;
+        }
+
+        /// <summary>
+        /// フィボナッチ数列を求める
+        /// f(1) = f(2) =1, f(n+2) = f(n) + f(n+1)
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public double fibonacci(int n)
+        {
+            if (n <= 2)
+                return 1;
+            return fibonacci(n - 2) + fibonacci(n - 1);
+        }
+
+        /// <summary>
+        /// 最小公倍数
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public int Lcm(int a, int b)
+        {
+            return a * b / Gcd(a, b);
+        }
+
+        /// <summary>
+        /// 最大公約数(ユークリッドの互除法)
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public int Gcd(int a, int b)
+        {
+            if (a < b)
+                return Gcd(b, a);
+            while (b != 0) {
+                var remainder = a % b;
+                a = b;
+                b = remainder;
+            }
+            return a;
+        }
+
+        /// <summary>
+        /// 式(f(x)のxがnからkまでの合計を求める
+        /// 式は[@]を変数として記述し[@]にnからkまでの1づつ増加する値が入る
+        /// sum("2*[@]",3,5) ⇒  2*3+2*4+2*5 = 24
+        /// </summary>
+        /// <param name="express">集計に使う式</param>
+        /// <param name="n">開始の変数値</param>
+        /// <param name="k">終了の変数値</param>
+        /// <returns>計算結果</returns>
+        public double sum(String express, int n, int k)
+        {
+            double result = 0;
+            YCalc calc = new YCalc();
+            calc.setExpression(express);
+            for (int i = n; i <= k; i++) {
+                calc.setArgValue("[@]", "(" + i + ")");
+                result += calc.calculate();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 式(f(x)のxがnからkまでの積を求める
+        /// 式は[@]を変数として記述し[@]にnからkまでの1づつ増加する値が入る
+        /// product("[@]^2",3,5) ⇒  3^2+4^2+5^2 = 3600
+        /// </summary>
+        /// <param name="express">集計に使う式</param>
+        /// <param name="n">開始の変数値</param>
+        /// <param name="k">終了の変数値</param>
+        /// <returns>計算結果</returns>
+        public double product(String express, int n, int k)
+        {
+            double result = 1;
+            YCalc calc = new YCalc();
+            calc.setExpression(express);
+            for (int i = n; i <= k; i++) {
+                calc.setArgValue("[@]", "(" + i + ")");
+                result *= calc.calculate();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 度(時)(ddd.dddd)を度分秒(時分秒)表記(ddd.mmss)にする
+        /// </summary>
+        /// <param name="deg">度(ddd.dddddd)</param>
+        /// <returns>度分秒(ddd.mmss)</returns>
+        public double deg2dms(double deg)
+        {
+            double tmp = deg;
+            double degree = Math.Floor(tmp);
+            tmp = (tmp - degree) * 60d;
+            double minutes = Math.Floor(tmp);
+            tmp = (tmp - minutes) * 60d;
+            return degree + minutes / 100d + tmp / 10000d;
+        }
+
+        /// <summary>
+        /// 度分秒(時分秒)表記(ddd.mmss)を度(時)(ddd.dddd)にする 
+        /// </summary>
+        /// <param name="dms">度分秒(ddd.mmss)</param>
+        /// <returns>度(ddd.ddddd)</returns>
+        public double dms2deg(double dms)
+        {
+            double deg = Math.Floor(dms);
+            double tmp = (dms - deg) * 100d;
+            double min = Math.Floor(tmp);
+            double sec = (tmp - min) * 100d;
+            return deg + min / 60d + sec / 3600d;
+        }
+    }
+}
