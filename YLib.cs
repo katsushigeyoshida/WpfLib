@@ -1205,7 +1205,8 @@ namespace WpfLib
         public int intParse(string str, int val = 0)
         {
             int i;
-            if (int.TryParse(str, out i))
+            str = str.Replace(",", "");
+            if (int.TryParse(str.Trim(), out i))
                 return i;
             else
                 return val;
