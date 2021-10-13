@@ -48,6 +48,53 @@ namespace WpfLib
     /// </summary>
     public class YCalc
     {
+        public static string[] mFuncList = {
+            "PI 円周率",
+            "E 自然対数の底",
+            "RAD(x) 度をラジアンに変換する",
+            "DEG(x) ラジアンを度に変換する",
+            "mod(x,y) 剰余(割算の余り",
+            "pow(x,y) 累乗",
+            "max(x,y) 大きい方",
+            "min(x,y) 小さい方",
+            "combi(n,r) 組合せの数(nCr)",
+            "permu(n,r) 順列の数(nPr)",
+            "sin(x) 正弦",
+            "cos(x) 余弦",
+            "tan(x) 正接",
+            "asin(x) 逆正接",
+            "acos(x) 逆余弦",
+            "atan(x) 逆正接",
+            "atan2(x,y) 逆正接",
+            "sinh(x) 双曲線正弦",
+            "cosh(x) 双曲線余弦",
+            "tanh(x) 双曲線正接",
+            "asinh(x) 逆双曲線正弦",
+            "acosh(x) 逆双曲線余弦",
+            "atanh(x) 逆双曲線正接",
+            "exp(x) eの累乗",
+            "ln(x) eを底とする自然対数",
+            "log(x) 10を底とする対数",
+            "log(x,y) xを底とするyの対数",
+            "sqrt(x) 平方根",
+            "abs(x) 絶対値",
+            "ceil(x) 切上げ(x以上で最小の整数値)",
+            "floor(x) 切捨て(小数点以下の数の内最大の整数値)",
+            "round(x) 四捨五入(もっとも近い整数値)",
+            "trunc(x) 浮動小数点の整数部",
+            "sign(x) 符号示す値(1/0/-1)",
+            "equals(x,y) 等価判定 x==y ⇒ 1,x!=y ⇒ 0",
+            "compare(x,y) 大小判定 x > y ⇒ 1,x==y ⇒ 0,x<y ⇒ -1",
+            "fact(x) 階乗",
+            "fib(x) フィボナッチ数列",
+            "gcd(x,y) 最大公約数",
+            "lcm(x,y) 最小公倍数",
+            "sum(f[@],n,k) 級数の和 計算式f([@])にnからkまで入れた合計",
+            "product(f[@],n,k) 級数の積 計算式f([@])にnからkまでを入れた積",
+            "gcd(x,y) 最大公約数",
+            "lcm(x,y) 最小公倍数",
+        };
+
         private String mExpression;
         private Dictionary<String, String> mArgDic;
         public bool mError = false;
