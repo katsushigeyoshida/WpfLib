@@ -398,6 +398,21 @@ namespace WpfLib
             rhs = temp;
         }
 
+        /// <summary>
+        /// ファイルを実行する
+        /// </summary>
+        /// <param name="path">ファイルパス</param>
+        public void fileExecute(string path)
+        {
+            try {
+                if (File.Exists(path))
+                    System.Diagnostics.Process.Start(path);
+                else
+                    System.Windows.MessageBox.Show(path + " がありません");
+            } catch (Exception e) {
+                System.Windows.MessageBox.Show(e.Message);
+            }
+        }
 
         //  ---  ネットワーク関連  ---
 
@@ -1166,15 +1181,16 @@ namespace WpfLib
         /// 数値文字列かを判定する
         /// 数値以外の文字があっても数値にできるものは数値として判定
         /// </summary>
-        /// <param name="num"></param>
+        /// <param name="num">数値文字列</param>
+        /// <param name="allNum">数値以外はない時</param>
         /// <returns></returns>
-        public bool IsNumberString(string num)
+        public bool IsNumberString(string num, bool allNum = false)
         {
             if (num == null)
                 return false;
             if (num.Length == 1 && num.CompareTo("0") == 0)
                 return true;
-            string nbuf = string2StringNum(num);
+            string nbuf = allNum ? num : string2StringNum(num);
             double val;
             return double.TryParse(nbuf, out val) ? true : false;
         }
