@@ -84,15 +84,16 @@ namespace WpfLib
             "trunc(x) 浮動小数点の整数部",
             "sign(x) 符号示す値(1/0/-1)",
             "equals(x,y) 等価判定 x==y ⇒ 1,x!=y ⇒ 0",
+            "lt(x,y) 大小判定(less than) x > y ⇒ 1,以外は0",
+            "gt(x,y) 大小判定(greater than) x < y ⇒ 1,以外は0",
             "compare(x,y) 大小判定 x > y ⇒ 1,x==y ⇒ 0,x<y ⇒ -1",
             "fact(x) 階乗",
             "fib(x) フィボナッチ数列",
             "gcd(x,y) 最大公約数",
             "lcm(x,y) 最小公倍数",
-            "sum(f[@],n,k) 級数の和 計算式f([@])にnからkまで入れた合計",
-            "product(f[@],n,k) 級数の積 計算式f([@])にnからkまでを入れた積",
-            "gcd(x,y) 最大公約数",
-            "lcm(x,y) 最小公倍数",
+            "sum(f([@]),n,k) 級数の和 計算式f([@])にnからkまで入れた合計",
+            "product(f([@]),n,k) 級数の積 計算式f([@])にnからkまでを入れた積",
+            "repeat(f([@],[%]),i,n,k) 計算式の[@]にnからkまで入れて繰返す,[%]に計算結果が入る,iは[%]の初期値",
         };
 
         private String mExpression;
@@ -213,7 +214,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">計算式文字列</param>
         /// <returns>List配列</returns>
-        private List<String> expressList(String str)
+        public List<String> expressList(String str)
         {
             List<String> expList = new List<string>();
             expList.Clear();
@@ -222,7 +223,7 @@ namespace WpfLib
                 if (Char.IsNumber(str[i]) || str[i] == '.' ||
                     (i == 0 && str[i] == '-') ||
                     (0 < i && (str[i] == 'E' || str[i] == 'e') && Char.IsNumber(str[i - 1])) ||
-                    (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && str[i] == '-')) {
+                    (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && (str[i] == '-' || str[i] == '+'))) {
                     //  数値
                     buf += str[i];
                 } else if (str[i] == ' ') {
@@ -269,7 +270,7 @@ namespace WpfLib
         /// <param name="str">文字式</param>
         /// <param name="start">開始位置</param>
         /// <returns>括弧内の文字数</returns>
-        private int getBracketSize(String str, int start)
+        public int getBracketSize(String str, int start)
         {
             int bracketCount = 0;
             int bracketStart = 0;
@@ -289,6 +290,21 @@ namespace WpfLib
                 mErrorMsg = "括弧があっていない";
             }
             return 0;
+        }
+
+        /// <summary>
+        /// 文字列の中の括弧内の文字列を抽出する(括弧は含まない)
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <param name="start">検索開始位置(省略時=0)</param>
+        /// <returns>抽出した文字列</returns>
+        public string getBracketString(string str, int start = 0)
+        {
+            int m = str.IndexOf("(", start);
+            int n = getBracketSize(str, start);
+            if (n == 0)
+                return "";
+            return str.Substring(m + 1, n);
         }
 
         /// <summary>
@@ -316,13 +332,31 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 関数の引数を配列にして取出す
+        /// func(equal([@],0), [2:a:-1]:[13:b:0]);
+        /// ⇒  equal([@],0), [2:a:-1]:[13:b:0]
+        /// </summary>
+        /// <param name="func">関数呼び出し文字列</param>
+        /// <returns>引数配列</returns>
+        public string[] getFuncArgArray(string func)
+        {
+            var sp = func.IndexOf("(");
+            if (sp < 0)
+                return null;
+            var ss = getBracketSize(func, 1);
+            var arg = func.Substring(sp + 1, ss);
+            return stringSeperate(arg);
+        }
+
+
+        /// <summary>
         /// 文字列を括弧を考慮してカンマで分割して配列で返す(括弧の中は分割しない)
-        /// 例:  (12),pow(1,2))
+        /// 例:  ((12),pow(1,2))
         ///     → (12) , pow(1,2)
         /// </summary>
         /// <param name="str">文字列</param>
         /// <returns>分割した配列</returns>
-        private String[] stringSeperate(String str)
+        public string[] stringSeperate(String str)
         {
             List<String> strList = new List<string>();
             int i = 0;
@@ -360,7 +394,7 @@ namespace WpfLib
         private double monadicExpression(String str)
         {
             double result = 0;
-            double x, y;
+            double x, y, z;
             if (str.IndexOf('(') < 0) {
                 //  定数
                 if (str.CompareTo("PI") == 0) {
@@ -465,28 +499,56 @@ namespace WpfLib
                     result = combination((int)x, (int)y);
                 } else if (ope.CompareTo("permu") == 0) {   //  順列の数
                     result = permutation((int)x, (int)y);
-                } else if (ope.CompareTo("equals") == 0) {  //  比較  x==y ⇒ 1 x!=y ⇒ 0
+                } else if (ope.CompareTo("equals") == 0) {  //  比較  x == y ⇒ 1, x != y ⇒ 0
                     result = x == y ? 1 : 0;
-                } else if (ope.CompareTo("compare") == 0) { //  比較  x > y ⇒ 1 x == y ⇒ 0 x < y ⇒ -1
+                } else if (ope.CompareTo("gt") == 0) {      //  比較  x < y ⇒ 1, x >= y ⇒ 0
+                    result = x < y ? 1 : 0;
+                } else if (ope.CompareTo("lt") == 0) {      //  比較  x > y ⇒ 1, x <= y ⇒ 0
+                    result = x > y ? 1 : 0;
+                } else if (ope.CompareTo("compare") == 0) { //  比較  x > y ⇒ 1, x == y ⇒ 0, x < y ⇒ -1
                     result = x > y ? 1 : (x < y ? -1 : 0);
                 } else {
                     mError = true;
                     mErrorMsg = "未サポート関数 " + ope;
                 }
             } else if (3 == datas.Length) {
-                x = expression(datas[1]);
-                y = expression(datas[2]);
+                //  引数が3個の単項演算子
+                //x = expression(datas[1]);
+                //y = expression(datas[2]);
                 if (ope.CompareTo("sum") == 0) {            //  級数の和
-                    result = sum(datas[0], (int)x, (int)y);
+                    result = sum(datas);
+                    //result = sum(datas[0], (int)x, (int)y);
                 } else if (ope.CompareTo("product") == 0) { //  級数の積
-                    result = product(datas[0], (int)x, (int)y);
+                    result = product(datas);
+                    //result = product(datas[0], (int)x, (int)y);
+                } else {
+                    mError = true;
+                    mErrorMsg = "未サポート関数 " + ope;
+                }
+            } else if (4 == datas.Length) {
+                //  引数が4個の単項演算子
+                if (ope.CompareTo("sum") == 0) {            //  級数の和
+                    result = sum(datas);
+                } else if (ope.CompareTo("product") == 0) { //  級数の積
+                    result = product(datas);
+                } else if (ope.CompareTo("repeat") == 0) {  //  繰り返し処理
+                    x = expression(datas[1]);
+                    y = expression(datas[2]);
+                    z = expression(datas[3]);
+                    result = repeat(datas[0], x, (int)y, (int)z);
                 } else {
                     mError = true;
                     mErrorMsg = "未サポート関数 " + ope;
                 }
             } else {
-                mError = true;
-                mErrorMsg = "不正引数 " + ope;
+                if (ope.CompareTo("sum") == 0) {            //  級数の和
+                    result = sum(datas);
+                } else if (ope.CompareTo("product") == 0) { //  級数の積
+                    result = product(datas);
+                } else {
+                    mError = true;
+                    mErrorMsg = "不正引数 " + ope;
+                }
             }
             return result;
         }
@@ -790,7 +852,7 @@ namespace WpfLib
         /// <summary>
         /// 式(f(x)のxがnからkまでの積を求める
         /// 式は[@]を変数として記述し[@]にnからkまでの1づつ増加する値が入る
-        /// product("[@]^2",3,5) ⇒  3^2+4^2+5^2 = 3600
+        /// product("[@]^2",3,5) ⇒  3^2*4^2+5^2 = 3600
         /// </summary>
         /// <param name="express">集計に使う式</param>
         /// <param name="n">開始の変数値</param>
@@ -804,6 +866,99 @@ namespace WpfLib
             for (int i = n; i <= k; i++) {
                 calc.setArgValue("[@]", "(" + i + ")");
                 result *= calc.calculate();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 引数の合計を求める
+        /// 引数の数が3以下
+        ///     sum(f([@],n,k)   nからkまで1づつ増加でf([@])の[@]に代入し合計を求める
+        ///     例: sum("2*[@]",3,5) ⇒  2*3+2*4+2*5 = 24
+        /// 引数が4以上
+        ///     sum(f([@],n1,n2,n3・・・nm)  n1からnmまでを[@]に代入してf([@])の合計を求める
+        ///     例: sum([@]^2,3,5,10,2) ⇒  3^2+5^2+10^2+2^2 = 138
+        /// arg[0] : f([@])の計算式
+        /// </summary>
+        /// <param name="arg">引数</param>
+        /// <returns>演算結果</returns>
+        public double sum(string[]  arg)
+        {
+            double result = 0;
+            YCalc calc = new YCalc();
+            calc.setExpression(arg[0]);
+            if (arg.Length < 4) {
+                int n = (int)expression(arg[1]);
+                int k = (int)expression(arg[2]);
+                if (n > k) YLib.Swap(ref n, ref k);
+                for (int i = n; i <= k; i++) {
+                    calc.setArgValue("[@]", "(" + i + ")");
+                    result += calc.calculate();
+                }
+            } else {
+                for (int i = 1; i < arg.Length; i++) {
+                    calc.setArgValue("[@]", "(" + arg[i] + ")");
+                    result += calc.calculate();
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 引数の積を求める
+        /// 引数の数が3以下
+        ///     product(f([@],n,k)   nからkまで1づつ増加でf([@])の[@]に代入し積を求める
+        ///     例: product(2*[@],3,5) ⇒  2*3*2*4*2*5 = 480
+        /// 引数が4以上
+        ///     product(f([@],n1,n2,n3・・・nm)  n1からnmまでを[@]に代入してf([@])の積を求める
+        ///     例: product([@]^2,3,5,10,2) ⇒  3^2*5^2*10^2*2^2 = 90,000
+        /// arg[0] : f([@])の計算式
+        /// </summary>
+        /// <param name="arg">引数</param>
+        /// <returns>演算結果</returns>
+        public double product(string[] arg)
+        {
+            double result = 1;
+            YCalc calc = new YCalc();
+            calc.setExpression(arg[0]);
+            if (arg.Length < 4) {
+                int n = (int)expression(arg[1]);
+                int k = (int)expression(arg[2]);
+                if (n > k) YLib.Swap(ref n, ref k);
+                for (int i = n; i <= k; i++) {
+                    calc.setArgValue("[@]", "(" + i + ")");
+                    result *= calc.calculate();
+                }
+            } else {
+                for (int i = 1; i < arg.Length; i++) {
+                    calc.setArgValue("[@]", "(" + arg[i] + ")");
+                    result *= calc.calculate();
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 式 y = f(x,y) を nからkまで繰り返した結果を求める
+        /// result = f([@],[%]),初期値,開始値,終了値)
+        /// [@] : 初期値から終了値までの値(増分は1
+        /// [%] : 前回の計算結果、初回は初期値が入る
+        /// repeat([%]*1.02,10000,1,5) → ((((10000*1.02)*1.02)*1.02)*1.02))*1.02 = 11040.808
+        /// </summary>
+        /// <param name="express">数式</param>
+        /// <param name="initVal">初期値</param>
+        /// <param name="n">開始値</param>
+        /// <param name="k">終了値</param>
+        /// <returns></returns>
+        public double repeat(String express, double initVal, int n, int k)
+        {
+            double result = initVal;
+            YCalc calc = new YCalc();
+            calc.setExpression(express);
+            for (int i = n; i <= k; i++) {
+                calc.setArgValue("[@]", "(" + i + ")");
+                calc.setArgValue("[%]", "(" + result + ")");
+                result = calc.calculate();
             }
             return result;
         }
