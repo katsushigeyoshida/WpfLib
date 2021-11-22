@@ -41,6 +41,7 @@ namespace WpfLib
         private void CbMenu_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (0 <= CbMenu.SelectedIndex && CbMenu.SelectedIndex != mSelectIndex) {
+                mSelectIndex = CbMenu.SelectedIndex;
                 mSelectItem = CbMenu.Items[CbMenu.SelectedIndex].ToString();
                 DialogResult = true;
                 Close();
