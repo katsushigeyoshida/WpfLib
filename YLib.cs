@@ -295,9 +295,10 @@ namespace WpfLib
         private int mEncordingType = 0;
         private double[] mKaigen = { 2019.0501, 1989.0108, 1926.1225, 1912.0730, 1868.0908, 1865.0407, 1864, 1861, 1860, 1854, 1848, 1844, 1830, 1818 };
         private string[] mGengou = { "令和", "平成", "昭和", "大正", "明治", "慶応", "元治", "文久", "万延", "安政", "嘉永", "弘化", "天保", "文政" };
-        private string[] mMonth = { 
-            "January","February","March","April","May","June","July","August","September","October","Novmber","December",
-            "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
+        private string[] mMonth = {
+            "january","february","march","april","may","june","july","august","september","october","novmber","december",
+            "jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec",
+        };
 
         private bool mError = false;
         private string mErrorMessage;
@@ -1817,7 +1818,7 @@ namespace WpfLib
         {
             string[] datePattern = {
                 //  [month] dd, yyyy
-                "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).*?([12][0-9]|3[01]|[1-9]),.*?(19[0-9][0-9]|2[01][0-9][0-9])",
+                "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec).*?([12][0-9]|3[01]|[1-9]),.*?(19[0-9][0-9]|2[01][0-9][0-9])",
                 //  [元号]yy年mm月dd日
                 "(令和|平成|昭和|大正|明治)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([0-2][0-9]|3[01]|[1-9])日",
                 //  yyyy年ww周
@@ -1844,6 +1845,8 @@ namespace WpfLib
                 "(19[0-9][0-9]|2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])",
                 //  yyyy
                 "(19[0-9][0-9]|2[01][0-9][0-9])",
+                //  dd[month]yyyy
+                "([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])",
                 };
             int year = 0;
             int month = 0;
@@ -1851,8 +1854,8 @@ namespace WpfLib
             int week = 0;
             int jd = 0;
             for (int i = 0; i < datePattern.Length; i++) {
-                if (Regex.IsMatch(date, datePattern[i])) {
-                    List<string[]> dateList = getPattern(date, datePattern[i]);
+                if (Regex.IsMatch(date.ToLower(), datePattern[i])) {
+                    List<string[]> dateList = getPattern(date.ToLower(), datePattern[i]);
                     switch (i) {
                         case 0: //  [manth] dd, yyyy
                             year = intParse(dateList[0][3]);
@@ -1928,6 +1931,11 @@ namespace WpfLib
                             month = 1;
                             day = 1;
                             break;
+                        case 14:    //  dd[month]yyyy
+                            year = intParse(dateList[0][3]);
+                            month = Array.IndexOf(mMonth, dateList[0][2].ToLower()) % 12 + 1;
+                            day = intParse(dateList[0][1]);
+                            break;
                     }
 
                     string buf = string.Format("{0:0000}/{1:00}/{2:00}", year, month, day);
@@ -1953,10 +1961,11 @@ namespace WpfLib
         public bool IsDateString(string date)
         {
             if (Regex.IsMatch(date, "(^19[0-9][0-9]|^2[01][0-9][0-9])年([1-9]|1[0-2])月([1-9]|[12][0-9]|3[01])日") ||            //  yyyy年mm月dd日
-                Regex.IsMatch(date, "(^[1-9]|^1[0-2])月([1-9]|[12][0-9]|3[01])日") ||                                           //  mm月dd日
+                Regex.IsMatch(date, "(^[1-9]|^1[0-2])月([1-9]|[12][0-9]|3[01])日") ||                                             //  mm月dd日
                 Regex.IsMatch(date, "(^19[0-9][0-9]|^2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])/([1-9]|[12][0-9]|3[01]|0[1-9])") ||   //  yyyy/mm/dd
                 Regex.IsMatch(date, "(^19[0-9][0-9]|^2[01][0-9][0-9])-([1-9]|1[0-2]|0[1-9])-([1-9]|[12][0-9]|3[01]|0[1-9])") ||   //  yyyy-mm-dd
                 Regex.IsMatch(date, "(^[1-9]|1[0-2]|^0[1-9])/([1-9]|[12][0-9]|3[01]|0[1-9])/(19[0-9][0-9]|2[01][0-9][0-9])") ||   //  mm/dd/yyyy
+                Regex.IsMatch(date.ToLower(), "(^[0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])") ||   //  dd[month]yyyy
                 (Regex.IsMatch(date, "(^19[0-9][0-9]|^2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])") && (date.Length == 8)) ||//  yyyymmdd
                 Regex.IsMatch(date, "(^令和|^平成|^昭和|^大正|^明治)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([1-9]|[0-2][0-9]|3[01])日"))  //  [元号]yy年mm月dd日
                 return true;
@@ -2098,6 +2107,11 @@ namespace WpfLib
             } else if (Regex.IsMatch(date, "^(19[0-9][0-9]|2[01][0-9][0-9])")) {
                 //  yyyy
                 year = int.Parse(date.Substring(0, 4));
+            } else if (Regex.IsMatch(date.ToLower(), "^([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])")) {
+                //  dd[month]yyyy
+                year = intParse(date.Substring(5, 4));
+                month = Array.IndexOf(mMonth, date.Substring(2,3).ToLower()) % 12 + 1;
+                day = intParse(date.Substring(0, 2));
             } else {
                 return 0;
             }
