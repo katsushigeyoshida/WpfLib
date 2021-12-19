@@ -748,7 +748,7 @@ namespace WpfLib
         {
             int result = 1;
             if (1 < n && 1 < r && r < n)
-                for (int i = r; i <= n; i++)
+                for (int i = n-r+1; i <= n; i++)
                     result *= i;
             else
                 result = 1;
