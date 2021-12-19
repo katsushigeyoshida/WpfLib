@@ -3,7 +3,13 @@
 namespace WpfLib
 {
     /// <summary>
-    /// InputBox2.xaml の相互作用ロジック
+    /// 2行文字列編集ダイヤログ
+    /// mEditText1  1行目入力文字列
+    /// mEditText2  2行目入力文字列
+    /// mTitle1     1行目タイトル
+    /// mTitle2     2行目タイトル
+    /// mMultiLine  複数行入力可否
+    /// mEditText2Enabled   2行目編集可否
     /// </summary>
     public partial class InputBox2 : Window
     {

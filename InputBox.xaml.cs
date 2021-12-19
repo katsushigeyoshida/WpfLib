@@ -4,11 +4,12 @@ using System.Windows.Controls;
 namespace WpfLib
 {
     /// <summary>
-    /// InputBox.xaml の相互作用ロジック
     /// 文字列編集ダイヤログ
-    /// ・複数行対応
-    /// ・表示専用設定
-    /// ・文字サイズ変更
+    /// ・入力文字列   mEditText
+    /// ・複数行対応   mMultiLine
+    /// ・表示専用設定 mReadOnly
+    /// ・文字サイズ   mFontSize
+    /// ・文字ズームボタン mFontZoomButtonVisible
     /// </summary>
     public partial class InputBox : Window
     {
