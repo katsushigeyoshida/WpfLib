@@ -2206,24 +2206,7 @@ namespace WpfLib
         /// <returns>西洋年</returns>
         public int JulianDay2Year(int jd)
         {
-            int jdc = jd;
-            if (jdc >= 2299161) {
-                //  1582/10+15以降はグレゴリオ暦
-                int t = (int)((jdc - 1867216.25) / 365.25);
-                jdc += 1 + t / 100 - t / 400;
-            }
-            jdc += 1524;
-            int y = (int)Math.Floor(((jdc - 122.1) / 365.25));
-            jdc -= (int)Math.Floor(365.25 * y);
-            int m = (int)(jdc / 30.6001);
-            jdc -= (int)(30.6001 * m);
-            int day = jdc;
-            int month = m - 1;
-            int year = y - 4716;
-            if (month > 12) {
-                month -= 12;
-                year++;
-            }
+            (int year, int month, int day) = JulianDay2Date(jd);
             return year;
         }
 
@@ -2235,24 +2218,7 @@ namespace WpfLib
         /// <returns>月</returns>
         public int JulianDay2Month(int jd)
         {
-            int jdc = jd;
-            if (jdc >= 2299161) {
-                //  1582/10+15以降はグレゴリオ暦
-                int t = (int)((jdc - 1867216.25) / 365.25);
-                jdc += 1 + t / 100 - t / 400;
-            }
-            jdc += 1524;
-            int y = (int)Math.Floor(((jdc - 122.1) / 365.25));
-            jdc -= (int)Math.Floor(365.25 * y);
-            int m = (int)(jdc / 30.6001);
-            jdc -= (int)(30.6001 * m);
-            int day = jdc;
-            int month = m - 1;
-            int year = y - 4716;
-            if (month > 12) {
-                month -= 12;
-                year++;
-            }
+            (int year, int month, int day) = JulianDay2Date(jd);
             return month;
         }
 
@@ -2264,6 +2230,17 @@ namespace WpfLib
 
         public int JulianDay2Day(int jd)
         {
+            (int year, int month, int day) = JulianDay2Date(jd);
+            return day;
+        }
+
+        /// <summary>
+        /// ユリウス日から年月日を求める
+        /// </summary>
+        /// <param name="jd">ユリウス日</param>
+        /// <returns>(年,月,日)</returns>
+        public (int year, int month, int day) JulianDay2Date(int jd)
+        {
             int jdc = jd;
             if (jdc >= 2299161) {
                 //  1582/10+15以降はグレゴリオ暦
@@ -2282,14 +2259,14 @@ namespace WpfLib
                 month -= 12;
                 year++;
             }
-            return day;
+            return (year, month, day);
         }
 
         /// <summary>
         /// ユリウス日から歴日文字列に変換
         /// 0: yyyy/mm/dd 1: yyyymmdd 2:yyyy-mm-dd  3: mm/dd/yyyy 
         /// 4: yyyy年mm月dd日 5: yyyy年mm月 6: yyyy年
-        /// 7: yyyy年mm月ww週 8: yyyy年ww週
+        /// 7: yyyy年mm月ww週 8: yyyy年ww週 9: yyyy年ww週(年変わりを同じ年にする)
         /// </summary>
         /// <param name="jdc">ユリウス日</param>
         /// <param name="type">歴日文字列タイプ</param>
@@ -2298,23 +2275,11 @@ namespace WpfLib
         {
             string date = "";
             int jdc = jd;
-            if (jdc >= 2299161) {
-                //  1582/10+15以降はグレゴリオ暦
-                int t = (int)((jdc - 1867216.25) / 365.25);
-                jdc += 1 + t / 100 - t / 400;
+            if (type == 9) {
+                //  年変わりを同じ週にするためユリウス日を週頭に変更
+                jd = jdc - (jdc + 1) % 7;
             }
-            jdc += 1524;
-            int y = (int)Math.Floor(((jdc - 122.1) / 365.25));
-            jdc -= (int)Math.Floor(365.25 * y);
-            int m = (int)(jdc / 30.6001);
-            jdc -= (int)(30.6001 * m);
-            int day = jdc;
-            int month = m - 1;
-            int year = y - 4716;
-            if (month > 12) {
-                month -= 12;
-                year++;
-            }
+            (int year, int month, int day) = JulianDay2Date(jd);
             int weekNo = 0;
             switch (type) {
                 case 0:     //  yyyy/mm/dd
@@ -2344,6 +2309,7 @@ namespace WpfLib
                     date = string.Format("{0}年{1}月{2}週", year, month, weekNo);
                     break;
                 case 8:     //  yyyy年ww週
+                case 9:     //  yyyy年ww週(年変わり同じ週)
                     weekNo = (jd + 1) / 7 - (date2JulianDay(year, 1, 1) + 1) / 7 + 1;
                     date = string.Format("{0}年{1}週", year, weekNo);
                     break;
@@ -2663,8 +2629,9 @@ namespace WpfLib
         /// </summary>
         /// <param name="filePath">ファイル名パス</param>
         /// <param name="title">タイトルの配列</param>
+        /// <param name="first">1列目の整合性確認</param>
         /// <returns>取得データ(タイトル行なし)</returns>
-        public List<String[]> loadCsvData(string filePath, string[] title)
+        public List<String[]> loadCsvData(string filePath, string[] title, bool first = false)
         {
             //	ファイルデータの取り込み
             List<string[]> fileData = loadCsvData(filePath);
@@ -2675,7 +2642,7 @@ namespace WpfLib
             int start = 1;
             int[] titleNo = new int[title.Length];
             if (title != null && 0 < fileData.Count) {
-                if (fileData[0][0].CompareTo(title[0]) == 0) {
+                if (fileData[0][0].CompareTo(title[0]) == 0 || first) {
                     //	データの順番を求める
                     for (int n = 0; n < title.Length; n++) {
                         titleNo[n] = -1;
@@ -2746,6 +2713,7 @@ namespace WpfLib
         /// CSV形式のファイルを読み込む
         /// </summary>
         /// <param name="filePath">ファイルパス</param>
+        /// <param name="tabSep">Tabセパレート</param>
         /// <returns>データリスト</returns>
         public List<string[]> loadCsvData(string filePath, bool tabSep = false)
         {
