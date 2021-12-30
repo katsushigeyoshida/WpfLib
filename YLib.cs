@@ -1181,16 +1181,20 @@ namespace WpfLib
         /// <summary>
         /// 数値文字列かを判定する
         /// 数値以外の文字があっても数値にできるものは数値として判定
+        /// 数値文字列が複数ある時は数値文字列とはしない
         /// </summary>
         /// <param name="num">数値文字列</param>
-        /// <param name="allNum">数値以外はない時</param>
-        /// <returns></returns>
+        /// <param name="allNum">すべて数値のみ</param>
+        /// <returns>判定</returns>
         public bool IsNumberString(string num, bool allNum = false)
         {
             if (num == null)
                 return false;
             if (num.Length == 1 && num.CompareTo("0") == 0)
                 return true;
+            List<string> numbers = string2StringNumbers(num);
+            if (1 < numbers.Count)
+                return false;
             string nbuf = allNum ? num : string2StringNum(num);
             double val;
             return double.TryParse(nbuf, out val) ? true : false;
@@ -1326,6 +1330,27 @@ namespace WpfLib
             }
 
             return buf;
+        }
+
+        /// <summary>
+        /// 文字列の中から複数の数値文字列を抽出する
+        /// </summary>
+        /// <param name="num">文字列</param>
+        /// <returns>数値文字列リスト</returns>
+        public List<string> string2StringNumbers(string num)
+        {
+            List<string> data = new List<string>();
+            char[] startChar = startNum.ToCharArray();
+            int sp = 0;
+            while (sp < num.Length) {
+                sp = num.IndexOfAny(startChar, sp);
+                if (sp < 0)
+                    break;
+                string buf = string2StringNum(num.Substring(sp));
+                data.Add(buf);
+                sp += buf.Length;
+            }
+            return data;
         }
 
         //private string string2stringNum(string num)
