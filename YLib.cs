@@ -1290,8 +1290,8 @@ namespace WpfLib
         /// <summary>
         /// 文字列から数値に関係ない文字を除去し、実数に変換できる文字列にする
         /// </summary>
-        /// <param name="num">数値文字列</param>
-        /// <returns></returns>
+        /// <param name="num">文字列</param>
+        /// <returns>数値文字列</returns>
         public string string2StringNum(string num)
         {
             string buf = "";
@@ -1347,8 +1347,12 @@ namespace WpfLib
                 if (sp < 0)
                     break;
                 string buf = string2StringNum(num.Substring(sp));
-                data.Add(buf);
-                sp += buf.Length;
+                if (0 < buf.Length) {
+                    data.Add(buf);
+                    sp += buf.Length;
+                } else {
+                    sp++;
+                }
             }
             return data;
         }
