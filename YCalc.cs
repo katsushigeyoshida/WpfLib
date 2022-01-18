@@ -19,21 +19,21 @@ namespace WpfLib
     ///     エラーの内容  mErrorMsg
     ///     
     /// 
-    /// int setExpression(String str)
+    /// int setExpression(string str)
     /// double calculate()
-    /// int argKeySet(String str)
-    /// void setArgValue(String key, String data)
-    /// Dictionary<String, String> getArgDic()
-    /// String[] getArgKey()
-    /// String replaceArg()
-    /// List<String> expressList(String str)
-    /// int getBracketSize(String str, int start)
-    /// int getMonadicString(String str, int start)
-    /// String[] stringSeperate(String str)
-    /// double monadicExpression(String str)
-    /// int express3(int i, ref double x, List<String> expList)
-    /// int express2(int i, ref double x, List<String> expList)
-    /// double expression(String str)
+    /// int argKeySet(string str)
+    /// void setArgValue(string key, string data)
+    /// Dictionary<string, string> getArgDic()
+    /// string[] getArgKey()
+    /// string replaceArg()
+    /// List<string> expressList(string str)
+    /// int getBracketSize(string str, int start)
+    /// int getMonadicstring(string str, int start)
+    /// string[] stringSeperate(string str)
+    /// double monadicExpression(string str)
+    /// int express3(int i, ref double x, List<string> expList)
+    /// int express2(int i, ref double x, List<string> expList)
+    /// double expression(string str)
     /// double asinh(double x)
     /// double acosh(double x)
     /// double atanh(double x)
@@ -41,8 +41,12 @@ namespace WpfLib
     /// int combination(int n, int k)
     /// double factorial(int x)
     /// double fibonacci(int n)
-    /// double sum(String express, int n, int k)
-    /// double product(String express, int n, int k)
+    /// int Lcm(int a, int b)
+    /// int Gcd(int a, int b)
+    /// double getJD(int nYear, int nMonth, int nDay, int nHour = 0, int nMin = 0, int nSec = 0)
+    /// double getMJD(int nYear, int nMonth, int nDay, int nHour, int nMin, int nSec)
+    /// double sum(string express, int n, int k)
+    /// double product(string express, int n, int k)
     /// double deg2dms(double deg)
     /// double dms2deg(double dms)
     /// </summary>
@@ -53,6 +57,10 @@ namespace WpfLib
             "E 自然対数の底",
             "RAD(x) 度をラジアンに変換する",
             "DEG(x) ラジアンを度に変換する",
+            "deg2hour(x) 度を時単位に変換する",
+            "hour2deg(x) 時単位を度に変換する",
+            "rad2hour(x) ラジアンを時単位に変換する",
+            "hour2rad(x) 時単位をラジアンに変換する",
             "mod(x,y) 剰余(割算の余り",
             "pow(x,y) 累乗",
             "max(x,y) 大きい方",
@@ -87,20 +95,27 @@ namespace WpfLib
             "lt(x,y) 大小判定(less than) x > y ⇒ 1,以外は0",
             "gt(x,y) 大小判定(greater than) x < y ⇒ 1,以外は0",
             "compare(x,y) 大小判定 x > y ⇒ 1,x==y ⇒ 0,x<y ⇒ -1",
+            "deg2dms(x) 度(ddd.dddd) → 度分秒(ddd.mmss)",
+            "dms2dig(x) 度分秒(ddd.mmss) → 度(ddd.dddd)",
+            "hour2hms(x) 時(hh.hhhh) → 時分秒(hh.mmss)",
+            "hms2hour(x) 時分秒(hh.mmss) → 時(hh.hhhh)",
             "fact(x) 階乗",
             "fib(x) フィボナッチ数列",
             "gcd(x,y) 最大公約数",
             "lcm(x,y) 最小公倍数",
-            "sum(f([@]),n,k) 級数の和 計算式f([@])にnからkまで入れた合計",
-            "product(f([@]),n,k) 級数の積 計算式f([@])にnからkまでを入れた積",
+            "JD(y,m,d) 西暦年月日からユリウス日を求める",
+            "MJD(y,m,d) 西暦年月日から準ユリウス日を求める",
+            "sum(f([@]),n,k) 級数の和 nからkまで連続し値を計算式f([@])で演算した値の合計を求める",
+            "sum(f([@]),n1,n2...nm) 級数の和 n1からnmまで値を計算式f([@])で演算した値の合計を求める",
+            "product(f([@]),n,k) 級数の積 nからkまで連続し値を計算式f([@])で演算した値の積を求める",
+            "product(f([@]),,n1,n2...nm) 級数の積 n1からnmまで値を計算式f([@])で演算した値の積を求める",
             "repeat(f([@],[%]),i,n,k) 計算式の[@]にnからkまで入れて繰返す,[%]に計算結果が入る,iは[%]の初期値",
         };
 
-        private String mExpression;
-        private Dictionary<String, String> mArgDic;
+        private string mExpression;
+        private Dictionary<string, string> mArgDic;
         public bool mError = false;
-        public String mErrorMsg;
-
+        public string mErrorMsg;
         public YCalc()
         {
             mArgDic = new Dictionary<string, string>();
@@ -111,7 +126,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">計算式</param>
         /// <returns>引数の数</returns>
-        public int setExpression(String str)
+        public int setExpression(string str)
         {
             mExpression = str;
             return argKeySet(mExpression);
@@ -123,7 +138,7 @@ namespace WpfLib
         /// <returns>計算結果</returns>
         public double calculate()
         {
-            String express = replaceArg();
+            string express = replaceArg();
             return expression(express);
         }
 
@@ -132,9 +147,9 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">計算式</param>
         /// <returns>引数の数</returns>
-        private int argKeySet(String str)
+        private int argKeySet(string str)
         {
-            String buf = "";
+            string buf = "";
             int i = 0;
             mArgDic.Clear();
             while (i < str.Length) {
@@ -161,7 +176,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="key">引数名</param>
         /// <param name="data">引数の値</param>
-        public void setArgValue(String key, String data)
+        public void setArgValue(string key, string data)
         {
             if (mArgDic.ContainsKey(key))
                 mArgDic[key] = data;
@@ -172,7 +187,7 @@ namespace WpfLib
         /// このHashTableを編集して計算式をつく直す
         /// </summary>
         /// <returns>引数のHashTable</returns>
-        public Dictionary<String, String> getArgDic()
+        public Dictionary<string, string> getArgDic()
         {
             return mArgDic;
         }
@@ -181,11 +196,11 @@ namespace WpfLib
         /// 引数のキーワードを文字列の配列で取得
         /// </summary>
         /// <returns>引数のキーワード</returns>
-        public String[] getArgKey()
+        public string[] getArgKey()
         {
-            String[] keys = new String[mArgDic.Count];
+            string[] keys = new string[mArgDic.Count];
             int i = 0;
-            foreach (String key in mArgDic.Keys) {
+            foreach (string key in mArgDic.Keys) {
                 keys[i++] = key;
             }
             return keys;
@@ -195,10 +210,10 @@ namespace WpfLib
         /// 引数を数値に置き換えた式を作成する
         /// </summary>
         /// <returns>引数を置き換えた計算式</returns>
-        public String replaceArg()
+        public string replaceArg()
         {
-            String exprrss = mExpression;
-            foreach (KeyValuePair<String, String> kvp in mArgDic) {
+            string exprrss = mExpression;
+            foreach (KeyValuePair<string, string> kvp in mArgDic) {
                 //Console.WriteLine(kvp.Key + " " + kvp.Value);
                 if (0 < kvp.Value.Length)
                     exprrss = exprrss.Replace(kvp.Key, kvp.Value);
@@ -214,11 +229,11 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">計算式文字列</param>
         /// <returns>List配列</returns>
-        public List<String> expressList(String str)
+        public List<string> expressList(string str)
         {
-            List<String> expList = new List<string>();
+            List<string> expList = new List<string>();
             expList.Clear();
-            String buf = "";
+            string buf = "";
             for (int i = 0; i < str.Length; i++) {
                 if (Char.IsNumber(str[i]) || str[i] == '.' ||
                     (i == 0 && str[i] == '-') ||
@@ -270,7 +285,7 @@ namespace WpfLib
         /// <param name="str">文字式</param>
         /// <param name="start">開始位置</param>
         /// <returns>括弧内の文字数</returns>
-        public int getBracketSize(String str, int start)
+        public int getBracketSize(string str, int start)
         {
             int bracketCount = 0;
             int bracketStart = 0;
@@ -315,7 +330,7 @@ namespace WpfLib
         /// <param name="str">文字列</param>
         /// <param name="start">開始位置</param>
         /// <returns>開始位置からの文字数</returns>
-        private int getMonadicString(String str, int start)
+        private int getMonadicString(string str, int start)
         {
             int i = start;
             while (i < str.Length) {
@@ -361,7 +376,7 @@ namespace WpfLib
             List<String> strList = new List<string>();
             int i = 0;
             int bracketCount = 0;
-            String buf = "";
+            string buf = "";
             while (i < str.Length) {
                 if (str[i] == '(') {
                     bracketCount++;
@@ -382,7 +397,7 @@ namespace WpfLib
             }
             if (0 < buf.Length)
                 strList.Add(buf);
-            String[] strArray = strList.ToArray();
+            string[] strArray = strList.ToArray();
             return strArray;
         }
 
@@ -391,7 +406,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">文字列</param>
         /// <returns>計算結果</returns>
-        private double monadicExpression(String str)
+        private double monadicExpression(string str)
         {
             double result = 0;
             double x, y, z;
@@ -407,10 +422,10 @@ namespace WpfLib
                 }
                 return result;
             }
-            String ope = str.Substring(0, str.IndexOf('('));
-            String data = str.Substring(str.IndexOf('(') + 1, str.Length - str.IndexOf('(') - 2);
+            string ope = str.Substring(0, str.IndexOf('('));
+            string data = str.Substring(str.IndexOf('(') + 1, str.Length - str.IndexOf('(') - 2);
             //Console.WriteLine(ope+" "+data);
-            String[] datas = stringSeperate(data);
+            string[] datas = stringSeperate(data);
             if (0 == datas.Length) {
             } else if (1 == datas.Length) {
                 //  引数が1個の単項演算子
@@ -419,10 +434,22 @@ namespace WpfLib
                     result = x * Math.PI / 180d;
                 } else if (ope.CompareTo("DEG") == 0) {     //  radian→degree
                     result = x * 180d / Math.PI;
+                } else if (ope.CompareTo("deg2hour") == 0) {//  度 → 時
+                    result = deg2hour(x);
+                } else if (ope.CompareTo("hour2deg") == 0) {//  時 →度
+                    result = hour2deg(x);
+                } else if (ope.CompareTo("rad2hour") == 0) {//  ラジアン → 時
+                    result = rad2hour(x);
+                } else if (ope.CompareTo("hour2rad") == 0) {//  時 → ラジアン
+                    result = hour2rad(x);
                 } else if (ope.CompareTo("deg2dms") == 0) { //  度 → 度分秒
                     result = deg2dms(x);
                 } else if (ope.CompareTo("dms2deg") == 0) { //  度分秒 → 度
                     result = dms2deg(x);
+                } else if (ope.CompareTo("hour2hms") == 0) { //  時 → 時分秒
+                    result = hour2hms(x);
+                } else if (ope.CompareTo("hms2hour") == 0) { //  時分秒 → 時
+                    result = hms2hour(x);
                 } else if (ope.CompareTo("fact") == 0) {    //  階乗
                     result = factorial((int)x);
                 } else if (ope.CompareTo("fib") == 0) {     //  フィボナッチ数列
@@ -521,6 +548,10 @@ namespace WpfLib
                 } else if (ope.CompareTo("product") == 0) { //  級数の積
                     result = product(datas);
                     //result = product(datas[0], (int)x, (int)y);
+                } else if (ope.CompareTo("JD") == 0) {      //  ユリウス日を求める
+                    result = getJD((int)expression(datas[0]), (int)expression(datas[1]), (int)expression(datas[2]));
+                } else if (ope.CompareTo("MJD") == 0) {     //  準ユリウス日を求める
+                    result = getMJD((int)expression(datas[0]), (int)expression(datas[1]), (int)expression(datas[2]));
                 } else {
                     mError = true;
                     mErrorMsg = "未サポート関数 " + ope;
@@ -561,11 +592,11 @@ namespace WpfLib
         /// <param name="x">計算結果</param>
         /// <param name="expList">計算式の配列リスト</param>
         /// <returns>次の計算式の位置</returns>
-        private int express3(int i, ref double x, List<String> expList)
+        private int express3(int i, ref double x, List<string> expList)
         {
             double y;
             double z = 0;
-            String ope = "";
+            string ope = "";
             if (i + 2 < expList.Count()) {
                 //Console.WriteLine("express3 "+i+" "+expList[i]+" "+expList[i+1]+" "+expList[i+2]);
                 y = expression(expList[i]);
@@ -589,11 +620,11 @@ namespace WpfLib
         /// <param name="x">計算結果</param>
         /// <param name="expList">計算式の配列List</param>
         /// <returns>次の計算式の位置</returns>
-        private int express2(int i, ref double x, List<String> expList)
+        private int express2(int i, ref double x, List<string> expList)
         {
             double y;
             double z = 0;
-            String ope = "";
+            string ope = "";
             if (i + 2 < expList.Count()) {
                 //Console.WriteLine("express2 "+i+" "+expList[i]+" "+expList[i+1]+" "+expList[i+2]);
                 y = expression(expList[i]);
@@ -632,17 +663,17 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">計算式文字列</param>
         /// <returns>計算結果</returns>
-        public double expression(String str)
+        public double expression(string str)
         {
             //Console.WriteLine("expression:"+str);
-            List<String> expList;
+            List<string> expList;
             mError = false;
             //  文字列を数値と演算子、括弧内の分解リストを作成
             expList = expressList(str);
             //  分解リストを順次計算していく
             double result = 0;
             double x;
-            String ope = "";
+            string ope = "";
             int i = 0;
             try {
                 while (i < expList.Count()) {
@@ -828,6 +859,34 @@ namespace WpfLib
             return a;
         }
 
+        //  ユリウス日の取得 (https://www.dinop.com/vc/getjd.html)
+        //  年月日は西暦、時間はUTC
+        public double getJD(int nYear, int nMonth, int nDay, int nHour = 0, int nMin = 0, int nSec = 0)
+        {
+            //  引数の妥当性はチェックしない
+            //  ユリウス日の計算
+            if (nMonth == 1 || nMonth == 2) {
+                nMonth += 12;
+                nYear--;
+            }
+            double dJD = (double)((int)(nYear * 365.25) + (int)(nYear / 400) -
+                (int)(nYear / 100) + (int)(30.59 * (nMonth - 2)) + nDay - 678912 + 2400000.5 +
+                (double)nHour / 24 + (double)nMin / (24 * 60) + (double)nSec / (24 * 60 * 60));
+            return dJD;
+        }
+
+        //  準ユリウス日の取得
+        //  年月日はグレゴリオ暦（普通の西暦）、時間はUTCで渡すこと
+        public double getMJD(int nYear, int nMonth, int nDay, int nHour = 0, int nMin = 0, int nSec = 0)
+        {
+            double dJD = getJD(nYear, nMonth, nDay, nHour, nMin, nSec);
+            if (dJD == 0.0)
+                return 0.0;
+            else
+                return dJD - 2400000.5;
+        }
+
+
         /// <summary>
         /// 式(f(x)のxがnからkまでの合計を求める
         /// 式は[@]を変数として記述し[@]にnからkまでの1づつ増加する値が入る
@@ -837,7 +896,7 @@ namespace WpfLib
         /// <param name="n">開始の変数値</param>
         /// <param name="k">終了の変数値</param>
         /// <returns>計算結果</returns>
-        public double sum(String express, int n, int k)
+        public double sum(string express, int n, int k)
         {
             double result = 0;
             YCalc calc = new YCalc();
@@ -845,27 +904,6 @@ namespace WpfLib
             for (int i = n; i <= k; i++) {
                 calc.setArgValue("[@]", "(" + i + ")");
                 result += calc.calculate();
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 式(f(x)のxがnからkまでの積を求める
-        /// 式は[@]を変数として記述し[@]にnからkまでの1づつ増加する値が入る
-        /// product("[@]^2",3,5) ⇒  3^2*4^2+5^2 = 3600
-        /// </summary>
-        /// <param name="express">集計に使う式</param>
-        /// <param name="n">開始の変数値</param>
-        /// <param name="k">終了の変数値</param>
-        /// <returns>計算結果</returns>
-        public double product(String express, int n, int k)
-        {
-            double result = 1;
-            YCalc calc = new YCalc();
-            calc.setExpression(express);
-            for (int i = n; i <= k; i++) {
-                calc.setArgValue("[@]", "(" + i + ")");
-                result *= calc.calculate();
             }
             return result;
         }
@@ -900,6 +938,27 @@ namespace WpfLib
                     calc.setArgValue("[@]", "(" + arg[i] + ")");
                     result += calc.calculate();
                 }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 式(f(x)のxがnからkまでの積を求める
+        /// 式は[@]を変数として記述し[@]にnからkまでの1づつ増加する値が入る
+        /// product("[@]^2",3,5) ⇒  3^2*4^2+5^2 = 3600
+        /// </summary>
+        /// <param name="express">集計に使う式</param>
+        /// <param name="n">開始の変数値</param>
+        /// <param name="k">終了の変数値</param>
+        /// <returns>計算結果</returns>
+        public double product(string express, int n, int k)
+        {
+            double result = 1;
+            YCalc calc = new YCalc();
+            calc.setExpression(express);
+            for (int i = n; i <= k; i++) {
+                calc.setArgValue("[@]", "(" + i + ")");
+                result *= calc.calculate();
             }
             return result;
         }
@@ -950,7 +1009,7 @@ namespace WpfLib
         /// <param name="n">開始値</param>
         /// <param name="k">終了値</param>
         /// <returns></returns>
-        public double repeat(String express, double initVal, int n, int k)
+        public double repeat(string express, double initVal, int n, int k)
         {
             double result = initVal;
             YCalc calc = new YCalc();
@@ -990,6 +1049,75 @@ namespace WpfLib
             double min = Math.Floor(tmp);
             double sec = (tmp - min) * 100d;
             return deg + min / 60d + sec / 3600d;
+        }
+
+        /// <summary>
+        /// 時(hhh.hhhh)を時分秒表記(hh.mmss)にする
+        /// </summary>
+        /// <param name="hour">時(hhh.dddddd)</param>
+        /// <returns>時分秒(hh.mmss)</returns>
+        public double hour2hms(double hour)
+        {
+            double tmp = hour;
+            double degree = Math.Floor(tmp);
+            tmp = (tmp - degree) * 60d;
+            double minutes = Math.Floor(tmp);
+            tmp = (tmp - minutes) * 60d;
+            return degree + minutes / 100d + tmp / 10000d;
+        }
+
+        /// <summary>
+        /// 時分秒表記(hh.mmss)を度(時)(hh.hhhh)にする 
+        /// </summary>
+        /// <param name="hms">時分秒(hhh.mmss)</param>
+        /// <returns>時(hhh.ddddd)</returns>
+        public double hms2hour(double hms)
+        {
+            double deg = Math.Floor(hms);
+            double tmp = (hms - deg) * 100d;
+            double min = Math.Floor(tmp);
+            double sec = (tmp - min) * 100d;
+            return deg + min / 60d + sec / 3600d;
+        }
+
+        /// <summary>
+        /// 度から時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="deg">度</param>
+        /// <returns>時</returns>
+        public double deg2hour(double deg)
+        {
+            return deg * 24.0 / 360.0;
+        }
+
+        /// <summary>
+        /// 時(hh.hhhh)から度に変換
+        /// </summary>
+        /// <param name="hour">時</param>
+        /// <returns>度</returns>
+        public double hour2deg(double hour)
+        {
+            return hour * 360.0 /  24.0;
+        }
+
+        /// <summary>
+        /// ラジアンから時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="rad">ラジアン</param>
+        /// <returns>時</returns>
+        public double rad2hour(double rad)
+        {
+            return rad * 12.0 / Math.PI;
+        }
+
+        /// <summary>
+        /// 時(hh.hhhh)からラジアンに変換
+        /// </summary>
+        /// <param name="hour">時</param>
+        /// <returns>ラジアン</returns>
+        public double hour2rad(double hour)
+        {
+            return hour * Math.PI / 12.0;
         }
     }
 }
