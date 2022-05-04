@@ -59,6 +59,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayExtension.cs" />
     <Compile Include="FileData.cs" />
     <Compile Include="GpxReader.cs" />
     <Compile Include="HelpView.xaml.cs">
