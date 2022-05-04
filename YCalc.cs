@@ -106,6 +106,7 @@ namespace WpfLib
             "JD(y,m,d) 西暦年月日からユリウス日を求める",
             "MJD(y,m,d) 西暦年月日から準ユリウス日を求める",
             "sum(f([@]),n,k) 級数の和 nからkまで連続し値を計算式f([@])で演算した値の合計を求める",
+            "JD2Date(x) ユリウス日を年月日に変換して yyyymmdd の実数にする",
             "sum(f([@]),n1,n2...nm) 級数の和 n1からnmまで値を計算式f([@])で演算した値の合計を求める",
             "product(f([@]),n,k) 級数の積 nからkまで連続し値を計算式f([@])で演算した値の積を求める",
             "product(f([@]),,n1,n2...nm) 級数の積 n1からnmまで値を計算式f([@])で演算した値の積を求める",
@@ -498,7 +499,11 @@ namespace WpfLib
                     result = Math.Truncate(x);
                 } else if (ope.CompareTo("sign") == 0) {    //  符号を示す値を返す
                     result = Math.Sign(x);
-                } else {
+                }　else if (ope.CompareTo("JD2Date") == 0)
+                {    //  符号を示す値を返す
+                    result = JD2Date(x);
+                }
+                else {
                     mError = true;
                     mErrorMsg = "未サポート関数 " + ope;
                 }
@@ -886,6 +891,46 @@ namespace WpfLib
                 return dJD - 2400000.5;
         }
 
+        /// <summary>
+        /// ユリウス日を年月日に変換して yyyymmdd の実数で返す
+        /// </summary>
+        /// <param name="jd">ユリウス日</param>
+        /// <returns>年月日</returns>
+        public double JD2Date(double jd)
+        {
+            (int year, int month, int day) = JulianDay2Date(jd);
+            return year * 10000 + month * 100 + day;
+        }
+
+        /// <summary>
+        /// ユリウス日から年月日を求める
+        /// </summary>
+        /// <param name="jd">ユリウス日</param>
+        /// <returns>(年,月,日)</returns>
+        public (int year, int month, int day) JulianDay2Date(double jd)
+        {
+            int jdc = (int)(jd + 0.5);
+            if (jdc >= 2299161)
+            {
+                //  1582/10+15以降はグレゴリオ暦
+                int t = (int)((jdc - 1867216.25) / 365.25);
+                jdc += 1 + t / 100 - t / 400;
+            }
+            jdc += 1524;
+            int y = (int)Math.Floor(((jdc - 122.1) / 365.25));
+            jdc -= (int)Math.Floor(365.25 * y);
+            int m = (int)(jdc / 30.6001);
+            jdc -= (int)(30.6001 * m);
+            int day = jdc;
+            int month = m - 1;
+            int year = y - 4716;
+            if (month > 12)
+            {
+                month -= 12;
+                year++;
+            }
+            return (year, month, day);
+        }
 
         /// <summary>
         /// 式(f(x)のxがnからkまでの合計を求める
