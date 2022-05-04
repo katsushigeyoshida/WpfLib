@@ -217,7 +217,7 @@ namespace WpfLib
         /// <returns></returns>
         public Point vector()
         {
-            return new Point(pe.X - ps.X, pe.Y - pe.Y);
+            return new Point(pe.X - ps.X, pe.Y - ps.Y);
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace WpfLib
         public double angle()
         {
             Point v = vector();
-            return Math.Atan2(v.X, v.Y);
+            return Math.Atan2(v.Y, v.X);
         }
 
         /// <summary>
