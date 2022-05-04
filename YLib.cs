@@ -462,8 +462,10 @@ namespace WpfLib
             try {
                 wc = new WebClient();
                 //  Microsoft Edgeの要求ヘッダーを模擬(403エラー対応)
-                wc.Headers.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-                wc.Headers.Add("user-agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36 Edg/92.0.902.67");    //  403対応
+                wc.Headers.Add("accept", "text/html;q=0.9,image/webp,image/apng,*/*");
+                wc.Headers.Add("user-agent", "Mozilla Chrome Mobile Safari Edg");    //  403対応
+                //wc.Headers.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+                //wc.Headers.Add("user-agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36 Edg/92.0.902.67");    //  403対応
                 //  データのダウンロード
                 wc.DownloadFile(url, filePath);
                 wc.Dispose();
@@ -1342,6 +1344,7 @@ namespace WpfLib
             List<string> data = new List<string>();
             char[] startChar = startNum.ToCharArray();
             int sp = 0;
+            num = num.Replace(",", "");
             while (sp < num.Length) {
                 sp = num.IndexOfAny(startChar, sp);
                 if (sp < 0)
@@ -1876,6 +1879,8 @@ namespace WpfLib
                 "(19[0-9][0-9]|2[01][0-9][0-9])",
                 //  dd[month]yyyy
                 "([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])",
+                //  dd-[month]-yy
+                "([0-9][0-9]|[0-9])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-9][0-9])",
                 };
             int year = 0;
             int month = 0;
@@ -1965,6 +1970,11 @@ namespace WpfLib
                             month = Array.IndexOf(mMonth, dateList[0][2].ToLower()) % 12 + 1;
                             day = intParse(dateList[0][1]);
                             break;
+                        case 15:    //  dd-[month]-yy
+                            year = 2000 + intParse(dateList[0][3]);
+                            month = Array.IndexOf(mMonth, dateList[0][2].ToLower()) % 12 + 1;
+                            day = intParse(dateList[0][1]);
+                            break;
                     }
 
                     string buf = string.Format("{0:0000}/{1:00}/{2:00}", year, month, day);
@@ -1995,6 +2005,7 @@ namespace WpfLib
                 Regex.IsMatch(date, "(^19[0-9][0-9]|^2[01][0-9][0-9])-([1-9]|1[0-2]|0[1-9])-([1-9]|[12][0-9]|3[01]|0[1-9])") ||   //  yyyy-mm-dd
                 Regex.IsMatch(date, "(^[1-9]|1[0-2]|^0[1-9])/([1-9]|[12][0-9]|3[01]|0[1-9])/(19[0-9][0-9]|2[01][0-9][0-9])") ||   //  mm/dd/yyyy
                 Regex.IsMatch(date.ToLower(), "(^[0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])") ||   //  dd[month]yyyy
+                Regex.IsMatch(date.ToLower(), "(^[0-9][0-9]|^[0-9])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-9][0-9])") ||   //  dd-[month]-yy
                 (Regex.IsMatch(date, "(^19[0-9][0-9]|^2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])") && (date.Length == 8)) ||//  yyyymmdd
                 Regex.IsMatch(date, "(^令和|^平成|^昭和|^大正|^明治)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([1-9]|[0-2][0-9]|3[01])日"))  //  [元号]yy年mm月dd日
                 return true;
@@ -2141,6 +2152,13 @@ namespace WpfLib
                 year = intParse(date.Substring(5, 4));
                 month = Array.IndexOf(mMonth, date.Substring(2,3).ToLower()) % 12 + 1;
                 day = intParse(date.Substring(0, 2));
+            } else if (Regex.IsMatch(date.ToLower(), "^([0-9][0-9]|^[0-9])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-9][0-9])")) {
+                //  dd-[month]-yy
+                int m = date.IndexOf('-');
+                int n = date.LastIndexOf('-');
+                year = 2000 + intParse(date.Substring(n + 1, 2));
+                month = Array.IndexOf(mMonth, date.Substring(m + 1, 3).ToLower()) % 12 + 1;
+                day = intParse(date.Substring(0, m));
             } else {
                 return 0;
             }
