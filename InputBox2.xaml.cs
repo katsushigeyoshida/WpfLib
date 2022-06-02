@@ -13,14 +13,15 @@ namespace WpfLib
     /// </summary>
     public partial class InputBox2 : Window
     {
-        private double mWindowWidth;                            //  ウィンドウの高さ
-        private double mWindowHeight;                           //  ウィンドウ幅
+        private double mWindowWidth;                        //  ウィンドウの高さ
+        private double mWindowHeight;                       //  ウィンドウ幅
+        public Window mMainWindow = null;                   //  親ウィンドウの設定
 
         public string mEditText1 = "";
         public string mEditText2 = "";
         public string mTitle1 = "";
         public string mTitle2 = "";
-        public bool mMultiLine = false;                         //  複数行入力可否
+        public bool mMultiLine = false;                     //  複数行入力可否
         public bool mEditText2Enabled = true;
 
 
@@ -34,6 +35,12 @@ namespace WpfLib
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (mMainWindow != null) {
+                //  親ウィンドウの中心に表示
+                Left = mMainWindow.Left + (mMainWindow.Width - Width) / 2;
+                Top = mMainWindow.Top + (mMainWindow.Height - Height) / 2;
+            }
+
             LbTitle1.Content = mTitle1;
             LbTitle2.Content = mTitle2;
             TbTextBox1.Text = mEditText1;
