@@ -3202,6 +3202,15 @@ namespace WpfLib
                     "北緯(.*?)度(.*?)分(.*?)秒.*?東経(.*?)度(.*?)分(.*?)秒",
                     "北緯(.*?)度(.*?)分.*?東経(.*?)度(.*?)分",
                     "北緯(.*?)度.*?東経(.*?)度",
+                    "北緯(.*?)度(.*?)分(.*?)秒.*?西経(.*?)度(.*?)分(.*?)秒",
+                    "北緯(.*?)度(.*?)分.*?西経(.*?)度(.*?)分",
+                    "北緯(.*?)度.*?西経(.*?)度",
+                    "南緯(.*?)度(.*?)分(.*?)秒.*?東経(.*?)度(.*?)分(.*?)秒",
+                    "南緯(.*?)度(.*?)分.*?東経(.*?)度(.*?)分",
+                    "南緯(.*?)度.*?東経(.*?)度",
+                    "南緯(.*?)度(.*?)分(.*?)秒.*?西経(.*?)度(.*?)分(.*?)秒",
+                    "南緯(.*?)度(.*?)分.*?西経(.*?)度(.*?)分",
+                    "南緯(.*?)度.*?西経(.*?)度",
                 };
 
         /// <summary>
@@ -3229,13 +3238,28 @@ namespace WpfLib
         public Point cnvCoordinate(string coordinate)
         {
             char[] stripChars = new char[] { ' ', '.' };
-            double latitude = 0.0;
-            double longitude = 0.0;
-            int a1 = coordinate.IndexOf("北緯");
-            int b1 = coordinate.IndexOf("東経");
+            double latitude = 0.0;      //  緯度
+            double longitude = 0.0;     //  経度
+            string[] latiTitle = { "北緯", "南緯" };
+            string[] longiTitle = { "東経", "西経" };
+            int latiNo = 0;
+            int longiNo = 0;
+            int a1 = -1;
+            for (latiNo = 0; latiNo < latiTitle.Length; latiNo++) {
+                a1 = coordinate.IndexOf(latiTitle[latiNo]);
+                if (0 <= a1)
+                    break;
+            }
+            int b1 = -1;
+            for (longiNo = 0; longiNo < longiTitle.Length; longiNo++) {
+                b1 = coordinate.IndexOf(longiTitle[longiNo]);
+                if (0 <= b1)
+                    break;
+            }
             if (a1 < 0 || b1 < 0)
                 return new Point(0, 0);
-            int n = coordinate.IndexOf("北緯", b1);
+
+            int n = coordinate.IndexOf(latiTitle[latiNo], b1);
             if (0 <= n)
                 coordinate = coordinate.Substring(0, n);
                 int a2 = coordinate.IndexOf("度", a1);
@@ -3252,6 +3276,8 @@ namespace WpfLib
                         latitude += buf.Length == 0 ? 0 : double.Parse(buf.Trim(stripChars)) / 3600.0;
                     }
                 }
+                if (latiNo == 1)
+                    latitude *= -1.0;
             }
 
             int b2 = coordinate.IndexOf("度", b1);
@@ -3268,6 +3294,8 @@ namespace WpfLib
                         longitude += buf.Length == 0 ? 0 : double.Parse(buf.Trim(stripChars)) / 3600.0;
                     }
                 }
+                if (longiNo == 1)
+                    longitude *= -1.0;
             }
 
             return new Point(longitude, latitude);
