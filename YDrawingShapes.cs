@@ -61,6 +61,7 @@ namespace WpfLib
     /// cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap) BitmapをBitmapImageに変換
     /// cnvImageFile2BitmapImage(string filePath)   イメージファイルをBitmapImageに変換
     /// setCanvasBitmapImage(Canvas canvas, BitmapImage bitmapImage, double ox, double oy, double width, double height) BitmapImageをcanvasに登録
+    /// screenCapture(int left, int top, int width, int height)     スクリーンキャプチャーしてClipBoardに入れる
     /// 
     /// 
     /// </summary>
@@ -1172,5 +1173,35 @@ namespace WpfLib
                 return bitmapSource;
             }
         }
+
+        /// <summary>
+        /// 指定領域をキャプチャーしてクリップボードに入れる
+        /// (画面全体をキャプチャーして指定領域を切り抜く)
+        /// 例: Point sp = CvMapData.PointToScreen(new Point(0, 0));
+        ///     ydraw.screenCapture((int)sp.X, (int)sp.Y, (int)CvMapData.ActualWidth, (int)CvMapData.ActualHeight);
+        /// </summary>
+        /// <param name="left">左座標</param>
+        /// <param name="top">上座標</param>
+        /// <param name="width">領域の幅</param>
+        /// <param name="height">領域の高さ</param>
+        public void screenCapture(int left, int top, int width, int height)
+        {
+            // 矩形領域
+            var rectangle = new System.Drawing.Rectangle(left, top, width, height);
+            var bitmap = new System.Drawing.Bitmap(rectangle.Width, rectangle.Height);
+            var graphics = System.Drawing.Graphics.FromImage(bitmap);
+            graphics.CopyFromScreen(new System.Drawing.Point(rectangle.X, rectangle.Y), new System.Drawing.Point(0, 0), bitmap.Size);
+            // グラフィックスの解放
+            graphics.Dispose();
+
+            // 画像の表示
+            using (var stream = new MemoryStream()) {
+                bitmap.Save(stream, ImageFormat.Png);
+                Clipboard.SetImage(bitmap2BitmapSource(bitmap));
+                //stream.Seek(0, SeekOrigin.Begin);
+                //image.Source = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+            }
+        }
+
     }
 }
