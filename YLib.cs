@@ -12,121 +12,6 @@ using System.Windows.Threading;
 
 namespace WpfLib
 {
-
-    /// <summary>
-    /// Pointの整数版(整数のPoint構造体)
-    /// System.Drawing.Point(Int32)の代用
-    /// System.WindowsのPointはDoubleのため、整数型が使えない
-    /// </summary>
-    public class PointI
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-
-        public PointI(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public PointI(Point dp)
-        {
-            X = (int)dp.X;
-            Y = (int)dp.Y;
-        }
-
-        public void Add(PointI point)
-        {
-            X += point.X;
-            Y += point.Y;
-        }
-
-        public bool Equals(PointI point)
-        {
-            return (X == point.X && Y == point.Y);
-        }
-
-        public void Offset(int x, int y)
-        {
-            X += x;
-            Y += y;
-        }
-
-        public bool Parse(string str)
-        {
-            char[] separator = { ',', ' ' };
-            string[] point = str.Split(separator);
-            if (2 <= point.Length) {
-                int tx, ty;
-                if (int.TryParse(point[0], out tx) && int.TryParse(point[1], out ty)) {
-                    X = tx;
-                    Y = ty;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void Subtruct(PointI point)
-        {
-            X -= point.X;
-            Y -= point.Y;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("[{0},{1}]", X,Y);
-        }
-    }
-
-    /// <summary>
-    /// Sizeの整数版
-    /// System.Drawing.Size(Int32)の代用
-    /// System.EindowsにはSizeがないため
-    /// </summary>
-    public class SizeI
-    {
-        public int Width { get; set; }
-        public int Height { get; set; }
-
-        public SizeI(int width, int height)
-        {
-            Width = Math.Abs(width);
-            Height = Math.Abs(height);
-        }
-
-        public SizeI(PointI point)
-        {
-            Width = Math.Abs(point.X);
-            Height = Math.Abs(point.Y);
-        }
-
-        public bool Equals(SizeI size)
-        {
-            return (Width == size.Width && Height == size.Height);
-        }
-
-        public bool Parse(string str)
-        {
-            char[] separator = { ',', ' ' };
-            string[] point = str.Split(separator);
-            if (2 <= point.Length) {
-                int tw, th;
-                if (int.TryParse(point[0], out tw) && int.TryParse(point[1], out th)) {
-                    Width  = Math.Abs(tw);
-                    Height = Math.Abs(th);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("[{0},{1}]", Width, Height);
-        }
-    }
-
     /// <summary>
     /// System.Windows.Formsが見つからない時は参照の追加でアセンブリの中から選択する
     /// 
@@ -233,6 +118,7 @@ namespace WpfLib
     /// String getLastFolder(String folder, int n)  フルパスのディレクトリから最後のフォルダ名を取り出す(位置指定)
     /// string getWorkFilePath(string fileName)     ワークファイル用のパス名を取得
     /// string getWorkFilePath(string fileName, bool systemfile)            ワークファイル用のパス名を取得
+    /// Boolean createPathFolder(string path)       ファイルパスからフォルダ作成
     /// void saveCsvData(string path, string[] format, List<string[]> data) タイトルをつけてCSV形式でListデータをファイルに保存
     /// List<String[]> loadCsvData(string filePath, string[] title) CSV形式のファイルを読み込みList<String[]>形式で出力
     /// void saveCsvData(string path, List<String[]> csvData)       データをCSV形式でファイルに書き込む
@@ -413,6 +299,53 @@ namespace WpfLib
             } catch (Exception e) {
                 System.Windows.MessageBox.Show(e.Message);
             }
+        }
+
+        /// <summary>
+        /// イメージファイル同士を重ねる
+        /// </summary>
+        /// <param name="baseImagePath">ベースイメージファイル</param>
+        /// <param name="lapImagePath">上に重ねるイメージファイル</param>
+        /// <param name="saveImagePath">保存ファイル</param>
+        /// <param name="transportColor">透過色</param>
+        /// <returns>保存ファイルパス(保存不可 null)</returns>
+        public string imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, System.Drawing.Color transportColor)
+        {
+            if ((baseImagePath == null || !File.Exists(baseImagePath) &&
+                (lapImagePath == null || !File.Exists(lapImagePath))))
+                return null;
+            if (!createPathFolder(saveImagePath))
+                return null;
+
+            System.Drawing.Imaging.ImageFormat imgFormat = System.Drawing.Imaging.ImageFormat.Png;
+            if (File.Exists(saveImagePath))
+                File.Delete(saveImagePath);
+
+            if (baseImagePath == null || !File.Exists(baseImagePath)) {
+                //  imagePath2しかない場合
+                System.Drawing.Bitmap img1 = new System.Drawing.Bitmap(lapImagePath);
+                img1.Save(saveImagePath, imgFormat);
+                img1.Dispose();
+            } else if (lapImagePath == null || !File.Exists(lapImagePath)) {
+                //  imagePath1 しかない場合
+                System.Drawing.Bitmap img2 = new System.Drawing.Bitmap(baseImagePath);
+                img2.Save(saveImagePath, imgFormat);
+                img2.Dispose();
+            } else {
+                //  imagePath1とimagePath2の両方がある
+                System.Drawing.Bitmap img1 = new System.Drawing.Bitmap(baseImagePath);
+                System.Drawing.Bitmap img2 = new System.Drawing.Bitmap(lapImagePath);
+                System.Drawing.Bitmap img3 = new System.Drawing.Bitmap(img1);
+                System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img3);
+                img2.MakeTransparent(transportColor);       //  透過色の設定
+                g.DrawImage(img2, img3.Width - img2.Width, img3.Height - img2.Height, img2.Width, img2.Height);
+                g.Dispose();
+                img3.Save(saveImagePath, imgFormat);
+                img1.Dispose();
+                img2.Dispose();
+                img3.Dispose();
+            }
+            return saveImagePath;
         }
 
         //  ---  ネットワーク関連  ---
@@ -2651,6 +2584,24 @@ namespace WpfLib
         public string getWorkFilePath(string fileName, bool systemfile)
         {
             return getAppFolderPath() + "\\" + "YDoc" + (systemfile ? "" : "_") + fileName + ".csv";
+        }
+
+        /// <summary>
+        /// ファイルパスからフォルダを作成
+        /// </summary>
+        /// <param name="path">ファイルパス</param>
+        /// <returns></returns>
+        public Boolean createPathFolder(string path)
+        {
+            try {
+                string folder = Path.GetDirectoryName(path);
+                if (0 < folder.Length && !Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
