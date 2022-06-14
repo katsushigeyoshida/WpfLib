@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayExtension.cs" />
+    <Compile Include="Box.cs" />
     <Compile Include="FileData.cs" />
     <Compile Include="GpxReader.cs" />
     <Compile Include="HelpView.xaml.cs">
@@ -71,14 +72,17 @@
     <Compile Include="InputBox2.xaml.cs">
       <DependentUpon>InputBox2.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LineD.cs" />
     <Compile Include="PdfView.xaml.cs">
       <DependentUpon>PdfView.xaml</DependentUpon>
     </Compile>
     <Compile Include="PointExtension.cs" />
+    <Compile Include="PointI.cs" />
     <Compile Include="PriorityQueue.cs" />
     <Compile Include="SelectMenu.xaml.cs">
       <DependentUpon>SelectMenu.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SizeI.cs" />
     <Compile Include="YCalc.cs" />
     <Compile Include="YDrawingShapes.cs" />
     <Compile Include="YGButton.cs" />
