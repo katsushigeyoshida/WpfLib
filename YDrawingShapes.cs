@@ -910,6 +910,7 @@ namespace WpfLib
                 return;
             //  BitmapからBitmapImageに変換
             BitmapImage bitmapImage = cnvBitmap2BitmapImage(newBitmap);
+            newBitmap.Dispose();
             //  BitmapImageをCanvasに張り付ける
             setCanvasBitmapImage(mCanvas, bitmapImage, ox, oy, width, height);
         }
@@ -928,6 +929,7 @@ namespace WpfLib
                 return;
             //  BitmapからBitmapImageに変換
             BitmapImage bitmapImage = cnvBitmap2BitmapImage(newBitmap);
+            newBitmap.Dispose();
             //  BitmapImageをCanvasに張り付ける
             setCanvasBitmapImage(mCanvas, bitmapImage, rect.X, rect.Y, rect.Width, rect.Height);
         }
@@ -947,6 +949,7 @@ namespace WpfLib
                 return;
             //  BitmapからBitmapImageに変換
             BitmapImage bitmapImage = cnvBitmap2BitmapImage(newBitmap);
+            newBitmap.Dispose();
             //  BitmapImageをCanvasに張り付ける
             setCanvasBitmapImage(mCanvas, bitmapImage, orgRect.X, orgRect.Y, orgRect.Width, orgRect.Height);
         }
@@ -974,7 +977,9 @@ namespace WpfLib
                 h = bitmap.Height;
             }
             System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0, 0, w, h);
-            return bitmap.Clone(rect, bitmap.PixelFormat);
+            System.Drawing.Bitmap resultImg = bitmap.Clone(rect, bitmap.PixelFormat);
+            bitmap.Dispose();
+            return resultImg;
         }
 
         /// <summary>
@@ -997,12 +1002,16 @@ namespace WpfLib
             int oy = (int)(trimRect.Y * bitmap.Height / size.Height);
             int w = (int)(trimRect.Width * bitmap.Width / size.Width);
             int h = (int)(trimRect.Height * bitmap.Height / size.Height);
-            if (ox < 0 || oy < 0 || w <= 0 || h <= 0)
+            if (ox < 0 || oy < 0 || w <= 0 || h <= 0) {
+                bitmap.Dispose();
                 return null;
+            }
             w = Math.Min(w, bitmap.Width - ox);
             h = Math.Min(h, bitmap.Height - oy);
             System.Drawing.Rectangle rect = new System.Drawing.Rectangle(ox, oy, w, h);
-            return bitmap.Clone(rect, bitmap.PixelFormat);
+            System.Drawing.Bitmap resultImg = bitmap.Clone(rect, bitmap.PixelFormat);
+            bitmap.Dispose();
+            return resultImg;
         }
 
         /// <summary>
