@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -62,6 +61,8 @@ namespace WpfLib
     /// cnvImageFile2BitmapImage(string filePath)   イメージファイルをBitmapImageに変換
     /// setCanvasBitmapImage(Canvas canvas, BitmapImage bitmapImage, double ox, double oy, double width, double height) BitmapImageをcanvasに登録
     /// screenCapture(int left, int top, int width, int height)     スクリーンキャプチャーしてClipBoardに入れる
+    /// imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, Color transportColors)   イメージファイル同士を重ねる
+    /// Bitmap colorReplace(Bitmap imgSrc, ColorMap[] cms)  画像データの色変換
     /// 
     /// 
     /// </summary>
@@ -1022,7 +1023,7 @@ namespace WpfLib
         public BitmapImage cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream()) {
-                bitmap.Save(memory, ImageFormat.Png);
+                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
                 memory.Position = 0;
                 BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
@@ -1205,11 +1206,89 @@ namespace WpfLib
 
             // 画像の表示
             using (var stream = new MemoryStream()) {
-                bitmap.Save(stream, ImageFormat.Png);
+                bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
                 Clipboard.SetImage(bitmap2BitmapSource(bitmap));
                 //stream.Seek(0, SeekOrigin.Begin);
                 //image.Source = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             }
+        }
+
+        /// <summary>
+        /// イメージファイル同士を重ねる
+        /// 透過色は配列で複数設定可能
+        /// </summary>
+        /// <param name="baseImagePath">ベースイメージファイル</param>
+        /// <param name="lapImagePath">上に重ねるイメージファイル</param>
+        /// <param name="saveImagePath">保存ファイル</param>
+        /// <param name="transportColors">透過色</param>
+        /// <returns>保存ファイルパス(保存不可 null)</returns>
+        public string imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, System.Drawing.Color[] transportColors)
+        {
+            if ((baseImagePath == null || !File.Exists(baseImagePath) &&
+                (lapImagePath == null || !File.Exists(lapImagePath))))
+                return null;
+
+            System.Drawing.Imaging.ImageFormat imgFormat = System.Drawing.Imaging.ImageFormat.Png;
+            try {
+                if (File.Exists(saveImagePath))
+                    File.Delete(saveImagePath);
+
+                if (baseImagePath == null || !File.Exists(baseImagePath)) {
+                    //  lapImagePath しかない場合
+                    System.Drawing.Bitmap img = new System.Drawing.Bitmap(lapImagePath);
+                    img.Save(saveImagePath, imgFormat);
+                    img.Dispose();
+                } else if (lapImagePath == null || !File.Exists(lapImagePath)) {
+                    //  baseImagePath しかない場合
+                    System.Drawing.Bitmap img = new System.Drawing.Bitmap(baseImagePath);
+                    img.Save(saveImagePath, imgFormat);
+                    img.Dispose();
+                } else {
+                    //  baseImagePathとlapImagePath の両方がある
+                    System.Drawing.Bitmap baseImg = new System.Drawing.Bitmap(baseImagePath);
+                    System.Drawing.Bitmap lapImg = new System.Drawing.Bitmap(lapImagePath);
+                    System.Drawing.Bitmap img = new System.Drawing.Bitmap(baseImg);
+                    System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img);
+                    if (1 < transportColors.Length) {
+                        //  透過色が複数ある場合、先頭の透過色に色変換する
+                        System.Drawing.Imaging.ColorMap[] cms = new System.Drawing.Imaging.ColorMap[transportColors.Length - 1];
+                        for (int i = 1; i < transportColors.Length; i++) {
+                            cms[i - 1] = new System.Drawing.Imaging.ColorMap();
+                            cms[i - 1].OldColor = transportColors[i];
+                            cms[i - 1].NewColor = transportColors[0];
+                        }
+                        lapImg = colorReplace(lapImg, cms);
+                    }
+                    lapImg.MakeTransparent(transportColors[0]);       //  透過色の設定
+                    g.DrawImage(lapImg, img.Width - lapImg.Width, img.Height - lapImg.Height, lapImg.Width, lapImg.Height);
+                    g.Dispose();
+                    img.Save(saveImagePath, imgFormat);
+                    baseImg.Dispose();
+                    lapImg.Dispose();
+                    img.Dispose();
+                }
+            } catch (Exception ex) { 
+                System.Diagnostics.Debug.WriteLine("imageOverlap: " + ex.Message);
+                return null;
+            }
+            return saveImagePath;
+        }
+
+        /// <summary>
+        /// 画像データの色変換
+        /// </summary>
+        /// <param name="imgSrc">Bitmapデータ</param>
+        /// <param name="cms">色変換マップ配列</param>
+        /// <returns>Bitmapデータ</returns>
+        public System.Drawing.Bitmap colorReplace(System.Drawing.Bitmap imgSrc, System.Drawing.Imaging.ColorMap[] cms)
+        {
+            System.Drawing.Bitmap img = new System.Drawing.Bitmap(imgSrc);
+            System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img);
+            System.Drawing.Imaging.ImageAttributes ia = new System.Drawing.Imaging.ImageAttributes();
+            ia.SetRemapTable(cms);
+            g.DrawImage(img, new System.Drawing.Rectangle(0, 0, img.Width, img.Height), 0, 0, img.Width, img.Height, System.Drawing.GraphicsUnit.Pixel, ia);
+            g.Dispose();
+            return img;
         }
 
     }
