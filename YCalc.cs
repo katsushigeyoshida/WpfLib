@@ -91,6 +91,7 @@ namespace WpfLib
             "round(x) 四捨五入(もっとも近い整数値)",
             "trunc(x) 浮動小数点の整数部",
             "sign(x) 符号示す値(1/0/-1)",
+            "round(x,y) yの倍数に丸める",
             "equals(x,y) 等価判定 x==y ⇒ 1,x!=y ⇒ 0",
             "lt(x,y) 大小判定(less than) x > y ⇒ 1,以外は0",
             "gt(x,y) 大小判定(greater than) x < y ⇒ 1,以外は0",
@@ -515,6 +516,8 @@ namespace WpfLib
                     result = Math.Pow(x, y);
                 } else if (ope.CompareTo("mod") == 0) {     //  剰余
                     result = x % y;
+                } else if (ope.CompareTo("round") == 0) {   //  xをｙの単位で丸める
+                    result = Math.Floor(x / y) * y;
                 } else if (ope.CompareTo("atan2") == 0) {   //  逆正接
                     result = Math.Atan2(x, y);
                 } else if (ope.CompareTo("log") == 0) {     //  指定した底の対数
