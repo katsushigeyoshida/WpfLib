@@ -21,6 +21,8 @@ namespace WpfLib
         public string mEditText2 = "";
         public string mTitle1 = "";
         public string mTitle2 = "";
+        public string mToolTip1 = "";
+        public string mToolTip2 = "";
         public bool mMultiLine = false;                     //  複数行入力可否
         public bool mEditText2Enabled = true;
 
@@ -45,6 +47,8 @@ namespace WpfLib
             LbTitle2.Content = mTitle2;
             TbTextBox1.Text = mEditText1;
             TbTextBox2.Text = mEditText2;
+            TbTextBox1.ToolTip = mToolTip1;
+            TbTextBox2.ToolTip = mToolTip2;
             TbTextBox2.IsEnabled = mEditText2Enabled;
 
             if (mMultiLine) {
