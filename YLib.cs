@@ -16,12 +16,16 @@ namespace WpfLib
     /// System.Windows.Formsが見つからない時は参照の追加でアセンブリの中から選択する
     /// 
     /// システム関連
-    /// bool getError()                 ERRORの発生を取得
-    /// string getErrorMessage()        ERROR Messageの取得
-    /// void DoEvents()                 コントロールを明示的に更新
+    /// bool getError()                     ERRORの発生を取得
+    /// string getErrorMessage()            ERROR Messageの取得
+    /// void DoEvents()                     コントロールを明示的に更新
+    /// void Swap<T>(ref T lhs, ref T rhs)  ジェネリックによるswap関数
+    /// void fileExecute(string path)       ファイルを実行
+    /// 
+    /// グラフィック関連
     /// int getArgb2Uint(Byte a, Byte r, Byte g, Byte b)    ARGBからint値を作成(カラー値の変換)
     /// Brush getInt2Color(int color)                       4桁のHex数値からカラー値(Brush)を作成
-    /// void Swap<T>(ref T lhs, ref T rhs)  ジェネリックによるswap関数
+    /// Color hexString2Color(string code)                  RGB16進文字列をカラーコードに変換
     /// 
     /// ネットワーク関連
     /// void WebSerach(string url, string searchWord)       Web検索Google,Bing..)のWebページを開く
@@ -33,9 +37,11 @@ namespace WpfLib
     /// List<string> getPattern(string html, string pattern, string group)  正規表現を使ったHTMLデータからパターン抽出
     /// List<string[]> getPattern(string html, string pattern)  正規表現を使ったHTMLからのパターン抽出
     /// List<string[]> getPattern2(string html, string pattern) 正規表現を使ったHTMLからのパターン抽出
-    /// List<string> getHtmlTagList(string html)            HTMLソースからTAGデータごとに分解したリストを作る
-    /// int getHtmlTagType(string tagData)                  タグデータの種類を判別
-    /// string getHtmlTagName(string tagData)                '<','>'で囲まれたタグデータからタグ名を抽出
+    /// List<string> getHtmlTagData(string html, string tag, string para, string paraData, int pos = 0) タグ名やパメータ名を指定してタグデータを抽出
+    /// string getHtmlTagSrc(string html, string tag, string para, string paraData, int pos = 0)    タグ名やパラメータ名を指定してTMLのソース抽出
+    /// List<string> getHtmlTagList(string html)                HTMLソースからTAGデータごとに分解したリストを作る
+    /// int getHtmlTagType(string tagData)                      タグデータの種類を判別
+    /// string getHtmlTagName(string tagData)                   '<','>'で囲まれたタグデータからタグ名を抽出
     /// List<string> getHtmlTagDataAll(string html, int pos = 0)    HTMLソースからデータのみを抽出
     /// (string, string, string) getHtmlTagData(string html, string tag)    TAGデータの抽出(入れ子対応)
     /// (string, string, string, int, int) getHtmlTagData(string html, string tag, int pos) TAGデータの抽出(入れ子対応)
@@ -70,6 +76,7 @@ namespace WpfLib
     /// string array2csvString(string[] data)       文字配列をダブルクォーテーションで括ってカンマセパレーツで一行の文字列に変換
     /// String setDigitSeparator(String val)        文字列が数値の場合、桁区切り(3桁)を入れる
     /// string cnvHtmlSpecialCode(string html)      HTMLで使われいる{&#??;]のコードを通常の文字に置換
+    /// int lastIndexCountOf(string text, string value, int count)  文字列を後ろから検索してn個目の位置
     /// 
     /// ストップウォッチ
     /// void stopWatchStartNew()                    ストップウォッチ機能初期化・計測開始
@@ -79,6 +86,7 @@ namespace WpfLib
     /// TimeSpan stopWatchTotalTime()               ストップウォッチ機能累積時間の取得
     /// 
     /// 日付・時間処理
+    /// DateTime roundDateTimeMin(DateTime et, int min) 日時を分単位で丸める
     /// string second2String(double seconds)        秒数を時分秒の文字列に変換
     /// bool IsTime(string time)                    文字列の時刻タイプの判定
     /// int time2Seconds(string time)               文字列時刻を秒数に変換
@@ -243,34 +251,6 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// ARGBからint値を作成(カラー値の変換)
-        /// </summary>
-        /// <param name="a">α値</param>
-        /// <param name="r">R値</param>
-        /// <param name="g">G値</param>
-        /// <param name="b">B値</param>
-        /// <returns></returns>
-        public int getArgb2Uint(Byte a, Byte r, Byte g, Byte b)
-        {
-            return (int)(a << (3 * 8) | r << (2 * 8) | g << 8 | b);
-        }
-
-        /// <summary>
-        /// 4桁のHex数値からカラー値(Brush)を作成する
-        /// ARGBの順に指定 
-        ///     灰色     A= 0x1e, R=0x7d, G=0x7d, B=0x7d → 0x1e7d7d7d
-        ///     シアン   A= 0x1e, R=0x00, G=0xff, B=0xff → 0x1e00ffff
-        /// </summary>
-        /// <param name="color"></param>
-        /// <returns></returns>
-        public Brush getInt2Color(int color)
-        {
-            return new SolidColorBrush(Color.FromArgb(
-                getInt2Byte(color, 3), getInt2Byte(color, 2),
-                getInt2Byte(color, 1), getInt2Byte(color, 0)));
-        }
-
-        /// <summary>
         /// ジェネリックによるswap関数
         /// 例: Swap<int>(ref a, ref b); Swap(ref a, ref b);
         /// </summary>
@@ -301,51 +281,59 @@ namespace WpfLib
             }
         }
 
+        //  ---  グラフィック関連  ----
+
         /// <summary>
-        /// イメージファイル同士を重ねる
+        /// ARGBからint値を作成(カラー値の変換)
         /// </summary>
-        /// <param name="baseImagePath">ベースイメージファイル</param>
-        /// <param name="lapImagePath">上に重ねるイメージファイル</param>
-        /// <param name="saveImagePath">保存ファイル</param>
-        /// <param name="transportColor">透過色</param>
-        /// <returns>保存ファイルパス(保存不可 null)</returns>
-        public string imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, System.Drawing.Color transportColor)
+        /// <param name="a">α値</param>
+        /// <param name="r">R値</param>
+        /// <param name="g">G値</param>
+        /// <param name="b">B値</param>
+        /// <returns></returns>
+        public int getArgb2Uint(Byte a, Byte r, Byte g, Byte b)
         {
-            if ((baseImagePath == null || !File.Exists(baseImagePath) &&
-                (lapImagePath == null || !File.Exists(lapImagePath))))
-                return null;
-            if (!createPathFolder(saveImagePath))
-                return null;
+            return (int)(a << (3 * 8) | r << (2 * 8) | g << 8 | b);
+        }
 
-            System.Drawing.Imaging.ImageFormat imgFormat = System.Drawing.Imaging.ImageFormat.Png;
-            if (File.Exists(saveImagePath))
-                File.Delete(saveImagePath);
+        /// <summary>
+        /// 4桁のHex数値からカラー値(Brush)を作成する
+        /// ARGBの順に指定 
+        ///     灰色     A= 0x1e, R=0x7d, G=0x7d, B=0x7d → 0x1e7d7d7d
+        ///     シアン   A= 0x1e, R=0x00, G=0xff, B=0xff → 0x1e00ffff
+        /// </summary>
+        /// <param name="color"></param>
+        /// <returns></returns>
+        public Brush getInt2Color(int color)
+        {
+            return new SolidColorBrush(Color.FromArgb(
+                getInt2Byte(color, 3), getInt2Byte(color, 2),
+                getInt2Byte(color, 1), getInt2Byte(color, 0)));
+        }
 
-            if (baseImagePath == null || !File.Exists(baseImagePath)) {
-                //  imagePath2しかない場合
-                System.Drawing.Bitmap img1 = new System.Drawing.Bitmap(lapImagePath);
-                img1.Save(saveImagePath, imgFormat);
-                img1.Dispose();
-            } else if (lapImagePath == null || !File.Exists(lapImagePath)) {
-                //  imagePath1 しかない場合
-                System.Drawing.Bitmap img2 = new System.Drawing.Bitmap(baseImagePath);
-                img2.Save(saveImagePath, imgFormat);
-                img2.Dispose();
-            } else {
-                //  imagePath1とimagePath2の両方がある
-                System.Drawing.Bitmap img1 = new System.Drawing.Bitmap(baseImagePath);
-                System.Drawing.Bitmap img2 = new System.Drawing.Bitmap(lapImagePath);
-                System.Drawing.Bitmap img3 = new System.Drawing.Bitmap(img1);
-                System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(img3);
-                img2.MakeTransparent(transportColor);       //  透過色の設定
-                g.DrawImage(img2, img3.Width - img2.Width, img3.Height - img2.Height, img2.Width, img2.Height);
-                g.Dispose();
-                img3.Save(saveImagePath, imgFormat);
-                img1.Dispose();
-                img2.Dispose();
-                img3.Dispose();
+        /// <summary>
+        /// RGB16進文字列をカラーコードに変換
+        /// </summary>
+        /// <param name="code">RGB16新文字列</param>
+        /// <returns>カラーコード</returns>
+        public System.Drawing.Color hexString2Color(string code)
+        {
+            int s = 0;
+            try {
+                if (6 <= code.Length) {
+                    int r = Convert.ToInt32(code.Substring(s, 2), 16);
+                    s += 2;
+                    int g = Convert.ToInt32(code.Substring(s, 2), 16);
+                    s += 2;
+                    int b = Convert.ToInt32(code.Substring(s, 2), 16);
+                    return System.Drawing.Color.FromArgb(r, g, b);
+                } else {
+                    return System.Drawing.Color.FromArgb(0xFF, 0xFF, 0xFF);
+                }
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine($"hexString2Color: {e.Message}");
+                return System.Drawing.Color.FromArgb(0xFF, 0xFF, 0xFF);
             }
-            return saveImagePath;
         }
 
         //  ---  ネットワーク関連  ---
@@ -394,9 +382,19 @@ namespace WpfLib
            WebClient wc = null;
             try {
                 wc = new WebClient();
-                //  Microsoft Edgeの要求ヘッダーを模擬(403エラー対応)
+                //  401エラー対応(1) 現状不要
+                //string _auth = string.Format("{0}:{1}", "myUser", "myPwd");
+                //string _enc = Convert.ToBase64String(Encoding.ASCII.GetBytes(_auth));
+                //string _cred = string.Format("{0} {1}", "Basic", _enc);
+                //wc.Headers[HttpRequestHeader.Authorization] = _cred;
+                //  401エラー対応(2) 現状不要
+                //string un = "Username";
+                //string pw = "Password";
+                //wc.Credentials = new System.Net.NetworkCredential(un, pw);
+                //  403エラー対応で追加(serverによって内容を見直す))
                 wc.Headers.Add("accept", "text/html;q=0.9,image/webp,image/apng,*/*");
-                wc.Headers.Add("user-agent", "Mozilla Chrome Mobile Safari Edg");    //  403対応
+                wc.Headers.Add("user-agent", "Mozilla Chrome Mobile Safari Edg");
+                //  Microsoft Edgeの要求ヘッダーを模擬(403エラー対応)
                 //wc.Headers.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
                 //wc.Headers.Add("user-agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36 Edg/92.0.902.67");    //  403対応
                 //  データのダウンロード
@@ -412,10 +410,36 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// Webデータの取り込み
+        /// WebClientでOpenRead()とDownloadString()では内容が異なる(DownloadFile()と同じ)
+        /// </summary>
+        /// <param name="url">URLパス</param>
+        /// <param name="encordType">EncodeType(省略時はUTF8)</param>
+        /// <returns>HTMLテキスト</returns>
+        public string getWebDownloadString(string url, int encordType = 0)
+        {
+            string html = "";
+            try {
+                using (var wc = new WebClient()) {
+                    wc.Encoding = mEncoding[encordType];
+                    //  403エラー対応で追加(serverによって内容を見直す))
+                    wc.Headers.Add("accept", "text/html;q=0.9,image/webp,image/apng,*/*");
+                    wc.Headers.Add("user-agent", "Mozilla Chrome Mobile Safari Edg");
+                    html = wc.DownloadString(url);
+                }
+            } catch (Exception e) {
+                mErrorMessage = e.Message;
+            }
+            return html;
+        }
+
+
+        /// <summary>
         /// URLのWebデータの読込
         /// EndodingのデフォルトはUTF8(mEncordingType == 0)
         /// </summary>
         /// <param name="url">URL</param>
+        /// <returns>HTMLテキスト</returns>
         public string getWebText(string url)
         {
             return getWebText(url, mEncordingType);
@@ -427,7 +451,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="url">URL</param>
         /// <param name="encordType">エンコードタイプ(default=URF8)</param>
-        /// <returns></returns>
+        /// <returns>HTMLテキスト</returns>
         public string getWebText(string url, int encordType = 0)
         {
             Stream st;
@@ -525,6 +549,61 @@ namespace WpfLib
                 listData.Add(data);
             }
             return listData;
+        }
+
+
+        /// <summary>
+        /// 指定されたタグ名、パラメータ名、パラメータデータのタグデータをすべて抽出する
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <param name="tag">タグ名</param>
+        /// <param name="para">パラメータ名</param>
+        /// <param name="paraData">パラメータデータ</param>
+        /// <param name="pos">検索開始位置</param>
+        /// <returns>抽出タグデータ</returns>
+        public List<string> getHtmlTagData(string html, string tag, string para, string paraData, int pos = 0)
+        {
+            List<string> taglist = new List<string>();
+            while (0 <= (pos = html.IndexOf("<" + tag, pos))) {                 //  タグ位置
+                string getParaData = getHtmlTagPara(html, para, pos);           //  パラメータ
+                if (getParaData.CompareTo(paraData) == 0) {                     //  パラメータデータ
+                    (int sp, int ep) = getHtmlTagDataPos(html, tag, pos);
+                    if (ep <= sp)
+                        break;
+                    string tagData = html.Substring(sp, ep - sp + 1);
+                    string data = string.Join(",", getHtmlTagDataAll(tagData));
+                    taglist.Add(getParaData + " [" + data + "]");
+                }
+                pos = html.IndexOf(">", pos);
+                if (0 > pos)
+                    break;
+            }
+            return taglist;
+        }
+
+        /// <summary>
+        /// 指定されたタグ名、パラメータ名、パラメータデータで囲まれたHTMLソースを抽出
+        /// 指定したタグは含まない
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <param name="tag">タグ名</param>
+        /// <param name="para">パラメータ名</param>
+        /// <param name="paraData">パラメータデータ</param>
+        /// <param name="pos">検索開始位置</param>
+        /// <returns>抽出したHTMLソース</returns>
+        public string getHtmlTagSrc(string html, string tag, string para, string paraData, int pos = 0)
+        {
+            while (0 <= (pos = html.IndexOf("<" + tag, pos))) {
+                string getParaData = getHtmlTagPara(html, para, pos);
+                if (getParaData.CompareTo(paraData) == 0) {
+                    (string tagPara, string tagData, string nextSrc) = getHtmlTagData(html.Substring(pos), tag);
+                    return tagData;
+                }
+                pos = html.IndexOf(">", pos);
+                if (0 > pos)
+                    break;
+            }
+            return "";
         }
 
 
@@ -700,12 +779,13 @@ namespace WpfLib
 
         /// <summary>
         /// TAGデータの抽出(入れ子対応)
+        /// <TAG ...>data...</TAG>のdata部分を抽出、dataの中にタグが入れ子構造にも対応
         /// </summary>
         /// <param name="html">HTMLソース</param>
         /// <param name="tag">対象タグ名</param>
         /// <param name="pos">検索開始位置</param>
         /// <returns>(タグパラメータ, 抽出データ, 残りHTML, タグ開始位置, タグ終了位置)</returns>
-        public (string, string, string, int, int) getHtmlTagData(string html, string tag, int pos)
+        public (string, string, string, int, int) getHtmlTagData(string html, string tag, int pos = 0)
         {
             int startPos = pos;                 //  TAGの開始位置(TAGを含む)
             int endPos = pos;                   //  TAGの終了位置(TAGを含む)
@@ -795,10 +875,11 @@ namespace WpfLib
         /// </summary>
         /// <param name="tagData">タグデータ</param>
         /// <param name="paraName">パラメータ名</param>
+        /// <param name="pos">開始位置</param>
         /// <returns>パラメータデータ</returns>
-        public string getHtmlTagPara(string tagData, string paraName)
+        public string getHtmlTagPara(string tagData, string paraName, int pos = 0)
         {
-            int st = tagData.IndexOf('<');
+            int st = tagData.IndexOf('<', pos);
             if (st < 0)
                 return "";
             st = tagData.IndexOf(paraName, st);
@@ -1093,6 +1174,47 @@ namespace WpfLib
             return text;
         }
 
+        /// <summary>
+        /// 括弧で囲まれた文字列を抽出する(ディフォルトは'{','}')
+        /// 抽出した文字列に括弧は含まれない
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <param name="sb">開始括弧</param>
+        /// <param name="eb">終了括弧</param>
+        /// <returns>括弧内文字列</returns>
+        public List<string> extractBrackets(string text, char sb = '{', char eb = '}')
+        {
+            List<string> extractText = new List<string>();
+            int pos = 0;
+            int sp = text.IndexOf(sb);
+            int ep = text.IndexOf(eb);
+            if ((0 <= sp && 0 <= ep && ep < sp) || (sp < 0 && 0 <= ep)) {
+                string data = text.Substring(0, ep);
+                if (0 < data.Length)
+                    extractText.Add(data);
+                pos = ep + 1;
+            }
+            while (pos < text.Length) {
+                int st = text.IndexOf(sb, pos);
+                string data = "";
+                if (pos <= st) {
+                    int ct = text.IndexOf(eb, st);
+                    if (0 <= ct) {
+                        data = text.Substring(st + 1,  ct - st - 1);
+                        pos = ct + 1;
+                    } else {
+                        data = text.Substring(st + 1);
+                        pos = text.Length;
+                    }
+                } else {
+                    pos = text.Length;
+                }
+                // string data = data.Trim(trimChar);
+                if (0 < data.Length)
+                    extractText.Add(data);
+            }
+            return extractText;
+        }
 
         /// <summary>
         /// 文字列内のコントロールコードを除去する
@@ -1585,6 +1707,29 @@ namespace WpfLib
             return html;
         }
 
+        /// <summary>
+        /// 文字列を後から検索してn個めの位置を返す
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <param name="value">検索文字</param>
+        /// <param name="count">出現回数</param>
+        /// <returns>文字位置</returns>
+        public int lastIndexCountOf(string text, string value, int count)
+        {
+            List<int> indexList = new List<int>();
+            int index = 0;
+            do {
+                index = text.IndexOf(value, index);
+                if (0 <= index) {
+                    indexList.Add(index);
+                    index++;
+                }
+            } while (0 <= index);
+            if (0 < count && count <= indexList.Count)
+                return indexList[indexList.Count - count];
+            else
+                return -1;
+        }
 
         // ---  ストップウォッチ  ---
 
@@ -1645,6 +1790,20 @@ namespace WpfLib
         }
 
         //  ---  日付・時間処理  ------
+
+        /// <summary>
+        /// 日時を分単位で丸める
+        /// </summary>
+        /// <param name="et">日時</param>
+        /// <param name="min">丸める分数</param>
+        /// <returns>丸めた日時</returns>
+        public DateTime roundDateTimeMin(DateTime et, int min)
+        {
+            DateTime st = new DateTime(2000, 1, 1, 0, 0, 0);
+            TimeSpan dt = et - st;
+            DateTime rt = st.Add(new TimeSpan(0, (int)(Math.Floor(dt.TotalMinutes / min) * min), 0));
+            return rt;
+        }
 
         /// <summary>
         /// 秒数を時分秒の文字列に変換 s → mm:ss or hh:mm:ss
@@ -2628,11 +2787,12 @@ namespace WpfLib
         /// <param name="filePath">ファイル名パス</param>
         /// <param name="title">タイトルの配列</param>
         /// <param name="first">1列目の整合性確認</param>
+        /// <param name="comment">false:文字列の先頭が'#'だと取得しない</param>
         /// <returns>取得データ(タイトル行なし)</returns>
-        public List<String[]> loadCsvData(string filePath, string[] title, bool first = false)
+        public List<String[]> loadCsvData(string filePath, string[] title, bool first = false, bool comment = true)
         {
             //	ファイルデータの取り込み
-            List<string[]> fileData = loadCsvData(filePath);
+            List<string[]> fileData = loadCsvData(filePath, false, comment);
             if (fileData == null)
                 return null;
 
@@ -2711,9 +2871,10 @@ namespace WpfLib
         /// CSV形式のファイルを読み込む
         /// </summary>
         /// <param name="filePath">ファイルパス</param>
-        /// <param name="tabSep">Tabセパレート</param>
+        /// <param name="tabSep">true: Tabセパレート</param>
+        /// <param name="comment">false: 文字列の先頭が'#'だと取得しない</param>
         /// <returns>データリスト</returns>
-        public List<string[]> loadCsvData(string filePath, bool tabSep = false)
+        public List<string[]> loadCsvData(string filePath, bool tabSep = false, bool comment = true)
         {
             List<string[]> csvData = new List<string[]>();
 
@@ -2724,6 +2885,8 @@ namespace WpfLib
                             csvData.Clear();
                             string line;
                             while ((line = dataFile.ReadLine()) != null) {
+                                if (!comment && 0 < line.Length && line[0] == '#')
+                                    continue;
                                 string[] buf;
                                 if (tabSep) {
                                     buf = line.Split('\t');
