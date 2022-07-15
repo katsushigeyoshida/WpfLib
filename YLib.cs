@@ -281,6 +281,34 @@ namespace WpfLib
             }
         }
 
+        /// <summary>
+        /// URLを標準ブラウザで開く
+        /// Process.Start()でエラー(.NET COre)になる時に使用
+        /// https://oita.oika.me/2017/09/17/dotnet-core-process-start-with-url/
+        /// https://brockallen.com/2016/09/24/process-start-for-urls-on-net-core/
+        /// </summary>
+        /// <param name="targetUrl"></param>
+        public void openUrl(string url)
+        {
+            try {
+                System.Diagnostics.Process.Start(url);
+            } catch {
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)) {
+                    //Windowsのとき  
+                    url = url.Replace("&", "^&");
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                } else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux)) {
+                    //Linuxのとき  
+                    System.Diagnostics.Process.Start("xdg-open", url);
+                } else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX)) {
+                    //Macのとき  
+                    System.Diagnostics.Process.Start("open", url);
+                } else {
+                    throw;
+                }
+            }
+        }
+
         //  ---  グラフィック関連  ----
 
         /// <summary>
@@ -572,7 +600,7 @@ namespace WpfLib
                         break;
                     string tagData = html.Substring(sp, ep - sp + 1);
                     string data = string.Join(",", getHtmlTagDataAll(tagData));
-                    taglist.Add(getParaData + " [" + data + "]");
+                    taglist.Add(data);
                 }
                 pos = html.IndexOf(">", pos);
                 if (0 > pos)
@@ -880,13 +908,40 @@ namespace WpfLib
         public string getHtmlTagPara(string tagData, string paraName, int pos = 0)
         {
             int st = tagData.IndexOf('<', pos);
+            int et = tagData.IndexOf(">", st);
             if (st < 0)
                 return "";
             st = tagData.IndexOf(paraName, st);
-            if (0 <= st) {
+            if (0 <= st && st < et) {
                 st = tagData.IndexOf('\"', st);
                 if (0 <= st) {
-                    int et = tagData.IndexOf('\"', st + 1);
+                    et = tagData.IndexOf('\"', st + 1);
+                    if (0 < et)
+                        return tagData.Substring(st + 1, et - st - 1);
+                }
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// '<','>'で囲まれたタグデータからパラメータを抽出する
+        /// </summary>
+        /// <param name="tagData">タグデータ</param>
+        /// <param name="tagName">タグ名</param>
+        /// <param name="paraName">パラメータ名</param>
+        /// <param name="pos">開始位置</param>
+        /// <returns>パラメータデータ</returns>
+        public string getHtmlTagPara(string tagData, string tagName, string paraName, int pos = 0)
+        {
+            int st = tagData.IndexOf("<" + tagName, pos);
+            int et = tagData.IndexOf(">", st);
+            if (st < 0)
+                return "";
+            st = tagData.IndexOf(paraName, st);
+            if (0 <= st && st < et) {
+                st = tagData.IndexOf('\"', st);
+                if (0 <= st) {
+                    et = tagData.IndexOf('\"', st + 1);
                     if (0 < et)
                         return tagData.Substring(st + 1, et - st - 1);
                 }
@@ -1412,6 +1467,23 @@ namespace WpfLib
                     sp++;
                 }
             }
+            return data;
+        }
+
+        /// <summary>
+        /// 文字列の中から数値文字列を抽出する
+        /// </summary>
+        /// <param name="num">文字列</param>
+        /// <returns>数値文字列</returns>
+        public string string2StringNumber(string num)
+        {
+            string data = "";
+            char[] startChar = startNum.ToCharArray();
+            int sp = 0;
+            num = num.Replace(",", "");
+            sp = num.IndexOfAny(startChar, sp);
+            if (0 <= sp)
+                data = string2StringNum(num.Substring(sp));
             return data;
         }
 
