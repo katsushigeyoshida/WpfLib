@@ -263,6 +263,26 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 配列の一部を取出す
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="array"></param>
+        /// <param name="n"></param>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        public static T[] CopyTo<T>(this T[] array, int n, int m)
+        {
+            n = Math.Max(0, n);
+            m = Math.Min(m + 1, array.Length);
+            var newArray = new T[m - n];
+            int j = 0;
+            for (int i = n; i < m; i++) {
+                newArray[j++] = array[i];
+            }
+            return newArray;
+        }
+
+        /// <summary>
         /// 指定した配列を述語に従って新しい型の配列に変換します。
         /// </summary>
         public static Dest[] Convert<T, Dest>(this T[] array, Func<T, Dest> func)
