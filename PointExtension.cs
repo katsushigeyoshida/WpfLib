@@ -9,6 +9,19 @@ namespace WpfLib
     public static class PointExtension
     {
         /// <summary>
+        /// データが設定されているか確認
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static bool isEmpty(this Point p)
+        {
+            if (p.X == 0 && p.Y == 0)
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
         /// 符号を反転する
         /// </summary>
         /// <param name="p">自座標</param>
