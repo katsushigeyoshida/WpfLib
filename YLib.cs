@@ -897,6 +897,34 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// HTMLソースからタグの部分を除きデータのみにする
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <returns>タグ除外データ</returns>
+        public string stripHtmlTagData(string html)
+        {
+            int sp, ep;
+            do {
+                sp = html.IndexOf("<");
+                ep = html.IndexOf(">");
+                if (0 <= sp) {
+                    if (sp < ep) {
+                        html = html.Substring(0, sp) + (ep + 1 < html.Length ? html.Substring(ep + 1) : "");
+                    } else if (0 <= ep && ep < sp) {
+                        html = html.Substring(ep + 1, sp - ep);
+                    }
+                } else {
+                    if (0 <= ep && ep + 1 < html.Length) {
+                        html = html.Substring(ep + 1);
+                    } else {
+                        ep = -1;
+                    }
+                }
+            } while (0 <= sp && 0 <= ep);
+            return html;
+        }
+
+        /// <summary>
         /// '<','>'で囲まれたタグデータからパラメータを抽出する
         /// <a href="...." title="TITLE">
         /// data = getHtmlTagPara(tagData, "title");
