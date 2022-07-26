@@ -610,6 +610,19 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// HTMLソースから指定タグのデータを抽出する
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <param name="tag">タグ名</param>
+        /// <param name="pos">開始位置</param>
+        /// <returns>抽出データ</returns>
+        public string getHtmlTagSrc(string html, string tag, int pos = 0)
+        {
+            (string tagPara, string tagSrc, string nextHtml, int sp, int ep) = getHtmlTagData(html, tag, pos);
+            return tagSrc;
+        }
+
+        /// <summary>
         /// 指定されたタグ名、パラメータ名、パラメータデータで囲まれたHTMLソースを抽出
         /// 指定したタグは含まない
         /// </summary>
@@ -897,32 +910,68 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// HTMLソースからタグの部分を除きデータのみにする
+        /// HTMLソースからタグの部分('<' - '>')を除きデータのみにする
+        /// 入れ子のタグも除く
         /// </summary>
         /// <param name="html">HTMLソース</param>
         /// <returns>タグ除外データ</returns>
         public string stripHtmlTagData(string html)
         {
-            int sp, ep;
-            do {
-                sp = html.IndexOf("<");
-                ep = html.IndexOf(">");
-                if (0 <= sp) {
-                    if (sp < ep) {
-                        html = html.Substring(0, sp) + (ep + 1 < html.Length ? html.Substring(ep + 1) : "");
-                    } else if (0 <= ep && ep < sp) {
-                        html = html.Substring(ep + 1, sp - ep);
-                    }
+            string buf = "";
+            int pos = 0;
+            int count = 0;
+            int sp = html.IndexOf('<');
+            int ep = html.IndexOf('>');
+            if (sp < 0 && ep < 0)
+                return html;
+            else if (sp < 0 && 0 <= ep)
+                pos = ep + 1;
+            else if (0 <= sp && ep < sp)
+                pos = ep + 1;
+            while (pos < html.Length) {
+                if (html[pos] == '<') {
+                    count++;
+                } else if (html[pos] == '>') {
+                    count--;
                 } else {
-                    if (0 <= ep && ep + 1 < html.Length) {
-                        html = html.Substring(ep + 1);
-                    } else {
-                        ep = -1;
-                    }
+                    if (count == 0)
+                        buf += html[pos];
                 }
-            } while (0 <= sp && 0 <= ep);
-            return html;
+                pos++;
+            }
+            return buf;
         }
+
+        /// <summary>
+        /// HTMLソースからタグの部分を除きデータのみにする
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <returns>タグ除外データ</returns>
+        //public string stripHtmlTagData(string html)
+        //{
+        //    int sp, ep;
+        //    html = html.Replace("\r\n", "");
+        //    html = html.Replace("\n", "");
+        //    html = html.Replace("\r", "");
+        //    do {
+        //        sp = html.IndexOf("<");
+        //        ep = html.IndexOf(">");
+        //        if (0 <= sp) {
+        //            if (sp < ep) {
+        //                html = html.Substring(0, sp) + (ep + 1 < html.Length ? html.Substring(ep + 1) : "");
+        //            } else if (0 <= ep && ep < sp) {
+        //                html = html.Substring(ep + 1, sp - ep);
+        //            }
+        //        } else {
+        //            if (0 <= ep && ep + 1 < html.Length) {
+        //                html = html.Substring(ep + 1);
+        //            } else {
+        //                ep = -1;
+        //            }
+        //        }
+        //    } while (0 <= sp && 0 <= ep);
+        //    return html;
+        //}
 
         /// <summary>
         /// '<','>'で囲まれたタグデータからパラメータを抽出する
@@ -1626,6 +1675,24 @@ namespace WpfLib
             buffer = buffer.Replace("\"\"", "\"");      //  ""→"
             buffer = buffer.Replace("\\\"", "\"");      //  \"→"
             return buffer;
+        }
+
+        /// <summary>
+        /// 文字列からコントロールコードを除外する
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <returns>除外した文字列</returns>
+        public string stripControlCode(string str)
+        {
+            string buf = "";
+            int pos = 0;
+            while (pos < str.Length) {
+                if (0x20 <= str[pos])
+                    buf += str[pos];
+                pos++;
+            }
+
+            return buf;
         }
 
 
