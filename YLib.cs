@@ -269,10 +269,10 @@ namespace WpfLib
         /// ファイルを実行する
         /// </summary>
         /// <param name="path">ファイルパス</param>
-        public void fileExecute(string path)
+        public void fileExecute(string path, bool unchk = false)
         {
             try {
-                if (File.Exists(path))
+                if (File.Exists(path) || unchk)
                     System.Diagnostics.Process.Start(path);
                 else
                     System.Windows.MessageBox.Show(path + " がありません");
@@ -776,6 +776,37 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 指定されたタグ名、パラメータ名、パラメータデータのタグデータをすべて抽出する
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <param name="tag">タグ名</param>
+        /// <param name="para">パラメータ</param>
+        /// <param name="paraData">パラメータデータ</param>
+        /// <param name="pos">開始位置</param>
+        /// <returns>抽出データリスト</returns>
+        public List<string> getHtmlTagDataList(string html, string tag, string para, string paraData, int pos = 0)
+        {
+            List<string> taglist = new List<string>();
+            while (0 <= (pos = html.IndexOf("<" + tag, pos))) {                 //  タグ位置
+                string getParaData = getHtmlTagPara(html, para, pos);           //  パラメータ
+                if (getParaData.CompareTo(paraData) == 0) {                     //  パラメータデータ
+                    (int sp, int ep) = getHtmlTagDataPos(html, tag, pos);
+                    if (ep <= sp)
+                        break;
+                    string tagData = html.Substring(sp, ep - sp + 1);
+                    // Console.WriteLine($"{tagData}");
+                    string data = string.Join(",", getHtmlTagDataAll(tagData));
+                    taglist.Add(data);
+                    // taglist.Add(getParaData + " [" + data + "]");
+                }
+                pos = html.IndexOf(">", pos);
+                if (0 > pos)
+                    break;
+            }
+            return taglist;
+        }
+
+        /// <summary>
         /// HTMLソースから最初のデータ部を抽出(TAGは含まない)
         /// </summary>
         /// <param name="html">HTMLソース</param>
@@ -804,6 +835,7 @@ namespace WpfLib
                     return html;
             }
         }
+
 
         /// <summary>
         /// TAGデータの抽出(入れ子対応)
@@ -856,6 +888,22 @@ namespace WpfLib
             start = start <= st ? end + 1 : start;
 
             return (tagPara, html.Substring(st, start - st), html.Substring(end + 1), startPos, end);
+        }
+
+        /// <summary>
+        /// タグ名、パラメータ名、パラメータデータを指定してデータを抽出
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <param name="tag">タグ名</param>
+        /// <param name="para">タグパラメータ</param>
+        /// <param name="paraData">パラメータデータ</param>
+        /// <returns>(タグパラメータ, 抽出データ, 残りHTML)</returns>
+        public (string, string, string) getHtmlTagData(string html, string tag, string para, string paraData)
+        {
+            string tagPara = "", tagData = "", nextHtml = "";
+            (int tagType, int start, int end) = findHtmlTag(html, tag, para, paraData);
+            (tagPara, tagData, nextHtml) = getHtmlTagData(html.Substring(start), tag);
+            return (tagPara, tagData, nextHtml);
         }
 
         /// <summary>
@@ -1122,6 +1170,34 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// タグ,パラメータ、パラメータデータで検索して種別と位置を求める
+        /// 種別  1: <TAG ..../>  完結タグ
+        ///       2: <TAG ...>    開始タグ
+        ///       3: </TAG>       終了タグ
+        ///       0: 不明         タグが見つからない
+        /// </summary>
+        /// <param name="html">HTMLソース</param>
+        /// <param name="tagName">タグ名</param>
+        /// <param name="para">パラメータ名</param>
+        /// <param name="paraData">パラメータデータ</param>
+        /// <param name="pos">開始位置</param>
+        /// <returns>(種別, タグの起点, タグの終点)</returns>
+        public (int tagType, int start, int end) findHtmlTag(string html, string tagName, string para, string paraData, int pos = 0)
+        {
+            int tagType = 0, start = 0, end = 0;
+            do {
+                (tagType, start, end) = findHtmlTag(html, tagName, pos);
+                if (tagType != 0) {
+                    string paradata = getHtmlTagPara(html.Substring(start, end - start + 1), para);
+                    if (paraData.CompareTo(paradata) == 0)
+                        return (tagType, start, end);
+                }
+                pos = end;
+            } while (tagType != 0);
+            return (tagType, start, end);
+        }
+
+        /// <summary>
         /// タグを検索して種別と位置を求める
         /// 種別  1: <TAG ..../>  完結タグ
         ///       2: <TAG ...>    開始タグ
@@ -1314,14 +1390,15 @@ namespace WpfLib
         /// <param name="sb">開始括弧</param>
         /// <param name="eb">終了括弧</param>
         /// <returns>括弧内文字列</returns>
-        public List<string> extractBrackets(string text, char sb = '{', char eb = '}')
+        public List<string> extractBrackets(string text, char sb = '{', char eb = '}', bool withBracket = false)
         {
             List<string> extractText = new List<string>();
+            int bOffset = withBracket ? 1 : 0;
             int pos = 0;
             int sp = text.IndexOf(sb);
             int ep = text.IndexOf(eb);
             if ((0 <= sp && 0 <= ep && ep < sp) || (sp < 0 && 0 <= ep)) {
-                string data = text.Substring(0, ep);
+                string data = text.Substring(0, ep + bOffset);
                 if (0 < data.Length)
                     extractText.Add(data);
                 pos = ep + 1;
@@ -1332,10 +1409,10 @@ namespace WpfLib
                 if (pos <= st) {
                     int ct = text.IndexOf(eb, st);
                     if (0 <= ct) {
-                        data = text.Substring(st + 1,  ct - st - 1);
+                        data = text.Substring(st + 1 - bOffset,  ct - st - 1 + 2 * bOffset);
                         pos = ct + 1;
                     } else {
-                        data = text.Substring(st + 1);
+                        data = text.Substring(st + 1 - bOffset);
                         pos = text.Length;
                     }
                 } else {
@@ -3145,22 +3222,25 @@ namespace WpfLib
                         jsonList.Clear();
                         string line;
                         while ((line = dataFile.ReadLine()) != null) {
-                            List<string[]> jsonData = splitJson(getJsonDataString(line));
-                            if (0 < jsonData.Count) {
-                                if (jsonList.Count == 0) {
-                                    string[] buf = new string[jsonData.Count];
-                                    for (int i = 0; i < jsonData.Count; i++)
-                                        buf[i] = jsonData[i][0];
-                                    jsonList.Add(buf);
-                                    buf = new string[jsonData.Count];
-                                    for (int i = 0; i < jsonData.Count; i++)
-                                        buf[i] = jsonData[i][1];
-                                    jsonList.Add(buf);
-                                } else {
-                                    string[] buf = new string[jsonData.Count];
-                                    for (int i = 0; i < jsonData.Count; i++)
-                                        buf[i] = jsonData[i][1];
-                                    jsonList.Add(buf);
+                            List<string> dataList = extractBrackets(line, '{', '}', true);
+                            foreach (string data in dataList) {
+                                List<string[]> jsonData = splitJson(getJsonDataString(data));
+                                if (0 < jsonData.Count) {
+                                    if (jsonList.Count == 0) {
+                                        string[] buf = new string[jsonData.Count];
+                                        for (int i = 0; i < jsonData.Count; i++)
+                                            buf[i] = jsonData[i][0];
+                                        jsonList.Add(buf);
+                                        buf = new string[jsonData.Count];
+                                        for (int i = 0; i < jsonData.Count; i++)
+                                            buf[i] = jsonData[i][1];
+                                        jsonList.Add(buf);
+                                    } else {
+                                        string[] buf = new string[jsonData.Count];
+                                        for (int i = 0; i < jsonData.Count; i++)
+                                            buf[i] = jsonData[i][1];
+                                        jsonList.Add(buf);
+                                    }
                                 }
                             }
                         }
