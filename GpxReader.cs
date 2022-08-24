@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows;
 
@@ -30,7 +31,8 @@ namespace WpfLib
         /// <summary>
         /// GPXファイルを読み込んで位置情報データを取得(時間/緯度経度/高度)
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">GPXファイルパス</param>
+        /// <param name="dataType">データタイプ(2フルデータ/座標データのみ)</param>
         public GpxReader(string path, DATATYPE dataType)
         {
             mDataType = dataType;
@@ -113,10 +115,10 @@ namespace WpfLib
                             data.setLatitude(getParameeorData("lat", mListData[i]));    //  緯度
                             data.setLongitude(getParameeorData("lon", mListData[i]));   //  経度
                         } else if (mDataType == DATATYPE.gpxSimpleData) {
-                            mListGpsPointData.Add(loc);
+                            mListGpsPointData.Add(loc);                         //  座標データ格納
                         }
-                        mGpsInfoData.addDistance(loc);
-                        mGpsInfoData.setArea(loc);
+                        mGpsInfoData.addDistance(loc);                          //  累積距離
+                        mGpsInfoData.extentArea(loc);                              //  領域
                     } else if (mListData[i].IndexOf("<trkpt>") == 0) {
                         if (mDataType == DATATYPE.gpxData) {
                             data = new GpsData();
@@ -126,17 +128,17 @@ namespace WpfLib
                         if (mDataType == DATATYPE.gpxData) {
                             data.setElevator(mListData[i].Trim());
                         }
-                        mGpsInfoData.setMinMaxElevator(mListData[i].Trim());
+                        mGpsInfoData.setMinMaxElevator(mListData[i].Trim());    //  最小最大標高
                     } else if (mListData[i].IndexOf("<time>") == 0) {
                         i++;
                         if (mDataType == DATATYPE.gpxData) {
                             data.setDateTime(mListData[i].Trim());
                         }
-                        mGpsInfoData.setDateTime(mListData[i].Trim());
+                        mGpsInfoData.setDateTime(mListData[i].Trim());          //  開始・終了時刻
                     } else if (mListData[i].IndexOf("</trkpt>") == 0) {
                         if (mDataType == DATATYPE.gpxData) {
                             if (data != null)
-                                mListGpsData.Add(data);
+                                mListGpsData.Add(data);                         //  GPSデータ格納
                         }
                     } else if (mListData[i].IndexOf("</trkseg>") == 0) {
                         break;
@@ -148,6 +150,61 @@ namespace WpfLib
                 }
             }
         }
+
+        /// <summary>
+        /// エラーデータをチェックし、あれば削除する
+        /// データ間で1km以上離れている点を除外、mGpsInfoも再取得
+        /// </summary>
+        public void dataChk()
+        {
+            if (mDataType == DATATYPE.gpxData) {
+                if (2 < mListGpsData.Count) {
+                    List<GpsData> gpsDataList = new List<GpsData>();
+                    double dis0 = mListGpsData[0].distance(mListGpsData[1]);
+                    double dis1 = mListGpsData[0].distance(mListGpsData[2]);
+                    if (dis0 < 1.0 || dis1 < 1.0)
+                        gpsDataList.Add(mListGpsData[0]);
+                    for (int i = 1; i < mListGpsData.Count - 1; i++) {
+                        dis1 = mListGpsData[i].distance(mListGpsData[i + 1]);
+                        if (dis0 < 1.0 || dis1 < 1.0)
+                            gpsDataList.Add(mListGpsData[i]);
+                        dis0 = dis1;
+                    }
+                    int n = mListGpsData.Count - 1;
+                    dis0 = mListGpsData[n].distance(mListGpsData[n - 1]);
+                    dis1 = mListGpsData[n].distance(mListGpsData[n - 2]);
+                    if (dis0 < 1.0 || dis1 < 1.0)
+                        gpsDataList.Add(mListGpsData[n]);
+                    mListGpsData = new List<GpsData>(gpsDataList);
+                    mGpsInfoData.setData(mListGpsData);
+                }
+            }  else if (mDataType == DATATYPE.gpxSimpleData) {
+                if (2 < mListGpsPointData.Count) {
+                    List<Point> gpsPointList = new List<Point>();
+                    int n = 1;
+                    double dis0 = ylib.coordinateDistance(mListGpsPointData[0], mListGpsPointData[1]);
+                    double dis1 = ylib.coordinateDistance(mListGpsPointData[1], mListGpsPointData[2]);
+                    if (dis0 < 1.0 || dis1 < 1.0)
+                        gpsPointList.Add(mListGpsPointData[0]);
+                    for (int i = 1; i < mListGpsPointData.Count - 1; i++) {
+                        dis1 = ylib.coordinateDistance(mListGpsPointData[i], mListGpsPointData[i + 1]);
+                        if (dis0 < 1.0 || dis1 < 1.0)
+                            gpsPointList.Add(mListGpsPointData[i]);
+                        dis0 = dis1;
+                    }
+                    n = mListGpsPointData.Count - 1;
+                    dis0 = ylib.coordinateDistance(mListGpsPointData[n], mListGpsPointData[n - 1]);
+                    dis1 = ylib.coordinateDistance(mListGpsPointData[n], mListGpsPointData[n - 2]);
+                    if (dis0 < 1.0 || dis1 < 1.0)
+                        gpsPointList.Add(mListGpsPointData[n]);
+                    mListGpsPointData = new List<Point>(gpsPointList);
+                    mGpsInfoData.setTotalDistance(mListGpsPointData);
+                    mGpsInfoData.setArea(mListGpsPointData);
+
+                }
+            }
+        }
+
 
         /// <summary>
         /// XMLファイルから読み込んだデータをアイテム単位にListに格納
@@ -261,6 +318,63 @@ namespace WpfLib
         YLib ylib = new YLib();
 
         /// <summary>
+        /// データをクリアする
+        /// </summary>
+        public void Clear()
+        {
+            mFirstTime = new DateTime(0);           //  開始時刻
+            mLastTime = new DateTime(0);            //  終了時刻
+            mDistance = 0;                          //  移動距離(km)
+            mMinElevator = double.MaxValue;         //  最小標高(m)
+            mMaxElevator = double.MinValue;         //  最大標高
+            mArea = new Rect();                     //  座標の領域
+            mAreaOn = false;
+            mPrevPoint = new Point(double.NaN, double.NaN);
+        }
+
+        /// <summary>
+        /// GPSデータリストから情報を設定する
+        /// </summary>
+        /// <param name="gpsDataList"></param>
+        public void setData(List<GpsData> gpsDataList)
+        {
+            Clear();
+            foreach(GpsData gpsData in gpsDataList) {
+                Point p = new Point(gpsData.mLongitude, gpsData.mLatitude);
+                setDateTime(gpsData.mDateTime);
+                addDistance(p);
+                setMinMaxElevator(gpsData.mElevator);
+                extentArea(p);
+            }
+        }
+
+        /// <summary>
+        /// 累積距離を求める
+        /// </summary>
+        /// <param name="locList">座標点リスト</param>
+        public void setTotalDistance(List<Point> locList)
+        {
+            mDistance = 0.0;
+            mPrevPoint = new Point(double.NaN, double.NaN);
+            foreach (Point loc in locList) {
+                addDistance(loc);
+            }
+        }
+
+        /// <summary>
+        /// 領域を求める
+        /// </summary>
+        /// <param name="locList">座標点リスト</param>
+        public void setArea(List<Point> locList)
+        {
+            mAreaOn = false;
+            foreach (Point loc in locList) {
+                extentArea(loc);
+            }
+        }
+
+
+        /// <summary>
         /// 時刻の取得
         /// </summary>
         /// <param name="dateTime"></param>
@@ -325,7 +439,7 @@ namespace WpfLib
         /// トレース領域を設定する(座標データ)
         /// </summary>
         /// <param name="cp"></param>
-        public void setArea(Point cp)
+        public void extentArea(Point cp)
         {
             if (!mAreaOn) {
                 mArea = new Rect(cp, cp);
@@ -401,5 +515,37 @@ namespace WpfLib
                 mElevator = 0.0;
             }
         }
+
+        /// <summary>
+        /// 距離を求めるkm)
+        /// </summary>
+        /// <param name="p">対象データ</param>
+        /// <returns>距離</returns>
+        public double distance(GpsData p)
+        {
+            return YLib.CoordinateDistance(mLongitude, mLatitude, p.mLongitude, p.mLatitude);
+        }
+
+        /// <summary>
+        /// 経過時間を求める(秒)
+        /// </summary>
+        /// <param name="p">対象データ</param>
+        /// <returns>経過時間(s)</returns>
+        public double laptime(GpsData p)
+        {
+            return p.mDateTime.Subtract(mDateTime).TotalSeconds;
+        }
+
+        /// <summary>
+        /// 速度(km/h)を求める
+        /// </summary>
+        /// <param name="p">対象データ</param>
+        /// <returns>速度(km/h)</returns>
+        public double speed(GpsData p)
+        {
+            double lap = laptime(p);
+            return lap == 0.0 ? 0.0 :  distance(p) / lap * 3600.0;
+        }
+
     }
 }
