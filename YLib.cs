@@ -3754,6 +3754,25 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 球面上の2点間座標の距離(static関数)
+        /// </summary>
+        /// <param name="longi1">座標1経度</param>
+        /// <param name="lati1">座標1緯度</param>
+        /// <param name="longi2">座標2経度</param>
+        /// <param name="lati2">座標2緯度</param>
+        /// <returns>距離(km)</returns>
+        public static double CoordinateDistance(double longi1, double lati1, double longi2, double lati2)
+        {
+            double r = 6378.137;
+            double x1 = longi1 / 180 * Math.PI;
+            double y1 = lati1 / 180 * Math.PI;
+            double x2 = longi2 / 180 * Math.PI;
+            double y2 = lati2 / 180 * Math.PI;
+            double dis = r * Math.Acos(Math.Sin(y1) * Math.Sin(y2) + Math.Cos(y1) * Math.Cos(y2) * Math.Cos(x2 - x1));
+            return double.IsNaN(dis) ? 0 : dis;
+        }
+
+        /// <summary>
         /// 球面上の2点間座標の距離
         /// </summary>
         /// <param name="ps">緯度経度座標</param>
@@ -3762,6 +3781,17 @@ namespace WpfLib
         public double coordinateDistance(Point ps, Point pe)
         {
             return coordinateDistance(ps.X, ps.Y, pe.X, pe.Y);
+        }
+
+        /// <summary>
+        /// 球面上の2点間座標の距離(static関数)
+        /// </summary>
+        /// <param name="ps">緯度経度座標</param>
+        /// <param name="pe">緯度経度座標</param>
+        /// <returns>距離(km)</returns>
+        public static double CoordinateDistance(Point ps, Point pe)
+        {
+            return CoordinateDistance(ps.X, ps.Y, pe.X, pe.Y);
         }
 
 
