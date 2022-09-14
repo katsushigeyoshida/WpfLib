@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -157,6 +158,29 @@ namespace WpfLib
     /// double posDis(Point ps, Point pe)       2点間の距離
     /// int Lcm(int a, int b)                   最小公倍数
     /// int Gcd(int a, int b)                   最大公約数
+    /// 
+    /// 統計処理
+    /// double getSumList(List<double> list)        ∑x リストの合計
+    /// double getSqrSumList(List<double> list)     ∑x^2 リストの自乗和(二乗の合計)
+    /// double getAverageList(List<double> list)    ∑x / n 平均値
+    /// double getDevSumList(List<double> list)     ∑(x-xm) 偏差の和(常に0)
+    /// double getVerSumList(List<double> list)     ∑(x-xm)^2　偏差の平方和
+    /// double getVariance(List<double> list)       s^2 = ∑(x-xm)^2 / n 分散(variance)
+    /// double getStdDev(List<double> list)         標準偏差(standard deviation) s = sqrt(∑(x-xm)^2 / n)
+    /// double getDevProductSumList(List<double> Xlist, List<double> Ylist) ∑(x-xm)(y-ym) 偏差積和
+    /// double getCovarince(List<double> Xlist, List<double> Ylist) 共分散(Covariance) Cov(x,y) = 1/n * Σ(x-xm)(y-ym)
+    /// double getCorelation(List<double> Xlist, List<double> Ylist)    相関係数(correlation coefficient)  ρ = σxy / (σx * σy)
+    /// double getRegA(List<double> Xlist, List<double> Ylist)  回帰分析(regression analysis)の係数(a)の取得  y = ax + b
+    /// double getRegB(List<double> Xlist, List<double> Ylist)  回帰分析(regression analysis)の係数(b)の取得  y = ax + b
+    /// double getCoefficentDeterminatio(List<double> Xlist, List<double> Ylist, double a, double b)  決定係数(coefficient of determination)
+    /// double getXYSumList(List<Point> list)       ∑xy X*Yの合計
+    /// double getDevProductSumList(List<Point> list)   ∑(x-xm)(y-ym) 偏差積和
+    /// double getCovarince(List<Point> list)       共分散(Covariance)
+    /// double getCorelation(List<Point> list)      相関係数(correlation coefficient)  ρ = σxy / (σx * σy)
+    /// double getRegA(List<Point> list)            回帰分析(regression analysis)の係数(a)の取得  y = ax + b
+    /// double getRegB(List<Point> list)            回帰分析(regression analysis)の係数(b)の取得  y = ax + b
+    /// double getCoefficentDeterminatio(List<Point> list, double a, double b)  決定係数(coefficient of determination)
+    /// double getRegVariance(List<Point> list, double a, double b) 理論値に対する分散(回帰曲線の残差の二乗和)
     /// 
     /// バイナリ処理
     /// void binaryDump(byte[] data, int start, int size, string comment)   バイナリデータをコンソール出力
@@ -3013,14 +3037,15 @@ namespace WpfLib
         /// <param name="path">ファイル名パス</param>
         /// <param name="format">タイトル列</param>
         /// <param name="data">Listデータ</param>
-        public void saveCsvData(string path, string[] format, List<string[]> data)
+        /// <returns></returns>
+        public bool saveCsvData(string path, string[] format, List<string[]> data)
         {
             List<string[]> dataList = new List<string[]>();
             dataList.Add(format);
             foreach (string[] v in data)
                 dataList.Add(v);
 
-            saveCsvData(path, dataList);
+            return saveCsvData(path, dataList);
         }
 
         /// <summary>
@@ -3088,27 +3113,35 @@ namespace WpfLib
         /// </summary>
         /// <param name="path">ファイルパス</param>
         /// <param name="csvData">データリスト</param>
-        public void saveCsvData(string path, List<string[]> csvData)
+        /// <returns>成功可否</returns>
+        public bool saveCsvData(string path, List<string[]> csvData)
         {
             if (0 < csvData.Count) {
                 string folder = Path.GetDirectoryName(path);
                 if (0 < folder.Length && !Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
-
-                using (StreamWriter dataFile = new StreamWriter(path, false, mEncoding[mEncordingType])) {
-                    foreach (string[] data in csvData) {
-                        string buf = "";
-                        for (int i = 0; i < data.Length; i++) {
-                            data[i] = data[i] == null ? "" : data[i].Replace("\"", "\\\"");
-                            buf += "\"" + data[i] + "\"";
-                            if (i != data.Length - 1)
-                                buf += ",";
+                try {
+                    using (StreamWriter dataFile = new StreamWriter(path, false, mEncoding[mEncordingType])) {
+                        foreach (string[] data in csvData) {
+                            string buf = "";
+                            for (int i = 0; i < data.Length; i++) {
+                                data[i] = data[i] == null ? "" : data[i].Replace("\"", "\\\"");
+                                buf += "\"" + data[i] + "\"";
+                                if (i != data.Length - 1)
+                                    buf += ",";
+                            }
+                            dataFile.WriteLine(buf);
                         }
-                        dataFile.WriteLine(buf);
+                        //dataFile.Close(); //  usingの場合は不要 Disposeを含んでいる
                     }
-                    //dataFile.Close(); //  usingの場合は不要 Disposeを含んでいる
+                } catch (Exception e) {
+                    mError = true;
+                    mErrorMessage = e.Message;
+                    System.Diagnostics.Debug.WriteLine("saveCsvData: " + e.Message);
+                    return false;
                 }
             }
+            return true;
         }
 
         /// <summary>
@@ -3147,6 +3180,7 @@ namespace WpfLib
                 } catch (Exception e) {
                     mError = true;
                     mErrorMessage = e.Message;
+                    System.Diagnostics.Debug.WriteLine("loadCsvData: " + e.Message);
                     return null;
                 }
             } else {
@@ -3167,13 +3201,18 @@ namespace WpfLib
                 string folder = Path.GetDirectoryName(path);
                 if (0 < folder.Length && !Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
-
-                using (StreamWriter dataFile = new StreamWriter(path, false,
-                    mEncoding[mEncordingType])) {
-                    foreach (string data in listData) {
-                        dataFile.WriteLine(data);
+                try {
+                    using (StreamWriter dataFile = new StreamWriter(path, false,
+                        mEncoding[mEncordingType])) {
+                        foreach (string data in listData) {
+                            dataFile.WriteLine(data);
+                        }
+                        //                    dataFile.Close(); //  usingの場合は不要 Disposeを含んでいる
                     }
-                    //                    dataFile.Close(); //  usingの場合は不要 Disposeを含んでいる
+                } catch (Exception e) {
+                    mError = true;
+                    mErrorMessage = e.Message;
+                    System.Diagnostics.Debug.WriteLine("saveListData: " + e.Message);
                 }
             }
         }
@@ -3188,16 +3227,22 @@ namespace WpfLib
             List<string> listData = new List<string>();
 
             if (File.Exists(filePath)) {
-                using (StreamReader dataFile = new StreamReader(filePath,
-                    mEncoding[mEncordingType])) {
-                    listData.Clear();
-                    string line;
-                    while ((line = dataFile.ReadLine()) != null) {
-                        listData.Add(line);
+                try {
+                    using (StreamReader dataFile = new StreamReader(filePath,
+                        mEncoding[mEncordingType])) {
+                        listData.Clear();
+                        string line;
+                        while ((line = dataFile.ReadLine()) != null) {
+                            listData.Add(line);
+                        }
+                        //                    dataFile.Close(); //  usingの場合は不要 Disposeを含んでいる
                     }
-                    //                    dataFile.Close(); //  usingの場合は不要 Disposeを含んでいる
+                    return listData;
+                } catch (Exception e) {
+                    mError = true;
+                    mErrorMessage = e.Message;
+                    System.Diagnostics.Debug.WriteLine("loadListData: " + e.Message);
                 }
-                return listData;
             }
             return null;
         }
@@ -3250,6 +3295,7 @@ namespace WpfLib
             } catch (Exception e) {
                 mError = true;
                 mErrorMessage = e.Message;
+                System.Diagnostics.Debug.WriteLine("loadJsonData: " + e.Message);
                 return null;
             }
 
@@ -3263,13 +3309,19 @@ namespace WpfLib
         /// <param name="buffer">ファイルデータ</param>
         public void saveTextFile(string path, string buffer)
         {
-            string folder = Path.GetDirectoryName(path);
-            if (0 < folder.Length && !Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
+            try {
+                string folder = Path.GetDirectoryName(path);
+                if (0 < folder.Length && !Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
 
-            StreamWriter sw = new StreamWriter(path, false, mEncoding[mEncordingType]);
-            sw.Write(buffer);
-            sw.Close();
+                StreamWriter sw = new StreamWriter(path, false, mEncoding[mEncordingType]);
+                sw.Write(buffer);
+                sw.Close();
+            } catch (Exception e) {
+                mError = true;
+                mErrorMessage = e.Message;
+                System.Diagnostics.Debug.WriteLine("saveTextFile: " + e.Message);
+            }
         }
 
         /// <summary>
@@ -3280,10 +3332,16 @@ namespace WpfLib
         public string loadTextFile(string path)
         {
             string buffer = "";
-            if (File.Exists(path)) {
-                StreamReader sr = new StreamReader(path, mEncoding[mEncordingType]);
-                buffer = sr.ReadToEnd();
-                sr.Close();
+            try {
+                if (File.Exists(path)) {
+                    StreamReader sr = new StreamReader(path, mEncoding[mEncordingType]);
+                    buffer = sr.ReadToEnd();
+                    sr.Close();
+                }
+            } catch (Exception e) {
+                mError = true;
+                mErrorMessage = e.Message;
+                System.Diagnostics.Debug.WriteLine("loadTextFile: " + e.Message);
             }
             return buffer;
         }
@@ -3296,14 +3354,21 @@ namespace WpfLib
         /// <returns>読込データ</returns>
         public byte[] loadBinData(string path, int size = 0)
         {
-            using (BinaryReader reader = new BinaryReader(File.OpenRead(path))) {
-                int ret;
-                FileInfo fi = new FileInfo(path);
-                size = size == 0 ? (int)fi.Length : Math.Min(size, (int)fi.Length);
-                byte[] buf = new byte[size];
-                ret = reader.Read(buf, 0, size);
-                return buf;
+            try {
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(path))) {
+                    int ret;
+                    FileInfo fi = new FileInfo(path);
+                    size = size == 0 ? (int)fi.Length : Math.Min(size, (int)fi.Length);
+                    byte[] buf = new byte[size];
+                    ret = reader.Read(buf, 0, size);
+                    return buf;
+                }
+            } catch (Exception e) {
+                mError = true;
+                mErrorMessage = e.Message;
+                System.Diagnostics.Debug.WriteLine("loadBinData: " + e.Message);
             }
+            return null;
         }
 
         /// <summary>
@@ -3313,9 +3378,15 @@ namespace WpfLib
         /// <param name="buffer">バイナリデータ</param>
         public void saveBinData(string path, byte[] buffer)
         {
-            using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(path))) {
-                // 書き込み
-                writer.Write(buffer);
+            try {
+                using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(path))) {
+                    // 書き込み
+                    writer.Write(buffer);
+                }
+            } catch (Exception e) {
+                mError = true;
+                mErrorMessage = e.Message;
+                System.Diagnostics.Debug.WriteLine("saveBinData: " + e.Message);
             }
         }
 
@@ -3891,6 +3962,261 @@ namespace WpfLib
                 b = remainder;
             }
             return a;
+        }
+
+        //  ---  統計処理  ---
+
+        /// <summary>
+        ///  ∑x リストの合計を求める
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>合計値</returns>
+        public double getSumList(List<double> list)
+        {
+            return list.Sum();
+        }
+
+        /// <summary>
+        ///  ∑x^2 リストの自乗和(二乗の合計)を求める
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>二乗和</returns>
+        public double getSqrSumList(List<double> list)
+        {
+            return list.Select(x => x * x).Sum();
+        }
+
+        /// <summary>
+        ///  ∑x / n 平均値
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>平均値</returns>
+        public double getAverageList(List<double> list)
+        {
+            return getSumList(list) / list.Count();
+        }
+
+        /// <summary>
+        ///  ∑(x-xm) 偏差の和(常に0)
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>偏差の和</returns>
+        public double getDevSumList(List<double> list)
+        {
+            double ave = getAverageList(list);
+            return list.Select(x => x - ave).Sum();
+        }
+
+        /// <summary>
+        ///  ∑(x-xm)^2　偏差の平方和
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>偏差の平方和</returns>
+        public double getVerSumList(List<double> list)
+        {
+            double ave = getAverageList(list);
+            return list.Select(x => (x - ave) * (x - ave)).Sum();
+        }
+
+        /// <summary>
+        ///  s^2 = ∑(x-xm)^2 / n 分散(variance)
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>分散値</returns>
+        public double getVariance(List<double> list)
+        {
+            return getVerSumList(list) / list.Count();
+        }
+
+        /// <summary>
+        ///  標準偏差(standard deviation)
+        ///  s = sqrt(∑(x-xm)^2 / n)
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>標準偏差</returns>
+        public double getStdDev(List<double> list)
+        {
+            return Math.Sqrt(getVerSumList(list) / list.Count());
+        }
+
+        /// <summary>
+        ///  ∑(x-xm)(y-ym) 偏差積和
+        /// </summary>
+        /// <param name="Xlist">Xデータリスト</param>
+        /// <param name="Ylist">Yデータリスト</param>
+        /// <returns>偏差積和</returns>
+        public double getDevProductSumList(List<double> Xlist, List<double> Ylist)
+        {
+            double xave = getAverageList(Xlist);
+            double yave = getAverageList(Ylist);
+            double sum = 0;
+            for (int i = 0; i < Math.Min(Xlist.Count, Ylist.Count); i++) {
+                sum += (Xlist[i] - xave) * (Ylist[i] - yave);
+            }
+            return sum;
+        }
+
+        /// <summary>
+        ///  共分散(Covariance)
+        ///  Cov(x,y) = 1/n * Σ(x-xm)(y-ym)
+        /// </summary>
+        /// <param name="Xlist">Xデータリスト</param>
+        /// <param name="Ylist">Yデータリスト</param>
+        /// <returns>共分散</returns>
+        public double getCovarince(List<double> Xlist, List<double> Ylist)
+        {
+            return getDevProductSumList(Xlist, Ylist) / Math.Min(Xlist.Count, Ylist.Count);
+        }
+
+        /// <summary>
+        ///  相関係数(correlation coefficient)  ρ = σxy / (σx * σy)
+        /// </summary>
+        /// <param name="Xlist">Xデータリスト</param>
+        /// <param name="Ylist">Yデータリスト</param>
+        /// <returns>相関係数</returns>
+        public double getCorelation(List<double> Xlist, List<double> Ylist)
+        {
+            return getCovarince(Xlist, Ylist) / (getStdDev(Xlist) * getStdDev(Ylist));
+        }
+
+        /// <summary>
+        ///  回帰分析(regression analysis)の係数(a)の取得  y = ax + b
+        /// </summary>
+        /// <param name="Xlist">Xデータリスト</param>
+        /// <param name="Ylist">Yデータリスト</param>
+        /// <returns>係数(傾き a)</returns>
+        public double getRegA(List<double> Xlist, List<double> Ylist)
+        {
+            return getDevProductSumList(Xlist, Ylist) / getVerSumList(Xlist);
+        }
+
+        /// <summary>
+        ///  回帰分析(regression analysis)の係数(b)の取得  y = ax + b
+        /// </summary>
+        /// <param name="Xlist">Xデータリスト</param>
+        /// <param name="Ylist">Yデータリスト</param>
+        /// <returns>係数(切片 b)</returns>
+        public double getRegB(List<double> Xlist, List<double> Ylist)
+        {
+            return getAverageList(Ylist) - getRegA(Xlist, Ylist) * getAverageList(Xlist);
+        }
+
+        /// <summary>
+        ///  決定係数(coefficient of determination)
+        //  R^2 = 1 - (Σ(y - f(x))^2 / Σ(y - ym)^2) (分散) 
+        /// </summary>
+        /// <param name="Xlist">Xデータリスト</param>
+        /// <param name="Ylist">Yデータリスト</param>
+        /// <param name="a">係数a(傾き)</param>
+        /// <param name="b">係数b(切片</param>
+        /// <returns>決定係数</returns>
+        public double getCoefficentDeterminatio(List<double> Xlist, List<double> Ylist, double a, double b)
+        {
+            double sum = 0;
+            for (int i = 0; i < Xlist.Count; i++) {
+                double t = Ylist[i] - (a * Xlist[i] + b);
+                sum += t * t;
+            }
+            return 1 - sum / getVerSumList(Ylist);
+        }
+
+        /// <summary>
+        ///  ∑xy X*Yの合計
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>X*Yの合計値</returns>
+        public double getXYSumList(List<Point> list)
+        {
+            return list.Select(p => p.Y * p.Y).Sum();
+        }
+
+        /// <summary>
+        ///  ∑(x-xm)(y-ym) 偏差積和
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>偏差積和</returns>
+        public double getDevProductSumList(List<Point> list)
+        {
+            double xave = getAverageList(list.Select(p => p.X).ToList());
+            double yave = getAverageList(list.Select(p => p.Y).ToList());
+            return list.Select(p => (p.X - xave) * (p.Y - yave)).Sum();
+        }
+
+        /// <summary>
+        ///  共分散(Covariance)
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>共分散値</returns>
+        //  Cov(x,y) = 1/n * Σ(x-xm)(y-ym)
+        public double getCovarince(List<Point> list)
+        {
+            return getDevProductSumList(list) / list.Count;
+        }
+
+        /// <summary>
+        ///  相関係数(correlation coefficient)  ρ = σxy / (σx * σy)
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>相関係数</returns>
+        public double getCorelation(List<Point> list)
+        {
+            return getCovarince(list) / (getStdDev(list.Select(p => p.X).ToList()) * getStdDev(list.Select(p => p.Y).ToList()));
+        }
+
+        /// <summary>
+        ///  回帰分析(regression analysis)の係数(a)の取得  y = ax + b
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>係数a(傾き)</returns>
+        public double getRegA(List<Point> list)
+        {
+            return getDevProductSumList(list) / getVerSumList(list.Select(p => p.X).ToList());
+        }
+
+        /// <summary>
+        ///  回帰分析(regression analysis)の係数(b)の取得  y = ax + b
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <returns>係数b(切片)</returns>
+        public double getRegB(List<Point> list)
+        {
+            return getAverageList(list.Select(p => p.Y).ToList()) - getRegA(list) * getAverageList(list.Select(p => p.X).ToList());
+        }
+
+        /// <summary>
+        ///  決定係数(coefficient of determination)
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <param name="a">係数a(傾き)</param>
+        /// <param name="b">係数b(切片</param>
+        /// <returns>決定係数</returns>
+        //  R^2 = 1 - (Σ(y - f(x))^2 / Σ(y - ym)^2) (分散) 
+        public double getCoefficentDeterminatio(List<Point> list, double a, double b)
+        {
+            double sum = 0;
+            for (int i = 0; i < list.Count; i++) {
+                double t = list[i].Y - (a * list[i].X + b);
+                sum += t * t;
+            }
+            return 1 - sum / getVerSumList(list.Select(p => p.Y).ToList());
+        }
+
+        /// <summary>
+        /// 理論値に対する分散(回帰曲線の残差の二乗和)
+        ///  R^2 = Σ(y - f(x))^2 / n
+        /// </summary>
+        /// <param name="list">データリスト</param>
+        /// <param name="a">係数a(傾き)</param>
+        /// <param name="b">係数b(切片</param>
+        /// <returns>残差の二乗和</returns>
+        public double getRegVariance(List<Point> list, double a, double b)
+        {
+            double sum = 0;
+            for (int i = 0; i < list.Count; i++) {
+                double t = list[i].Y - (a * list[i].X + b);
+                sum += t * t;
+            }
+            return sum / list.Count;
         }
 
 
