@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -15,6 +16,13 @@ namespace WpfLib
 {
     /// <summary>
     /// System.Windows.Formsが見つからない時は参照の追加でアセンブリの中から選択する
+    /// 
+    /// API関数
+    /// int GetWindowRect(IntPtr hWnd, out iRect rect)  ウインドウの外側のサイズを取得
+    /// IntPtr GetForegroundWindow()                    フォアグラウンドウィンドウの取得
+    /// short GetKeyState(int nVirtkey)                 マウスとキーのクリック判定用
+    /// bool IsClickDownLeft()                          マウス左ボタン(0x01)(VK_LBUTTON)の状態
+    /// bool IsClickDownRight()                         マウス右ボタン(0x02)(VK_RBUTTON)の状態
     /// 
     /// システム関連
     /// bool getError()                     ERRORの発生を取得
@@ -224,6 +232,45 @@ namespace WpfLib
         public YLib()
         {
 
+        }
+
+        //  ---  API関数  ------
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct iRect
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+        //  ウインドウの外側のサイズを取得
+        //  hWnd ; ウィンドウ・ハンドル
+        //  rect : Rect構造体
+        [DllImport("user32.Dll")]
+        public static extern int GetWindowRect(IntPtr hWnd, out iRect rect);
+
+        //  フォアグラウンドウィンドウ(ActiveWindow)の取得
+        //  Return : ウィンドウ・ハンドル
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+        //  クリックされているか判定用
+        //  nVirtkey : 状態を知りたいキーコード
+        [DllImport("user32.dll")]
+        private static extern short GetKeyState(int nVirtkey);
+        //クリック判定
+        //  マウス左ボタン(0x01)(VK_LBUTTON)の状態
+        //  押されていたらマイナス値(-127)、なかったら0
+        public bool IsClickDownLeft()
+        {
+            return GetKeyState(0x01) < 0;
+        }
+
+        //  マウス右ボタン(0x02)(VK_RBUTTON)の状態
+        //  押されていたらマイナス値(-127)、なかったら0
+        public bool IsClickDownRight()
+        {
+            return GetKeyState(0x02) < 0;
         }
 
         //  ---  システム関連  ---
@@ -2919,18 +2966,18 @@ namespace WpfLib
         /// <summary>
         /// ファイル選択保存ダイヤログ
         /// </summary>
-        /// <param name="searchFolder">初期フォルダ</param>
+        /// <param name="initFolder">初期フォルダ</param>
         /// <param name="ext">拡張子(.なし)</param>
         /// <returns></returns>
-        public string saveFileSelect(string searchFolder, string ext)
+        public string saveFileSelect(string initFolder, string ext)
         {
             // ダイアログのインスタンスを生成
             var dialog = new SaveFileDialog();
 
             // ファイルの種類を設定
             dialog.Filter = ext + "ファイル (*." + ext + ")|*." + ext + "|全てのファイル (*.*)|*.*";
-            if (0 < searchFolder.Length)
-                dialog.InitialDirectory = searchFolder;
+            if (initFolder != null && 0 < initFolder.Length)
+                dialog.InitialDirectory = initFolder;
 
             // ダイアログを表示する
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
