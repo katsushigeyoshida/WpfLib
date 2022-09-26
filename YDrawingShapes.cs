@@ -60,8 +60,14 @@ namespace WpfLib
     /// cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap) BitmapをBitmapImageに変換
     /// cnvImageFile2BitmapImage(string filePath)   イメージファイルをBitmapImageに変換
     /// setCanvasBitmapImage(Canvas canvas, BitmapImage bitmapImage, double ox, double oy, double width, double height) BitmapImageをcanvasに登録
-    /// screenCapture(int left, int top, int width, int height)     スクリーンキャプチャーしてClipBoardに入れる
-    /// imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, Color transportColors)   イメージファイル同士を重ねる
+    /// Bitmap verticalCombineImage(System.Drawing.Bitmap[] src)             画像を縦方向に連結
+    /// Bitmap horizontalCombineImage(System.Drawing.Bitmap[] src)          画像の水平方向に連結
+    /// BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)      BitMap からBitmapSourceに変換
+    /// Bitmap getScreen(System.Drawing.Point ps, System.Drawing.Point pe)  画面の指定領域をキャプチャする
+    /// Bitmap getActiveWindowCapture()                                     アクティブウィンドウの画面をキャプチャする
+    /// void screenCapture(int left, int top, int width, int height)        スクリーンキャプチャーしてClipBoardに入れる
+    /// void SaveBitmapSourceToFile(BitmapSource bitmapSource, string filePath) 画像データをファイルに保存
+    /// string imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, Color transportColors)   イメージファイル同士を重ねる
     /// Bitmap colorReplace(Bitmap imgSrc, ColorMap[] cms)  画像データの色変換
     /// 
     /// 
@@ -1185,6 +1191,46 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 画面の指定領域をキャプチャする
+        /// </summary>
+        /// <param name="ps">左上座標</param>
+        /// <param name="pe">右下座標</param>
+        /// <returns>Bitmapデータ</returns>
+        public　System.Drawing.Bitmap getScreen(System.Drawing.Point ps, System.Drawing.Point pe)
+        {
+            if (ps.X > pe.X) {
+                int t = ps.X;
+                ps.X = pe.X;
+                pe.X = t;
+            }
+            if (ps.Y > pe.Y) {
+                int t = ps.Y;
+                ps.Y = pe.Y;
+                pe.Y = t;
+            }
+            System.Drawing.Rectangle rectangle = new System.Drawing.Rectangle(ps.X, ps.Y, pe.X - ps.X, pe.Y - ps.Y);
+            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(rectangle.Width, rectangle.Height);
+            System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap);
+            graphics.CopyFromScreen(new System.Drawing.Point(rectangle.X, rectangle.Y),
+                new System.Drawing.Point(0, 0), rectangle.Size);
+            graphics.Dispose();
+            return bitmap;
+        }
+
+        /// <summary>
+        /// アクティブウィンドウの画面をキャプチャする
+        /// </summary>
+        /// <returns>Bitmapデータ</returns>
+        public System.Drawing.Bitmap getActiveWindowCapture()
+        {
+            YLib.iRect rect;
+            IntPtr activeWindow = YLib.GetForegroundWindow();
+            YLib.GetWindowRect(activeWindow, out rect);
+            return getScreen(new System.Drawing.Point(rect.left + 7, rect.top),
+                new System.Drawing.Point(rect.right - 7, rect.bottom - 7));
+        }
+
+        /// <summary>
         /// 指定領域をキャプチャーしてクリップボードに入れる
         /// (画面全体をキャプチャーして指定領域を切り抜く)
         /// 例: Point sp = CvMapData.PointToScreen(new Point(0, 0));
@@ -1210,6 +1256,28 @@ namespace WpfLib
                 Clipboard.SetImage(bitmap2BitmapSource(bitmap));
                 //stream.Seek(0, SeekOrigin.Begin);
                 //image.Source = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+            }
+        }
+
+        /// <summary>
+        /// 画像データをファイルに保存
+        /// </summary>
+        /// <param name="bitmapSource">ビットマップデータ</param>
+        /// <param name="filePath">ファイル名(png/jpg/bmp)</param>
+        public void SaveBitmapSourceToFile(BitmapSource bitmapSource, string filePath)
+        {
+            string ext = System.IO.Path.GetExtension(filePath);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                if (ext.ToLower().CompareTo(".png") == 0)
+                    encoder = new PngBitmapEncoder();
+                else if (ext.ToLower().CompareTo(".jpeg") == 0 || ext.ToLower().CompareTo(".jpg") == 0)
+                    encoder = new JpegBitmapEncoder();
+                else if (ext.ToLower().CompareTo(".bmp") == 0)
+                    encoder = new BmpBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+                encoder.Save(fileStream);
             }
         }
 
