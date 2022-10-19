@@ -3006,6 +3006,25 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 指定されたパスからディレクトリリストを作成
+        /// </summary>
+        /// <param name="path">パス名</param>
+        /// <returns>ディレクトリリスト</returns>
+        public List<string> getDirectories(string path)
+        {
+            List<string> dirList = new List<string>();
+            try {
+                DirectoryInfo di = new DirectoryInfo(path);
+                foreach (DirectoryInfo dir in di.GetDirectories()) {
+                    dirList.Add(dir.FullName);
+                }
+                return dirList;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 実行ファイルのフォルダを取得(アプリケーションが存在するのディレクトリ)
         /// </summary>
         /// <returns>ディレクトリ</returns>
@@ -3163,11 +3182,13 @@ namespace WpfLib
         /// <returns>成功可否</returns>
         public bool saveCsvData(string path, List<string[]> csvData)
         {
-            if (0 < csvData.Count) {
-                string folder = Path.GetDirectoryName(path);
-                if (0 < folder.Length && !Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
+            if (csvData != null) {
                 try {
+                    string folder = Path.GetDirectoryName(path);
+                    if (0 < folder.Length && !Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+                    if (File.Exists(path))
+                        File.Delete(path);
                     using (StreamWriter dataFile = new StreamWriter(path, false, mEncoding[mEncordingType])) {
                         foreach (string[] data in csvData) {
                             string buf = "";
