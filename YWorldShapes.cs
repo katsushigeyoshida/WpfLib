@@ -391,6 +391,25 @@ namespace WpfLib
         /// </summary>
         /// <param name="ps">始点座標</param>
         /// <param name="pe">終点座標</param>
+        public void drawWLine(Point lps, Point lpe)
+        {
+            Point ps = cnvWorld2Screen(lps);
+            Point pe = cnvWorld2Screen(lpe);
+            if (mClipping) {
+                LineD l = new LineD(ps, pe);
+                LineD cl = l.clippingLine(mView);
+                if (cl != null)
+                    base.drawLine(cl.ps, cl.pe);
+            } else {
+                base.drawLine(ps, pe);
+            }
+        }
+
+        /// <summary>
+        /// 線分の描画
+        /// </summary>
+        /// <param name="ps">始点座標</param>
+        /// <param name="pe">終点座標</param>
         public override void drawLine(Point lps, Point lpe)
         {
             Point ps = cnvWorld2Screen(lps);
@@ -426,6 +445,34 @@ namespace WpfLib
             }
         }
 
+        /// <summary>
+        /// 円弧の描画
+        /// </summary>
+        /// <param name="center">中心座標</param>
+        /// <param name="radius">半径(X方向)</param>
+        /// <param name="startAngle">開始角度</param>
+        /// <param name="endAngle">終了角度</param>
+        public void drawWArc(Point center, double radius, double startAngle, double endAngle)
+        {
+            if (2 * Math.PI <= Math.Abs(endAngle - startAngle))
+                base.drawCircle(cnvWorld2Screen(center), world2screenXlength(radius));
+            else {
+                //  円の大きさ
+                Size size = new Size(Math.Abs(world2screenXlength(radius)), Math.Abs(world2screenYlength(radius)));     //  X軸半径,Y軸半径
+                //  始点座標
+                Point startPoint = new Point(radius * Math.Cos(startAngle), Math.Sign(mWorld.Top - mWorld.Bottom) * radius * Math.Sin(startAngle));
+                startPoint.Offset(center.X, center.Y);
+                startPoint = cnvWorld2Screen(startPoint);
+                //  終点座標
+                Point endPoint = new Point(radius * Math.Cos(endAngle), Math.Sign(mWorld.Top - mWorld.Bottom) * radius * Math.Sin(endAngle));
+                endPoint.Offset(center.X, center.Y);
+                endPoint = cnvWorld2Screen(endPoint);
+
+                bool isLarge = (endAngle - startAngle) > Math.PI ? true : false; //  180°を超える円弧化かを指定
+                                                                                 //                base.drawEllipse(cnvWorld2Screen(center), size, endPoint, startPoint, isLarge, SweepDirection.Counterclockwise, 0);
+                base.drawEllipse(cnvWorld2Screen(center), size, startPoint, endPoint, isLarge, SweepDirection.Counterclockwise, 0);
+            }
+        }
 
         /// <summary>
         /// 円弧の描画
@@ -473,6 +520,17 @@ namespace WpfLib
         /// <summary>
         /// 円の描画
         /// </summary>
+        /// <param name="center">中心座標</param>
+        /// <param name="radius">半径(X方向)</param>
+        public void drawWCircle(Point center, double radius)
+        {
+            base.drawCircle(cnvWorld2Screen(center), world2screenXlength(radius));
+        }
+
+
+        /// <summary>
+        /// 円の描画
+        /// </summary>
         /// <param name="cx">中心X座標</param>
         /// <param name="cy">中心Y座標</param>
         /// <param name="radius">半径</param>
@@ -485,7 +543,29 @@ namespace WpfLib
         /// 楕円弧の描画
         /// </summary>
         /// <param name="center">中心座標</param>
-        /// <param name="radius">半径(X軸め/Y軸)</param>
+        /// <param name="radius">半径(X軸/Y軸)</param>
+        /// <param name="startAngle">開始角(rad)</param>
+        /// <param name="endAngle">終了角(rad)</param>
+        /// <param name="rotate">回転角(rad)</param>
+        public void drawWEllipse(Point center, Size radius, double startAngle, double endAngle, double rotate)
+        {
+            //  始点座標
+            Point startPoint = new Point(radius.Width * Math.Cos(startAngle), Math.Sign(mWorld.Top - mWorld.Bottom) * radius.Height * Math.Sin(startAngle));
+            startPoint.Offset(center.X, center.Y);
+            startPoint = cnvWorld2Screen(startPoint);
+            //  終点座標
+            Point endPoint = new Point(radius.Width * Math.Cos(endAngle), Math.Sign(mWorld.Top - mWorld.Bottom) * radius.Height * Math.Sin(endAngle));
+            endPoint.Offset(center.X, center.Y);
+            endPoint = cnvWorld2Screen(endPoint);
+            bool isLarge = (endAngle - startAngle) > Math.PI ? true : false; //  180°を超える円弧化かを指定
+            base.drawEllipse(cnvWorld2Screen(center), radius, startPoint, endPoint, isLarge, SweepDirection.Counterclockwise, rotate);
+        }
+
+        /// <summary>
+        /// 楕円弧の描画
+        /// </summary>
+        /// <param name="center">中心座標</param>
+        /// <param name="radius">半径(X軸/Y軸)</param>
         /// <param name="startAngle">開始角(rad)</param>
         /// <param name="endAngle">終了角(rad)</param>
         /// <param name="rotate">回転角(rad)</param>
@@ -535,11 +615,32 @@ namespace WpfLib
         /// </summary>
         /// <param name="rect">楕円の領域座標</param>
         /// <param name="rotate">回転角(rad)</param>
+        public void drawWOval(Rect rect, double rotate)
+        {
+            base.drawOval(cnvWorld2Screen(rect), -180 * rotate / Math.PI);
+        }
+
+        /// <summary>
+        /// 楕円の描画
+        /// </summary>
+        /// <param name="rect">楕円の領域座標</param>
+        /// <param name="rotate">回転角(rad)</param>
         public override void drawOval(Rect rect, double rotate)
         {
             base.drawOval(cnvWorld2Screen(rect), -180 * rotate / Math.PI);
         }
 
+        /// <summary>
+        /// 楕円の描画
+        /// </summary>
+        /// <param name="center">中心座標</param>
+        /// <param name="radiusX">X軸半径</param>
+        /// <param name="radiusY">Y軸半径</param>
+        /// <param name="rotate">回転角(rad)</param>
+        public void drawWOval(Point center, double radiusX, double radiusY, double rotate)
+        {
+            base.drawOval(cnvWorld2Screen(center), Math.Abs(world2screenXlength(radiusX)), Math.Abs(world2screenYlength(radiusY)), -180 * rotate / Math.PI);
+        }
 
         /// <summary>
         /// 楕円の描画
@@ -559,6 +660,25 @@ namespace WpfLib
         /// <param name="ps">四角形の端点座標</param>
         /// <param name="pe">四角形の端点座標</param>
         /// <param name="rotate">回転角(rad)</param>
+        public void drawWRectangle(Point ps, Point pe, double rotate)
+        {
+            if (mClipping) {
+                drawWLine(new Point(ps.X, ps.Y), new Point(ps.X, pe.Y));
+                drawWLine(new Point(pe.X, ps.Y), new Point(pe.X, pe.Y));
+                drawWLine(new Point(ps.X, ps.Y), new Point(pe.X, ps.Y));
+                drawWLine(new Point(ps.X, pe.Y), new Point(pe.X, pe.Y));
+            } else {
+                Rect rect = new Rect(cnvWorld2Screen(ps), cnvWorld2Screen(pe));
+                base.drawRectangle(rect, -180 * rotate / Math.PI);
+            }
+        }
+
+        /// <summary>
+        /// 四角形の描画
+        /// </summary>
+        /// <param name="ps">四角形の端点座標</param>
+        /// <param name="pe">四角形の端点座標</param>
+        /// <param name="rotate">回転角(rad)</param>
         public void drawRectangle(Point ps, Point pe, double rotate)
         {
             if (mClipping) {
@@ -569,6 +689,24 @@ namespace WpfLib
             } else {
                 Rect rect = new Rect(cnvWorld2Screen(ps), cnvWorld2Screen(pe));
                 base.drawRectangle(rect, -180 * rotate / Math.PI);
+            }
+        }
+
+        /// <summary>
+        /// 四角形の描画
+        /// </summary>
+        /// <param name="rect">四角の座標(左,上,幅,高さ(下向き))</param>
+        /// <param name="rotate">回転角(rad)</param>
+        public void drawWRectangle(Rect rect, double rotate)
+        {
+            if (mClipping) {
+                drawWLine(new Point(rect.X, rect.Y), new Point(rect.X, rect.Bottom));
+                drawWLine(new Point(rect.Right, rect.Y), new Point(rect.Right, rect.Bottom));
+                drawWLine(new Point(rect.X, rect.Y), new Point(rect.Right, rect.Y));
+                drawWLine(new Point(rect.X, rect.Bottom), new Point(rect.Right, rect.Bottom));
+            } else {
+                Rect srect = cnvWorld2Screen(rect);
+                base.drawRectangle(srect, -180 * rotate / Math.PI);
             }
         }
 
@@ -618,12 +756,77 @@ namespace WpfLib
         /// 文字列の描画
         /// </summary>
         /// <param name="text">文字列</param>
+        /// <param name="pos">左上座標</param>
+        /// <param name="rotate">回転角(rad)</param>
+        public void drawWText(string text, Point pos, double rotate)
+        {
+            if (!mTextOverWrite) {
+                //  文字列の領域を白で塗潰す
+                Size size = measureWText(text);
+                Brush col = getColor();
+                setFillColor(Brushes.White);
+                setColor(Brushes.White);
+                this.drawWRectangle(new Rect(pos, size), rotate);
+                setColor(col);
+            }
+            base.drawText(text, cnvWorld2ScreenX(pos.X), cnvWorld2ScreenY(pos.Y), -180 * rotate / Math.PI);
+        }
+
+        /// <summary>
+        /// 文字列の描画
+        /// </summary>
+        /// <param name="text">文字列</param>
         /// <param name="left">左座標</param>
         /// <param name="top">上座標</param>
         /// <param name="rotate">回転角(rad)</param>
         public override void drawText(string text, double left, double top, double rotate)
         {
             base.drawText(text, cnvWorld2ScreenX(left), cnvWorld2ScreenY(top), -180 * rotate / Math.PI);
+        }
+
+        /// <summary>
+        /// 文字列の描画
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <param name="pos">文字原点</param>
+        /// <param name="rotate">回転角(rad)</param>
+        /// <param name="ha">水平方向アライメント</param>
+        /// <param name="va">垂直方向アライメント</param>
+        public void drawWText(string text, Point pos, double rotate, HorizontalAlignment ha, VerticalAlignment va)
+        {
+            if (!mTextOverWrite) {
+                //  文字列の領域を白で塗潰す
+                Size size = measureWText(text);
+                Brush col = getColor();
+                setFillColor(Brushes.White);
+                setColor(Brushes.White);
+                this.drawWRectangle(new Rect(orgAllignment(pos, size, ha, va), size), rotate);
+                setColor(col);
+            }
+            base.drawText(text, cnvWorld2ScreenX(pos.X), cnvWorld2ScreenY(pos.Y), -180 * rotate / Math.PI, ha, va);
+        }
+
+        /// <summary>
+        /// アライメントによる文字原点の調整
+        /// </summary>
+        /// <param name="pos">文字原点</param>
+        /// <param name="size">文字サイズ</param>
+        /// <param name="ha">水平アライメント</param>
+        /// <param name="va">垂直アライメント</param>
+        /// <returns>調整後の文字原点</returns>
+        private Point orgAllignment(Point pos, Size size, HorizontalAlignment ha, VerticalAlignment va)
+        {
+            Point p = new Point(pos.X, pos.Y);
+            //  アライメントの調整
+            if (ha == HorizontalAlignment.Center)
+                p.X -= size.Width / 2;
+            else if (ha == HorizontalAlignment.Right)
+                p.X -= size.Width;
+            if (va == VerticalAlignment.Center)
+                p.Y -= size.Height / 2;
+            else if (va == VerticalAlignment.Bottom)
+                p.Y -= size.Height;
+            return p;
         }
 
         /// <summary>
@@ -672,6 +875,21 @@ namespace WpfLib
                 setColor(col);
             }
             base.drawText(text, cnvWorld2ScreenX(p.X), cnvWorld2ScreenY(p.Y), -180 * rotate / Math.PI, ha, va);
+        }
+
+        /// <summary>
+        /// 文字列の大きさを取得する
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <returns>文字列の大きさ(Size.Width/Height)</returns>
+        public Size measureWText(string text)
+        {
+            Size size = base.measureText(text);
+            //  YDrawingShapsから取得した大きさをワールド座標の大きさに逆変換する
+            size.Width = size.Width / Math.Abs(world2screenXlength(1));
+            size.Height = size.Height / Math.Abs(world2screenYlength(1));
+
+            return size;
         }
 
         /// <summary>
