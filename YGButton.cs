@@ -374,7 +374,7 @@ namespace WpfLib
                     y += Math.Sign(mWorld.Bottom - mWorld.Top) * button.mRect.Height / 2;
                 if (button.mVerticalAlignment == VerticalAlignment.Bottom)
                     y += Math.Sign(mWorld.Bottom - mWorld.Top) * button.mRect.Height;
-                drawText(button.mTitle, new Point(x, y), 0, button.mHorizontalAlignment, button.mVerticalAlignment);
+                drawWText(button.mTitle, new Point(x, y), 0, button.mHorizontalAlignment, button.mVerticalAlignment);
             }
         }
 
@@ -386,9 +386,9 @@ namespace WpfLib
         private void draw(BUTTONTYPE type, Rect rect)
         {
             if (type == BUTTONTYPE.RECT) {
-                drawRectangle(rect, 0);
+                drawWRectangle(rect, 0);
             } else if (type == BUTTONTYPE.CIRCLE) {
-                drawOval(rect, 0);
+                drawWOval(rect, 0);
             }
         }
 
