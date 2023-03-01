@@ -37,6 +37,7 @@ namespace WpfLib
     /// setTextColor(Brush color)   文字の色設定
     /// setTextSize(double size)    文字の大きさを設定
     /// getTextSize()           文字サイズの取得
+    /// 
     /// drawLine(Point ps, Point pe)    線分の表示
     /// drawLine(double xs, double ys, double xe, double ye)    線分の表示
     /// drawArc(Point center, double radius, double startAngle, double endAngle)    Pathオブジェクトを使って円弧を表示
@@ -55,12 +56,13 @@ namespace WpfLib
     /// drawText(string text, double left, double top, double rotate, HorizontalAlignment ha, VerticalAlignment va) 文字列の表示
     /// measureText(string text)        文字列の大きさを求める
     /// measureTextRatio(string text)   文字列の縦横比を求める(高さ/幅)
+    /// 
     /// drawBitmap(System.Drawing.Bitmap bitmap, double ox, double oy, double width, double height) リソースファイルの表示
     /// drawImageFile(string filePath, double ox, double oy, double width, double height)   イメージファイルを表示
     /// cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap) BitmapをBitmapImageに変換
     /// cnvImageFile2BitmapImage(string filePath)   イメージファイルをBitmapImageに変換
     /// setCanvasBitmapImage(Canvas canvas, BitmapImage bitmapImage, double ox, double oy, double width, double height) BitmapImageをcanvasに登録
-    /// Bitmap verticalCombineImage(System.Drawing.Bitmap[] src)             画像を縦方向に連結
+    /// Bitmap verticalCombineImage(System.Drawing.Bitmap[] src)            画像を縦方向に連結
     /// Bitmap horizontalCombineImage(System.Drawing.Bitmap[] src)          画像の水平方向に連結
     /// BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)      BitMap からBitmapSourceに変換
     /// Bitmap getScreen(System.Drawing.Point ps, System.Drawing.Point pe)  画面の指定領域をキャプチャする
