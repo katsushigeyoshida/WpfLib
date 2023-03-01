@@ -18,6 +18,12 @@ namespace WpfLib
     ///     エラーの有無  mError = true
     ///     エラーの内容  mErrorMsg
     ///     
+    /// 計算式のルール
+    /// 演算子の優先順位  +,- < *,/,% < ^(べき乗) < 関数 < 括弧
+    ///   3+8/4/2  →  3+((8/4)/2)
+    /// 計算は左から順におこなう
+    ///   8/4/2  →  (8/4)/2      2^3^4  → (2^3)^4
+    /// 
     /// 
     /// int setExpression(string str)
     /// double calculate()
@@ -593,8 +599,8 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// 後ろのべき乗のみを優先して計算
-        /// 2^3^4 は 2^(3^4) と同じ
+        /// べき乗のみを優先して計算
+        /// 2^3^4 は (2^3)^4 として左から計算する
         /// </summary>
         /// <param name="i">計算式の位置</param>
         /// <param name="x">計算結果</param>
@@ -603,19 +609,20 @@ namespace WpfLib
         private int express3(int i, ref double x, List<string> expList)
         {
             double y;
-            double z = 0;
-            string ope = "";
             if (i + 2 < expList.Count()) {
-                //Console.WriteLine("express3 "+i+" "+expList[i]+" "+expList[i+1]+" "+expList[i+2]);
                 y = expression(expList[i]);
-                ope = expList[i + 1];
-                z = expression(expList[i + 2]);
-                //Console.WriteLine("express3   in  "+i+"/"+expList.Count()+" "+y+" "+ope+" "+z);
-                if (ope.CompareTo("^") == 0) {
-                    i = express3(i + 2, ref z, expList);
-                    x = Math.Pow(y, z);
+                while (i + 2 < expList.Count()) {
+                    string ope = expList[i + 1];
+                    double z = expression(expList[i + 2]);
+                    Console.WriteLine("express3: " + i + ": " + y + " " + ope + " " + z);
+                    if (ope.CompareTo("^") == 0) {
+                        x = Math.Pow(y, z);
+                    } else {
+                        break;
+                    }
+                    y = x;
+                    i += 2;
                 }
-                //Console.WriteLine("express3   out "+i+"/"+expList.Count()+" "+y+" "+ope+" "+z+" → "+x);
             }
             return i;
         }
@@ -631,36 +638,32 @@ namespace WpfLib
         private int express2(int i, ref double x, List<string> expList)
         {
             double y;
-            double z = 0;
-            string ope = "";
             if (i + 2 < expList.Count()) {
-                //Console.WriteLine("express2 "+i+" "+expList[i]+" "+expList[i+1]+" "+expList[i+2]);
                 y = expression(expList[i]);
                 while (i + 2 < expList.Count()) {
-                    ope = expList[i + 1];
-                    z = expression(expList[i + 2]);
-                    //Console.WriteLine("express2   in  " + i + "/" + expList.Count() + " " + y + " " + ope + " " + z);
+                    string ope = expList[i + 1];
+                    double z = expression(expList[i + 2]);
+                    Console.WriteLine("express2:" + i + ":" + y + " " + ope + " " + z);
                     if (ope.CompareTo("*") == 0) {
-                        i = express2(i + 2, ref z, expList);
+                        i = express3(i, ref z, expList);
                         x = y * z;
                     } else if (ope.CompareTo("/") == 0) {
-                        i = express2(i + 2, ref z, expList);
+                        i = express3(i, ref z, expList);
                         if (z == 0d)
                             return -1;
                         x = y / z;
                     } else if (ope.CompareTo("%") == 0) {
-                        i = express2(i + 2, ref z, expList);
+                        i = express3(i, ref z, expList);
                         if (z == 0d)
                             return -1;
                         x = y % z;
                     } else if (ope.CompareTo("^") == 0) {
-                        i = express3(i + 2, ref z, expList);
                         x = Math.Pow(y, z);
                     } else {
-                        return i;
+                        break;
                     }
-                    //Console.WriteLine("express2   out " + i + "/" + expList.Count() + " " + y + " " + ope + " " + z + " → " + x);
                     y = x;
+                    i += 2;
                 }
             }
             return i;
@@ -668,12 +671,13 @@ namespace WpfLib
 
         /// <summary>
         /// 計算式の実行
+        /// 優先順位  - < ;,- < *,/,% < ^
         /// </summary>
         /// <param name="str">計算式文字列</param>
         /// <returns>計算結果</returns>
         public double expression(string str)
         {
-            //Console.WriteLine("expression:"+str);
+            Console.WriteLine("expression: [" + str + "]");
             List<string> expList;
             mError = false;
             //  文字列を数値と演算子、括弧内の分解リストを作成
@@ -696,9 +700,9 @@ namespace WpfLib
                         //  数値の判定、数値であればxに返す
                         success = Double.TryParse(expList[i], out x);
                     }
-                    //Console.WriteLine("expression in  "+i+"/"+expList.Count()+" "+result+" "+ope+" "+x);
                     //  数値の場合、前の演算子で計算する
                     if (success) {
+                        Console.WriteLine("expression: " + i + ": " + result + " " + ope + " " + x);
                         if (ope.CompareTo("+") == 0) {
                             i = express2(i, ref x, expList);     //  剰除が先にあれば計算しておく
                             result += x;
@@ -719,7 +723,6 @@ namespace WpfLib
                                 return -1;
                             result %= x;
                         } else if (ope.CompareTo("^") == 0) {
-                            i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
                             result = Math.Pow(result, x);
                         } else {
                             if (0 < i) {
@@ -735,7 +738,6 @@ namespace WpfLib
                     if (i < 0)
                         return -1;
                     i++;
-                    //Console.WriteLine("expression out "+i+"/"+expList.Count()+" "+ope+" "+x+" → "+result);
                 }
             } catch (Exception e) {
                 mError = true;
