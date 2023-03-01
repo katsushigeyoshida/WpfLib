@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Windows;
 
@@ -205,6 +204,29 @@ namespace WpfLib
             }
         }
 
+        /// <summary>
+        /// 時刻から座標を取得する
+        /// </summary>
+        /// <param name="datetime">日時</param>
+        /// <returns>座標</returns>
+        public Point getCoordinate(DateTime datetime)
+        {
+            Point pos = new Point();
+            if (datetime < mListGpsData[0].mDateTime ||
+                mListGpsData[mListGpsData.Count - 1].mDateTime < datetime)
+                return pos;
+            for (int i = 0; i < mListGpsData.Count - 1; i++) {
+                if (datetime < mListGpsData[i].mDateTime) {
+                    double scale = (double)datetime.Subtract(mListGpsData[i-1].mDateTime).Ticks
+                        / (double)mListGpsData[i].mDateTime.Subtract(mListGpsData[i-1].mDateTime).Ticks;
+                    Point v = mListGpsData[i-1].getCoordinate().vector(mListGpsData[i].getCoordinate());
+                    v.scale(scale);
+                    pos = mListGpsData[i].getCoordinate().add(v);
+                    break;
+                }
+            }
+            return pos;
+        }
 
         /// <summary>
         /// XMLファイルから読み込んだデータをアイテム単位にListに格納
@@ -514,6 +536,15 @@ namespace WpfLib
             if (!double.TryParse(elevator, out mElevator)) {
                 mElevator = 0.0;
             }
+        }
+
+        /// <summary>
+        /// 座標をPointで返す
+        /// </summary>
+        /// <returns></returns>
+        public Point getCoordinate()
+        {
+            return new Point(mLongitude, mLatitude);
         }
 
         /// <summary>
