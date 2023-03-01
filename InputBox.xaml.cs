@@ -57,7 +57,8 @@ namespace WpfLib
             }
             //  表示専用(編集不可,OKボタン非表示)設定
             EditText.IsReadOnly = mReadOnly;
-            OK.Visibility = mReadOnly ? Visibility.Hidden : Visibility.Visible;
+            //OK.Visibility = mReadOnly ? Visibility.Hidden : Visibility.Visible;
+            Cancel.Visibility = mReadOnly ? Visibility.Hidden : Visibility.Visible;
             //  文字サイズ
             EditText.FontSize = mFontSize;
             //  文字サイズズームボタンの表示/非表示
