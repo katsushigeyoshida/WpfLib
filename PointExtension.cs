@@ -98,5 +98,16 @@ namespace WpfLib
             p.X *= scale;
             p.Y *= scale;
         }
+
+        /// <summary>
+        /// 指定点にベクトル分を追加
+        /// </summary>
+        /// <param name="p">指定点</param>
+        /// <param name="vec">ベクタ</param>
+        /// <returns></returns>
+        public static Point add(this Point p, Point vec)
+        {
+            return new Point(p.X + vec.X, p.Y + vec.Y);
+        }
     }
 }
