@@ -321,6 +321,20 @@ namespace WpfLib
             }
             return "";
         }
+
+        /// <summary>
+        /// 取得したGPSデータの概要
+        /// </summary>
+        /// <returns></returns>
+        public GpsInfoData getGpsInfoData()
+        {
+            if (mListGpsData != null) {
+                GpsInfoData gpsInfoData = new GpsInfoData();
+                gpsInfoData.setData(mListGpsData);
+                return gpsInfoData;
+            }
+            return null;
+        }
     }
 
     /// <summary>
@@ -368,6 +382,25 @@ namespace WpfLib
                 setMinMaxElevator(gpsData.mElevator);
                 extentArea(p);
             }
+        }
+
+        /// <summary>
+        /// データを文字列に変換
+        /// </summary>
+        /// <returns></returns>
+        public string toString()
+        {
+            string buffer = "";
+            TimeSpan spanTime = mLastTime - mFirstTime;
+            buffer += "開始時間: " + mFirstTime.ToString("yyyy/MM/dd HH:mm:ss") + 
+                    " 終了時間: " + mLastTime.ToString("yyyy/MM/dd HH:mm:ss") +
+                    " 経過時間: " + ((spanTime.TotalMinutes < 60.0 * 24.0) ? spanTime.ToString(@"hh\:mm\:ss") : spanTime.ToString(@"d\d\a\y\ hh\:mm\:ss"));
+            buffer += "\n移動距離: " + mDistance.ToString("#,##0.## km") + 
+                        " 速度: " + (mDistance / spanTime.TotalHours).ToString("##0.# km/s");
+            buffer += "\n最大標高: " + mMaxElevator.ToString("#,##0 m") + 
+                        " 最小標高: " + mMinElevator.ToString("#,##0 m") +
+                        " 標高差: " + (mMaxElevator - mMinElevator).ToString("#,##0 m");
+            return buffer;
         }
 
         /// <summary>
@@ -493,6 +526,15 @@ namespace WpfLib
         public double mLatitude;        //  緯度(deg)
         public double mLongitude;       //  経度(deg)
         public double mElevator;        //  高度(m)
+
+        /// <summary>
+        /// GPSデータを文字列に変換(日時、座標、標高))
+        /// </summary>
+        /// <returns>文字列</returns>
+        public string toString()
+        {
+           return $"{mDateTime}({mLatitude},{mLongitude}){mElevator}";
+        }
 
         /// <summary>
         /// 測定時間を設定
