@@ -63,7 +63,9 @@
     <Compile Include="Box.cs" />
     <Compile Include="ExifInfo.cs" />
     <Compile Include="FileData.cs" />
+    <Compile Include="FitReader.cs" />
     <Compile Include="GpxReader.cs" />
+    <Compile Include="GpxWriter.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="HelpView.xaml.cs">
       <DependentUpon>HelpView.xaml</DependentUpon>
