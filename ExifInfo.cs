@@ -444,7 +444,7 @@ namespace WpfLib
                 //  更新
                 System.Drawing.Imaging.PropertyItem item = mBitMap.PropertyItems[no];
                 if (item != null && item.Type == 5) {
-                    item.Value = ylib.intList2ByteArray(valList);
+                    item.Value = YLib.intList2ByteArray(valList);
                     item.Len = item.Value.Length;
                     mBitMap.SetPropertyItem(item);
                     return true;
@@ -455,7 +455,7 @@ namespace WpfLib
                 if (item != null) {
                     item.Id = id;
                     item.Type = 5;
-                    item.Value = ylib.intList2ByteArray(valList);
+                    item.Value = YLib.intList2ByteArray(valList);
                     item.Len = item.Value.Length;
                     mBitMap.SetPropertyItem(item);
                     return true;
@@ -526,7 +526,7 @@ namespace WpfLib
         {
             string val = "";
             if (item.Type == 1) {           //  BYTE      8 ビット符号なし整数
-                val = ylib.binary2HexString(item.Value, 0, item.Len);
+                val = YLib.binary2HexString(item.Value, 0, item.Len);
             } else if (item.Type == 2) {    //  ASCII NULL 文字で終端する ASCII 文字列。ASCII のカウントは NULL 文字分を含む
                 val = System.Text.Encoding.ASCII.GetString(item.Value);
                 val = val.Trim(new char[] { '\0' });
@@ -542,12 +542,12 @@ namespace WpfLib
                     if (8 < item.Len) {
                         val = cnvUserComment2String(item.Value);
                     } else {
-                        val = ylib.binary2AsciiString(item.Value, 0, item.Len);
+                        val = YLib.binary2AsciiString(item.Value, 0, item.Len);
                     }
                 } else if (item.Len == 1) {
                     val = item.Value[0].ToString();
                 } else if (item.Value[1] != 0) { 
-                    val = ylib.binary2AsciiString(item.Value, 0, item.Len);
+                    val = YLib.binary2AsciiString(item.Value, 0, item.Len);
                 } else {
                     val = System.Text.Encoding.Unicode.GetString(item.Value);
                 }
@@ -556,7 +556,7 @@ namespace WpfLib
             } else if (item.Type == 10) {   //  SRATIONAL SLONG 2 個で表現する値。ひとつめの LONG は分子、ふたつめは分母を表す
                 val = convExifData(item.Value, item.Len);
             } else {
-                val = ylib.binary2HexString(item.Value, 0, item.Len);
+                val = YLib.binary2HexString(item.Value, 0, item.Len);
             }
             return val;
         }
@@ -636,8 +636,8 @@ namespace WpfLib
         private byte[] cnvString2UserComment(string comment, string code)
         {
             byte[] codeBytes = new byte[8];
-            codeBytes = ylib.ByteOverWrite(codeBytes, 0, System.Text.Encoding.GetEncoding("ASCII").GetBytes(code));
-            byte[] commentBytes = ylib.ByteCat(codeBytes, System.Text.Encoding.GetEncoding(code).GetBytes(comment));
+            codeBytes = YLib.ByteOverWrite(codeBytes, 0, System.Text.Encoding.GetEncoding("ASCII").GetBytes(code));
+            byte[] commentBytes = YLib.ByteCat(codeBytes, System.Text.Encoding.GetEncoding(code).GetBytes(comment));
             return commentBytes;
         }
 
@@ -650,8 +650,8 @@ namespace WpfLib
         {
             try {
                 if (8 < userComment.Length) {
-                    string code = ylib.binary2AsciiString(userComment, 0, 8);
-                    return System.Text.Encoding.GetEncoding(code).GetString(ylib.ByteCopy(userComment, 8, userComment.Length - 8));
+                    string code = YLib.binary2AsciiString(userComment, 0, 8);
+                    return System.Text.Encoding.GetEncoding(code).GetString(YLib.ByteCopy(userComment, 8, userComment.Length - 8));
                 }
             } catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine("cnvUserComment2String: " + e.Message);
