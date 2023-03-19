@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -141,6 +142,7 @@ namespace WpfLib
     /// string folderSelect(string initFolder)      フォルダの選択ダイヤログの表示
     /// string filesSelect(string searchFolder, string ext)     ファイル選択ダイヤログ(複数の拡張子を指定できる)
     /// string fileSelect(string searchFolder, string ext)      ファイル選択ダイヤログ
+    /// string consoleFileSelect(string folder, string fname)   Console用ファイル選択
     /// string saveFileSelect(string searchFolder, string ext)  ファイル選択保存ダイヤログ
     /// string[] getFiles(string path)              指定されたパスからファイルリストを作成
     /// string getAppFolderPath()                   実行ファイルのフォルダを取得
@@ -3165,6 +3167,7 @@ namespace WpfLib
 
         /// <summary>
         /// ファイル選択ダイヤログ
+        /// 拡張子を複数してするときはカンマ区切り(ex: "gpx,fit")で指定
         /// </summary>
         /// <param name="searchFolder">検索フォルダ</param>
         /// <param name="ext">拡張子(ex. mp3)</param>
@@ -3175,7 +3178,11 @@ namespace WpfLib
             var dialog = new OpenFileDialog();
 
             // ファイルの種類を設定
-            dialog.Filter = ext + "ファイル (*." + ext + ")|*." + ext + "|全てのファイル (*.*)|*.*";
+            string[] exts = ext.Split(new char[] { ',' });
+            string filter = "";
+            foreach (var extName in exts)
+                filter += extName + "ファイル (*." + extName + ")|*." + extName + "|";
+            dialog.Filter = filter + "全てのファイル (*.*)|*.*";
             dialog.Multiselect = true;
             if (0 < searchFolder.Length)
                 dialog.InitialDirectory = searchFolder;
@@ -3220,6 +3227,36 @@ namespace WpfLib
                 }
             }
             return files;
+        }
+
+        /// <summary>
+        /// Console用ファイル選択
+        /// </summary>
+        /// <param name="folder">検索先フォルダ</param>
+        /// <param name="fname">検索ファイル名(*.fit)</param>
+        /// <returns>選択ファイルパス</returns>
+        public string consoleFileSelect(string folder, string fname)
+        {
+            List<string> files;
+            if (folder == null) {
+                files = getDrives();
+            } else {
+                files = getFilesDirectories(folder, fname);
+                files.Insert(0, "..");
+            }
+            for (int i = 0; i < files.Count; i++) {
+                if (Directory.Exists(files[i])) {
+                    Console.WriteLine($"{i}: [{files[i]}]");
+                } else {
+                    Console.WriteLine($"{i}: {files[i]}");
+                }
+            }
+            string inp = Console.ReadLine();
+            if (Directory.Exists(files[int.Parse(inp)])) {
+                folder = files[int.Parse(inp)].CompareTo("..") == 0 ? Path.GetDirectoryName(folder) : files[int.Parse(inp)];
+                return consoleFileSelect(folder, fname);
+            }
+            return files[int.Parse(inp)];
         }
 
         /// <summary>
@@ -3281,6 +3318,40 @@ namespace WpfLib
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// フォルダとファイルの一覧を取得
+        /// </summary>
+        /// <param name="folder">フォルダ</param>
+        /// <param name="fileName">ファイル名(*.ext)</param>
+        /// <returns></returns>
+        public List<string> getFilesDirectories(string folder, string fileName)
+        {
+            List<string> fileDirList = new List<string>();
+            try {
+                DirectoryInfo di = new DirectoryInfo(folder);
+                foreach (DirectoryInfo dir in di.GetDirectories()) {
+                    fileDirList.Add(dir.FullName);
+                }
+                string[] files = Directory.GetFiles(folder, fileName);
+                foreach(var file in files) {
+                    fileDirList.Add(file);
+                }
+                return fileDirList;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// ドライブの一覧を取得する
+        /// </summary>
+        /// <returns></returns>
+        public List<string> getDrives()
+        {
+            string[] drives = Directory.GetLogicalDrives();
+            return drives.ToList();
         }
 
         /// <summary>
@@ -4556,7 +4627,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <param name="comment">コメント</param>
-        public void binaryDump(byte[] data, int start, int size, string comment)
+        public static void binaryDump(byte[] data, int start, int size, string comment)
         {
             if (0 < comment.Length)
                 Console.Write(comment);
@@ -4576,7 +4647,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <returns>文字列</returns>
-        public string binary2HexString(byte[] data, int start, int size)
+        public static string binary2HexString(byte[] data, int start, int size)
         {
             string buf = "";
             for (int i = start; i < start + size && i < data.Length; i++) {
@@ -4592,7 +4663,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <returns>文字列</returns>
-        public string binary2AsciiString(byte[] data, int start, int size)
+        public static string binary2AsciiString(byte[] data, int start, int size)
         {
             string buf = "";
             for (int i = start; i < start + size && i < data.Length; i++) {
@@ -4609,7 +4680,7 @@ namespace WpfLib
         /// <param name="data">byte配列</param>
         /// <param name="start">開始位置</param>
         /// <returns></returns>
-        public long bit7ConvertLong(byte[] data, int start)
+        public static long bit7ConvertLong(byte[] data, int start)
         {
             return bit7ConvertLong(data, start, 4);
         }
@@ -4621,7 +4692,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <returns></returns>
-        public long bit7ConvertLong(byte[] data, int start, int size)
+        public static long bit7ConvertLong(byte[] data, int start, int size)
         {
             long val = 0;
             start--;
@@ -4638,7 +4709,7 @@ namespace WpfLib
         /// <param name="data">byte配列</param>
         /// <param name="start">開始位置</param>
         /// <returns></returns>
-        public long bitConvertLong(byte[] data, int start)
+        public static long bitConvertLong(byte[] data, int start)
         {
             return bitConvertLong(data, start, 4);
         }
@@ -4650,7 +4721,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <returns></returns>
-        public long bitConvertLong(byte[] data, int start, int size)
+        public static long bitConvertLong(byte[] data, int start, int size)
         {
             long val = 0;
             start--;
@@ -4668,7 +4739,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <returns></returns>
-        public long bitReverseConvertLong(byte[] data, int start, int size)
+        public static long bitReverseConvertLong(byte[] data, int start, int size)
         {
             long val = 0;
             for (int i = start ; i < start + size; i++) {
@@ -4685,7 +4756,7 @@ namespace WpfLib
         /// <param name="startBit">開始bit位置</param>
         /// <param name="bitSize">bitサイズ</param>
         /// <returns></returns>
-        public long bitConvertBit(byte[] data, int startBit, int bitSize)
+        public static long bitConvertBit(byte[] data, int startBit, int bitSize)
         {
             long val = 0;
             //  先頭の未使用部を削除
@@ -4715,7 +4786,7 @@ namespace WpfLib
         /// <param name="a">bit配列データ(uint)</param>
         /// <param name="n">nビット目</param>
         /// <returns>^変更後のデータ</returns>
-        public uint bitOn(uint a, int n)
+        public static uint bitOn(uint a, int n)
         {
             uint b = 1;
             b <<= n;
@@ -4728,7 +4799,7 @@ namespace WpfLib
         /// <param name="a">bit配列データ(uint)</param>
         /// <param name="n">nビット目</param>
         /// <returns>^変更後のデータ</returns>
-        public uint bitOff(uint a, int n)
+        public static uint bitOff(uint a, int n)
         {
             uint b = 1;
             b <<= n;
@@ -4741,7 +4812,7 @@ namespace WpfLib
         /// <param name="a">bit配列データ</param>
         /// <param name="n">nビット目</param>
         /// <returns>変更後のデータ</returns>
-        public uint bitRevers(uint a, int n)
+        public static uint bitRevers(uint a, int n)
         {
             uint b = 1;
             b <<= n;
@@ -4754,7 +4825,7 @@ namespace WpfLib
         /// <param name="a">bit配列データ(uint)</param>
         /// <param name="n">nビット目</param>
         /// <returns>値(0/1)</returns>
-        public int bitGet(uint a, int n)
+        public static int bitGet(uint a, int n)
         {
             uint b = 1;
             b <<= n;
@@ -4766,7 +4837,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="bits">数値</param>
         /// <returns>bit数</returns>
-        public int bitsCount(long bits)
+        public static int bitsCount(long bits)
         {
             bits = (bits & 0x55555555) + (bits >> 1 & 0x55555555);
             bits = (bits & 0x33333333) + (bits >> 2 & 0x33333333);
@@ -4780,7 +4851,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="bits">数値</param>
         /// <returns>bit数</returns>
-        public int bitsCount2(long bits)
+        public static int bitsCount2(long bits)
         {
             long a = bits & 0xffffffff;
             long b = bits >> 32;
@@ -4793,7 +4864,7 @@ namespace WpfLib
         /// <param name="value">int値</param>
         /// <param name="n">n byte目</param>
         /// <returns>byte値</returns>
-        public Byte getInt2Byte(int value, int n)
+        public static Byte getInt2Byte(int value, int n)
         {
             return (Byte)((value >> (n * 8)) & 0xff);
         }
@@ -4804,7 +4875,7 @@ namespace WpfLib
         /// <param name="a">byte配列 a</param>
         /// <param name="b">byte配列 b</param>
         /// <returns></returns>
-        public bool ByteComp(byte[] a, byte[] b)
+        public static bool ByteComp(byte[] a, byte[] b)
         {
             if (a.Length == b.Length) {
                 for (int i = 0; i < a.Length; i++) {
@@ -4823,7 +4894,7 @@ namespace WpfLib
         /// <param name="b">byte配列 b</param>
         /// <param name="size">比較するサイズ</param>
         /// <returns></returns>
-        public bool ByteComp(byte[] a, int astart, byte[] b, int bstart, int size)
+        public static bool ByteComp(byte[] a, int astart, byte[] b, int bstart, int size)
         {
             if ((a.Length - astart) < size || (b.Length - bstart) < size)
                 return false;
@@ -4841,7 +4912,7 @@ namespace WpfLib
         /// <param name="start">開始位置</param>
         /// <param name="size">サイズ</param>
         /// <returns>byte配列</returns>
-        public byte[] ByteCopy(byte[] a, int start, int size)
+        public static byte[] ByteCopy(byte[] a, int start, int size)
         {
             byte[] b = new byte[size];
             for (int i = 0; i < size; i++)
@@ -4856,7 +4927,7 @@ namespace WpfLib
         /// <param name="start">上書き開始位置</param>
         /// <param name="dest">上書きデータのbyte配列</param>
         /// <returns>変換データ</returns>
-        public byte[] ByteOverWrite(byte[] src, int start, byte[] dest)
+        public static byte[] ByteOverWrite(byte[] src, int start, byte[] dest)
         {
             int j = 0;
             for (int i = start; i < src.Length; i++) {
@@ -4872,7 +4943,7 @@ namespace WpfLib
         /// <param name="src1">byte配列データ1</param>
         /// <param name="src2">byte配列データ2</param>
         /// <returns>連結データ</returns>
-        public byte[] ByteCat(byte[] src1, byte[] src2)
+        public static byte[] ByteCat(byte[] src1, byte[] src2)
         {
             byte[] dest = new byte[src1.Length + src2.Length];
             dest = ByteOverWrite(dest, 0, src1);
@@ -4885,7 +4956,7 @@ namespace WpfLib
         /// </summary>
         /// <param name="intlist">intリスト</param>
         /// <returns>byte配列</returns>
-        public byte[] intList2ByteArray(List<Int32> intlist)
+        public static byte[] intList2ByteArray(List<Int32> intlist)
         {
             byte[] byteArray = new byte[intlist.Count * sizeof(Int32)];
             for (int i = 0; i < intlist.Count; i++) {
@@ -4894,7 +4965,5 @@ namespace WpfLib
             }
             return byteArray;
         }
-
-
     }
 }
