@@ -58,6 +58,8 @@ namespace WpfLib
                 TbTextBox2.VerticalContentAlignment = VerticalAlignment.Top;
                 WindowFormLoad();
             }
+
+            TbTextBox1.Focus();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

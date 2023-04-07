@@ -26,6 +26,7 @@ namespace WpfLib
         public string[] mMenuList = { "aaa", "bbb", "CCC" };
         public string mSelectItem = "";
         public int mSelectIndex = 0;
+        public Window mMainWindow = null;                   //  親ウィンドウの設定
 
         public SelectMenu()
         {
@@ -34,6 +35,11 @@ namespace WpfLib
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (mMainWindow != null) {
+                //  親ウィンドウの中心に表示
+                Left = mMainWindow.Left + (mMainWindow.Width - Width) / 2;
+                Top = mMainWindow.Top + (mMainWindow.Height - Height) / 2;
+            }
             CbMenu.ItemsSource = mMenuList;
             CbMenu.SelectedIndex = mSelectIndex < mMenuList.Length ? mSelectIndex : 0;
         }

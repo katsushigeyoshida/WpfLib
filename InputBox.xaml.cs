@@ -69,6 +69,8 @@ namespace WpfLib
                 BtGZoomDown.Visibility = Visibility.Hidden;
                 BtGZoomUp.Visibility = Visibility.Hidden;
             }
+
+            EditText.Focus();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
