@@ -144,7 +144,11 @@ namespace WpfLib
     /// string fileSelect(string searchFolder, string ext)      ファイル選択ダイヤログ
     /// string consoleFileSelect(string folder, string fname)   Console用ファイル選択
     /// string saveFileSelect(string searchFolder, string ext)  ファイル選択保存ダイヤログ
+    /// void copyDrectory(string srcDir, string destDir)        ディレクトリをコピーする
     /// string[] getFiles(string path)              指定されたパスからファイルリストを作成
+    /// List<string> getDirectories(string path)    定されたパスからディレクトリリストを作成
+    /// List<string> getFilesDirectories(string folder, string fileName)    フォルダとファイルの一覧を取得
+    /// List<string> getDrives()                    ドライブの一覧を取得する
     /// string getAppFolderPath()                   実行ファイルのフォルダを取得
     /// String getLastFolder(String folder)         フルパスのディレクトリから最後のフォルダ名を取り出す
     /// String getLastFolder(String folder, int n)  フルパスのディレクトリから最後のフォルダ名を取り出す(位置指定)
@@ -3198,7 +3202,7 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// ファイル選択ダイヤログ
+        /// ファイル選択ダイヤログ(複数選択)
         /// </summary>
         /// <param name="searchFolder">検索フォルダ</param>
         /// <param name="exts">拡張子リスト(. なし)</param>
@@ -3264,14 +3268,16 @@ namespace WpfLib
         /// </summary>
         /// <param name="initFolder">初期フォルダ</param>
         /// <param name="ext">拡張子(.なし)</param>
+        /// <param name="fileName">ファイル名の初期値</param>
         /// <returns></returns>
-        public string saveFileSelect(string initFolder, string ext)
+        public string saveFileSelect(string initFolder, string ext, string fileName = "")
         {
             // ダイアログのインスタンスを生成
             var dialog = new SaveFileDialog();
 
             // ファイルの種類を設定
             dialog.Filter = ext + "ファイル (*." + ext + ")|*." + ext + "|全てのファイル (*.*)|*.*";
+            dialog.FileName = fileName;
             if (initFolder != null && 0 < initFolder.Length)
                 dialog.InitialDirectory = initFolder;
 
@@ -3280,6 +3286,33 @@ namespace WpfLib
                 return dialog.FileName;
             }
             return "";
+        }
+
+        /// <summary>
+        /// ディレクトリをコピー
+        /// srcDir以下のファイルとディレクトリをdestDir以下にコピーする
+        /// </summary>
+        /// <param name="srcDir">コピー元ディレクトリ</param>
+        /// <param name="destDir">コピー先ディレクトリ</param>
+        public void copyDrectory(string srcDir, string destDir)
+        {
+            if (!Directory.Exists(destDir)) {
+                Directory.CreateDirectory(destDir);
+            }
+            File.SetAttributes(destDir, File.GetAttributes(srcDir));
+            if (!destDir.EndsWith(Path.DirectorySeparatorChar.ToString())) {
+                destDir = destDir + Path.DirectorySeparatorChar;
+            }
+
+            string[] files = Directory.GetFiles(srcDir);
+            foreach(string file in files) {
+                File.Copy(file, destDir + Path.GetFileName(file), true);
+            }
+
+            string[] dirs = Directory.GetDirectories(srcDir);
+            foreach (string dir in dirs) {
+                copyDrectory(dir, destDir + Path.GetFileName(dir));
+            }
         }
 
         /// <summary>
