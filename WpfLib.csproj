@@ -61,6 +61,9 @@
   <ItemGroup>
     <Compile Include="ArrayExtension.cs" />
     <Compile Include="Box.cs" />
+    <Compile Include="ColorDialog.xaml.cs">
+      <DependentUpon>ColorDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ExifInfo.cs" />
     <Compile Include="FileData.cs" />
     <Compile Include="FitReader.cs" />
@@ -80,6 +83,9 @@
       <DependentUpon>InputBox2.xaml</DependentUpon>
     </Compile>
     <Compile Include="LineD.cs" />
+    <Compile Include="MenuDialog.xaml.cs">
+      <DependentUpon>MenuDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PdfView.xaml.cs">
       <DependentUpon>PdfView.xaml</DependentUpon>
     </Compile>
@@ -124,6 +130,10 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ColorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="HelpView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -137,6 +147,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="InputBox2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MenuDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
