@@ -64,6 +64,7 @@
     <Compile Include="ColorDialog.xaml.cs">
       <DependentUpon>ColorDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DirectoryDiff.cs" />
     <Compile Include="ExifInfo.cs" />
     <Compile Include="FileData.cs" />
     <Compile Include="FitReader.cs" />
