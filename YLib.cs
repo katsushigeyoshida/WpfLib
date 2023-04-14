@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -116,6 +117,8 @@ namespace WpfLib
     /// bool IsWeekday(string weekday)              文字列が曜日かの判定
     /// int WeekNo(string weekday)                  文字列から曜日の番号を返す
     /// string getWeekday(int weekNo)               曜日の位置から曜日文字列を返す
+    /// (int, string) getDateMatch(string text)     テキストから日付の部分を抽出する
+    /// string cnvDateWeekday(int type, string date = "")   日付文字列から曜日を求める
     /// string cnvDateFormat(string date)           各種日付をyyyy/mm/ddに変換
     /// bool IsDateString(string date)              文字列が日付かを判定
     /// bool IsDateYearString(string date)          文字列が年を表しているかを判
@@ -124,7 +127,6 @@ namespace WpfLib
     /// int date2JulianDay(string date)             歴日からユリウス日に変換
     /// int date2JulianDay(int year, int month, int day)    日からユリウス日に変換
     /// string JulianDay2DateYear(int jd, bool sp)  ユリウス日から歴日文字列
-    /// string JulianDay2DateYear(int jd, int type) 
     /// int subYear(string startDate, string endDate)   年差を求める
     /// int subYear(int jd1, int jd2)               ユリウス日から年数差を求める(jd2 < jd1 で　正数)
     /// int JulianDay2Year(int jd)                  ユリウス日から年を抽出
@@ -137,6 +139,7 @@ namespace WpfLib
     /// double shyouwa2Date(double shyouwa)         昭和年を西暦年に変換(yy.mmdd → yyyy.mmdd)
     /// double taisyou2Date(double taisyou)         大正年を西暦年に変換(yy.mmdd → yyyy.mmdd)
     /// double meiji2Date(double meiji)             明治年を西暦年に変換(yy.mmdd → yyyy.mmdd)
+    /// string toWareki(string date = "")           西暦を和暦に変換
     /// 
     /// ファイル・ディレクトリ処理
     /// string folderSelect(string initFolder)      フォルダの選択ダイヤログの表示
@@ -2513,6 +2516,76 @@ namespace WpfLib
             return weekday[type % weekday.GetLength(0), weekNo % weekday.GetLength(1)];
         }
 
+        public string[] mDatePattern = {
+            //  [month] dd, yyyy
+            "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec).*?([12][0-9]|3[01]|[1-9]),.*?(19[0-9][0-9]|2[01][0-9][0-9])",
+            //  [元号]yy年mm月dd日
+            "(令和|平成|昭和|大正|明治)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([0-2][0-9]|3[01]|[1-9])日",
+            //  yyyy年ww周
+            "(^19[0-9][0-9]|2[01][0-9][0-9])年([1-5][0-9]|[1-9])週",
+            //  yyyy年mm月w週
+            "(^19[0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([1-5])週",
+            //  yyyy年mm月dd日
+            "(19[0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([12][0-9]|3[01]|[1-9])日",
+            //  yyyy年mm月
+            "(19[0-9][0-9]|2[01][0-9][0-9])年(1[0-2]|[1-9])月",
+            //  yyyy年
+            "(19[0-9][0-9]|2[01][0-9][0-9])年",
+            //  mm月dd日
+            "([1-9]|1[0-2])月([1-9]|[12][0-9]|3[01])日",
+            //  yyyy/mm/dd
+            "(19[0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])/([12][0-9]|3[01]|0[1-9]|[1-9])",
+            //  yyyy/mm
+            "(19[0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])",
+            //  yyyy-mm-dd
+            "(19[0-9][0-9]|2[01][0-9][0-9])-([1-9]|1[0-2]|0[1-9])-([12][0-9]|3[01]|0[1-9]|[1-9])",
+            //  dd/mm/yyyy
+            "(1[0-2]|0[1-9]|[1-9])/([1-9]|[12][0-9]|3[01]|0[1-9])/(19[0-9][0-9]|2[01][0-9][0-9])",
+            //  yyyymmdd
+            "(19[0-9][0-9]|2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])",
+            //  yyyy
+            "(19[0-9][0-9]|2[01][0-9][0-9])",
+            //  dd[month]yyyy
+            "([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])",
+            //  dd-[month]-yy
+            "([0-9][0-9]|[0-9])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-9][0-9])",
+        };
+
+        /// <summary>
+        /// テキストから日付の部分を抽出する
+        /// </summary>
+        /// <param name="text">テキスト</param>
+        /// <returns>日付</returns>
+        public (int, string) getDateMatch(string text)
+        {
+            for (int i = 0; i < mDatePattern.Length; i++) {
+                Match match = Regex.Match(text, mDatePattern[i]);
+                if (0 < match.Value.Length) {
+                    Console.WriteLine($"{i} {match.Index} {match.Value}");
+                    return (i, match.Value);
+                }
+            }
+            return (-1, "");
+        }
+
+        /// <summary>
+        /// 日付文字列から曜日を求める
+        /// 曜日のタイプ  0:Sunday 1:SUN 2:日曜日 3:日
+        /// </summary>
+        /// <param name="type">曜日のタイプ</param>
+        /// <param name="date">日付文字列</param>
+        /// <returns>曜日</returns>
+        public string cnvDateWeekday(int type, string date = "")
+        {
+            DateTime dt;
+            if (date.Length == 0)
+                dt = DateTime.Now;
+            else
+                dt = DateTime.Parse(date);
+            int weekNo = int.Parse(dt.DayOfWeek.ToString("d"));
+            return getWeekday(weekNo, type);
+        }
+
         /// <summary>
         /// 各種の日付パターンをyyyy/mm/ddに変換する
         /// </summary>
@@ -2520,48 +2593,14 @@ namespace WpfLib
         /// <returns></returns>
         public string cnvDateFormat(string date)
         {
-            string[] datePattern = {
-                //  [month] dd, yyyy
-                "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec).*?([12][0-9]|3[01]|[1-9]),.*?(19[0-9][0-9]|2[01][0-9][0-9])",
-                //  [元号]yy年mm月dd日
-                "(令和|平成|昭和|大正|明治)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([0-2][0-9]|3[01]|[1-9])日",
-                //  yyyy年ww周
-                "(^19[0-9][0-9]|2[01][0-9][0-9])年([1-5][0-9]|[1-9])週",
-                //  yyyy年mm月w週
-                "(^19[0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([1-5])週",
-                //  yyyy年mm月dd日
-                "(19[0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([12][0-9]|3[01]|[1-9])日",
-                //  yyyy年mm月
-                "(19[0-9][0-9]|2[01][0-9][0-9])年(1[0-2]|[1-9])月",
-                //  yyyy年
-                "(19[0-9][0-9]|2[01][0-9][0-9])年",
-                //  mm月dd日
-                "([1-9]|1[0-2])月([1-9]|[12][0-9]|3[01])日",
-                //  yyyy/mm/dd
-                "(19[0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])/([12][0-9]|3[01]|0[1-9]|[1-9])",
-                //  yyyy/mm
-                "(19[0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])",
-                //  yyyy-mm-dd
-                "(19[0-9][0-9]|2[01][0-9][0-9])-([1-9]|1[0-2]|0[1-9])-([12][0-9]|3[01]|0[1-9]|[1-9])",
-                //  dd/mm/yyyy
-                "(1[0-2]|0[1-9]|[1-9])/([1-9]|[12][0-9]|3[01]|0[1-9])/(19[0-9][0-9]|2[01][0-9][0-9])",
-                //  yyyymmdd
-                "(19[0-9][0-9]|2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])",
-                //  yyyy
-                "(19[0-9][0-9]|2[01][0-9][0-9])",
-                //  dd[month]yyyy
-                "([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])",
-                //  dd-[month]-yy
-                "([0-9][0-9]|[0-9])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-9][0-9])",
-                };
             int year = 0;
             int month = 0;
             int day = 0;
             int week = 0;
             int jd = 0;
-            for (int i = 0; i < datePattern.Length; i++) {
-                if (Regex.IsMatch(date.ToLower(), datePattern[i])) {
-                    List<string[]> dateList = getPattern(date.ToLower(), datePattern[i]);
+            for (int i = 0; i < mDatePattern.Length; i++) {
+                if (Regex.IsMatch(date.ToLower(), mDatePattern[i])) {
+                    List<string[]> dateList = getPattern(date.ToLower(), mDatePattern[i]);
                     switch (i) {
                         case 0: //  [manth] dd, yyyy
                             year = intParse(dateList[0][3]);
@@ -2569,7 +2608,7 @@ namespace WpfLib
                             day = intParse(dateList[0][2]);
                             break;
                         case 1: //  [元号]yy年mm月dd日
-                            year = intParse(dateList[0][2]) + (int)mKaigen[Array.IndexOf(mGengou, dateList[0][1])];
+                            year = intParse(dateList[0][2]) + (int)mKaigen[Array.IndexOf(mGengou, dateList[0][1])] - 1;
                             month = intParse(dateList[0][3]);
                             day = intParse(dateList[0][4]);
                             break;
@@ -3123,6 +3162,25 @@ namespace WpfLib
             return dyear + (meiji % 1);
         }
 
+        /// <summary>
+        /// 西暦(yyyy/mm/dd)を和暦に変換する
+        /// </summary>
+        /// <param name="date">西暦(省略時は現在日)</param>
+        /// <returns>和暦</returns>
+        public string toWareki(string date = "")
+        {
+            DateTime dt;
+            if (date.Length == 0)
+                dt = DateTime.Now;
+            else
+                dt = DateTime.Parse(date);
+            //  和暦の使用準備
+            JapaneseCalendar jc = new JapaneseCalendar();
+            CultureInfo ci = new CultureInfo("Ja-JP", true);
+            ci.DateTimeFormat.Calendar = jc;
+            //  DateTime日付を和暦で表示する
+            return dt.ToString("ggy年M月d日", ci);
+        }
 
         //  ---  ファイル・ディレクトリ関連  ------
 
@@ -3312,6 +3370,28 @@ namespace WpfLib
             string[] dirs = Directory.GetDirectories(srcDir);
             foreach (string dir in dirs) {
                 copyDrectory(dir, destDir + Path.GetFileName(dir));
+            }
+        }
+
+        /// <summary>
+        /// ファイルのコピー
+        /// copyType: 0:update, 1:date | size, 2:force, 3:new
+        /// </summary>
+        /// <param name="srcFile"></param>
+        /// <param name="destFile"></param>
+        /// <param name="copyType"></param>
+        public void fileCopy(string srcFile, string destFile, int copyType)
+        {
+            FileInfo sf = new FileInfo(srcFile);
+            FileInfo df = new FileInfo(destFile);
+            if (df.Exists && df.IsReadOnly)
+                df.IsReadOnly = false;
+            if ((copyType == 0 && sf.LastWriteTime > df.LastWriteTime) ||
+                (copyType == 1 && (sf.LastWriteTime != df.LastWriteTime || sf.Length != df.Length)) ||
+                (copyType == 2) ||
+                (copyType == 3 && !df.Exists)
+                ) {
+                File.Copy(srcFile, destFile, true);
             }
         }
 
