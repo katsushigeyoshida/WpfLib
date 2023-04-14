@@ -1,16 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace WpfLib
 {
@@ -22,7 +13,10 @@ namespace WpfLib
         public double mWindowWidth;                         //  ウィンドウの高さ
         public double mWindowHeight;                        //  ウィンドウ幅
         public bool mWindowSizeOutSet = false;              //  ウィンドウサイズの外部設定
+        //  ウィンドウの位置
         public Window mMainWindow = null;                   //  親ウィンドウの設定
+        public int mHorizontalAliment = -1;                 //  0: Left 1: Center 2:Right
+        public int mVerticalAliment = -1;                   //  0:Top 1:Center 2:Bottom
 
         public List<string> mMenuList;
         public string mResultMenu;
@@ -41,14 +35,33 @@ namespace WpfLib
         {
             WindowFormLoad();
 
-            if (mMainWindow != null) {
-                //  親ウィンドウの中心に表示
-                Left = mMainWindow.Left + (mMainWindow.Width - Width) / 2;
-                Top = mMainWindow.Top + (mMainWindow.Height - Height) / 2;
-            }
             lbMenuList.ItemsSource = mMenuList;
+            Height = Math.Min(mMenuList.Count * 28, Height);
+
+            if (mMainWindow != null) {
+                //  親ウィンドウに対しての表示位置
+                //  水平方向
+                if (mHorizontalAliment == 0)
+                    Left = mMainWindow.Left;                                    //  LEFT
+                else if (mHorizontalAliment == 2)
+                    Left = mMainWindow.Left + (mMainWindow.Width - Width);      //  RIGHT
+                else
+                    Left = mMainWindow.Left + (mMainWindow.Width - Width) / 2;  //  CENTER
+                //  垂直方向
+                if (mVerticalAliment == 0)
+                    Top = mMainWindow.Top;                                      //  TOP
+                else if (mVerticalAliment == 2)
+                    Top = mMainWindow.Top + (mMainWindow.Height - Height);      //  BOTTOM
+                else
+                    Top = mMainWindow.Top + (mMainWindow.Height - Height) / 2;  //  CENTER
+            }
         }
 
+        /// <summary>
+        /// ダブルクリックによる選択終了
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void lbMenuList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (0 <= lbMenuList.SelectedIndex) {
