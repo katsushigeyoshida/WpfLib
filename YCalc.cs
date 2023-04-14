@@ -14,6 +14,8 @@ namespace WpfLib
     ///     setArgData(key,data)    : 引数のデータ値を設定
     ///     replaceArg()            : 引数ありの計算式にデータ値を設定する
     ///     calculate()             : 引数をデータ値に置き換えた計算式を計算する
+    /// その他
+    ///     stripExpressData()      : 数式以外の文字列の除去
     ///  計算後のエラー
     ///     エラーの有無  mError = true
     ///     エラーの内容  mErrorMsg
@@ -32,6 +34,7 @@ namespace WpfLib
     /// Dictionary<string, string> getArgDic()
     /// string[] getArgKey()
     /// string replaceArg()
+    /// string stripExpressData(string str)
     /// List<string> expressList(string str)
     /// int getBracketSize(string str, int start)
     /// int getMonadicstring(string str, int start)
@@ -58,6 +61,7 @@ namespace WpfLib
     /// </summary>
     public class YCalc
     {
+        //  関数リスト説明用
         public static string[] mFuncList = {
             "PI 円周率",
             "E 自然対数の底",
@@ -112,14 +116,28 @@ namespace WpfLib
             "lcm(x,y) 最小公倍数",
             "JD(y,m,d) 西暦年月日からユリウス日を求める",
             "MJD(y,m,d) 西暦年月日から準ユリウス日を求める",
-            "sum(f([@]),n,k) 級数の和 nからkまで連続し値を計算式f([@])で演算した値の合計を求める",
             "JD2Date(x) ユリウス日を年月日に変換して yyyymmdd の実数にする",
+            "sum(f([@]),n,k) 級数の和 nからkまで連続し値を計算式f([@])で演算した値の合計を求める",
             "sum(f([@]),n1,n2...nm) 級数の和 n1からnmまで値を計算式f([@])で演算した値の合計を求める",
             "product(f([@]),n,k) 級数の積 nからkまで連続し値を計算式f([@])で演算した値の積を求める",
             "product(f([@]),,n1,n2...nm) 級数の積 n1からnmまで値を計算式f([@])で演算した値の積を求める",
             "repeat(f([@],[%]),i,n,k) 計算式の[@]にnからkまで入れて繰返す,[%]に計算結果が入る,iは[%]の初期値",
         };
-
+        //  数式処理で使うキーワード(予約語)
+        private string[] mKeyWord = {
+            "+", "-", "*", "/", "%", "^", "PI", "E",
+            "RAD", "DEG", "deg2hour", "hour2deg", "rad2hour", "hour2rad",
+            "mod", "pow", "max", "min", "combi", "permu", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", 
+            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "exp", "ln", "log", "log", "sqrt",
+            "abs", "ceil", "floor", "round", "trunc", "sign", "round",
+            "equals", "lt", "gt", "compare", "deg2dms", "dms2dig", "hour2hms", "hms2hour",
+            "fact", "fib", "gcd", "lcm", "JD", "MJD", "JD2Date",
+            "sum", "sum", "product", "product", "repeat"
+        };
+        //  内部で使う引数
+        public string[] mInnerParameter = {
+            "[#]", "[@]", "[%]"
+        };
         private string mExpression;
         private Dictionary<string, string> mArgDic;
         public bool mError = false;
@@ -229,6 +247,33 @@ namespace WpfLib
             return exprrss;
         }
 
+        /// <summary>
+        /// 数式文字(数値、予約関数名,括弧でくくられた文字)以外の文字を除く
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <returns>数式文字列</returns>
+        public string stripExpressData(string str)
+        {
+            List<string> list = expressList(str);
+            List<string> expList = new List<string>();
+            for (int i  = 0; i < list.Count; i++) {
+                if (Char.IsNumber(list[i][0])) {
+                    expList.Add(list[i]);
+                } else if (0 <= "({[\"\'".IndexOf(list[i][0])) {
+                    expList.Add(list[i]);
+                } else {
+                    int p = list[i].IndexOfAny(new char[] { '(', '[', '{' });
+                    string buf;
+                    if (0 < p)
+                        buf = list[i].Substring(0, p);
+                    else
+                        buf = list[i];
+                    if (0 <= mKeyWord.FindIndex(buf))
+                        expList.Add(list[i]);
+                }
+            }
+            return string.Join(null, expList);
+        }
 
         /// <summary>
         /// 文字列を数値と演算子と括弧内文字列に分解してLISTを作る
@@ -257,9 +302,9 @@ namespace WpfLib
                         expList.Add(buf);
                         buf = "";
                     }
-                    if (str[i] == '(') {
+                    if (str[i] == '(' || str[i] == '[') {
                         //  括弧内の文字列を格納(括弧を含む)
-                        int n = getBracketSize(str, i);
+                        int n = getBracketSize(str, i, str[i]);
                         buf = str.Substring(i, n + 2);
                         expList.Add(buf);
                         buf = "";
@@ -292,20 +337,30 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">文字式</param>
         /// <param name="start">開始位置</param>
+        /// <param name="braket">括弧の種類</param>
         /// <returns>括弧内の文字数</returns>
-        public int getBracketSize(string str, int start)
+        public int getBracketSize(string str, int start, char bracket = '(')
         {
+            char[] startBracket = { '(', '{', '[', '<', '\"', '\'' };
+            char[] endBracket =   { ')', '}', ']', '>', '\"', '\'' };
+            int bracketType = startBracket.FindIndex(bracket);
+            if (0 > bracketType) {
+                mError = true;
+                mErrorMsg = "括弧ではない";
+                return 0;
+            }
+
             int bracketCount = 0;
-            int bracketStart = 0;
+            int startPos = 0;
             for (int i = start; i < str.Length; i++) {
-                if (str[i] == '(') {
+                if (str[i] == startBracket[bracketType]) {
                     bracketCount++;
                     if (bracketCount == 1)
-                        bracketStart = i;
-                } else if (str[i] == ')') {
+                        startPos = i;
+                } else if (str[i] == endBracket[bracketType]) {
                     bracketCount--;
                     if (bracketCount == 0)
-                        return i - bracketStart - 1;
+                        return i - startPos - 1;
                 }
             }
             if (0 < bracketCount) {
@@ -346,7 +401,7 @@ namespace WpfLib
                     int n = getBracketSize(str, i);
                     return i - start + n + 2;
                 } else if (str[i] == '+' || str[i] == '-' || str[i] == '*' ||
-                    str[i] == '/' || str[i] == '%' || str[i] == '^') {
+                    str[i] == '/' || str[i] == '%' || str[i] == '^' || str[i] == ' ') {
                     return i - start;
                 }
                 i++;
