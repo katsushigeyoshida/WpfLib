@@ -55,6 +55,8 @@ namespace WpfLib
                 else
                     Top = mMainWindow.Top + (mMainWindow.Height - Height) / 2;  //  CENTER
             }
+            //  メニューリストにフォーカスを設定
+            lbMenuList.Focus();
         }
 
         /// <summary>
@@ -63,6 +65,26 @@ namespace WpfLib
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void lbMenuList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            selectMenu();
+        }
+
+        /// <summary>
+        /// [Key]ダウン エンターキーで選択終了
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lbMenuList_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) {
+                selectMenu();
+            }
+        }
+
+        /// <summary>
+        /// メニューを選択して終了
+        /// </summary>
+        private void selectMenu()
         {
             if (0 <= lbMenuList.SelectedIndex) {
                 mResultMenu = lbMenuList.Items[lbMenuList.SelectedIndex].ToString();
