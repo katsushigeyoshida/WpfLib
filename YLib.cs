@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -48,6 +47,10 @@ namespace WpfLib
     /// BitmapImage getExifThumbnailImage(string path)      JPEGのExifサムネイル画像(0x501B)を取出す
     /// BitmapImage cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap) BitmapをBitmapImageに変換
     /// Bitmap cnvBitmapImage2Bitmap(BitmapImage bitmapImage)   BitmapImageをBitmapに変換
+    /// Bitmap cnvBitmapSource2Bitmap(BitmapSource bitmapSource)    BitmapSourceをBitmapに変換
+    /// BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)  BitMap からBitmapSourceに変換
+    /// itmap trimingBitmap(Bitmap bitmap, .Point sp, Point ep) Bitmapイメージをトリミングする
+    /// Bitmap getFullScreenCapture()                       全画面をキャプチャする
     /// List<string> getIPTC(string path)                   JPEGファイルからIPTC情報の取得
     /// string getIPTCall(string path)                      JPEGファイルの全IPTC情報を文字列化
     /// 
@@ -140,6 +143,7 @@ namespace WpfLib
     /// double taisyou2Date(double taisyou)         大正年を西暦年に変換(yy.mmdd → yyyy.mmdd)
     /// double meiji2Date(double meiji)             明治年を西暦年に変換(yy.mmdd → yyyy.mmdd)
     /// string toWareki(string date = "")           西暦を和暦に変換
+    /// string getWareki(string date)               西暦和暦変換(文政(1818年)以降令和まで
     /// 
     /// ファイル・ディレクトリ処理
     /// string folderSelect(string initFolder)      フォルダの選択ダイヤログの表示
@@ -244,8 +248,12 @@ namespace WpfLib
         private TimeSpan mStopWatchTotalTime;   //  mSwの経過時間
         private Encoding[] mEncoding = {Encoding.UTF8, Encoding.GetEncoding("shift_jis"), Encoding.GetEncoding("euc-jp") };
         private int mEncordingType = 0;
-        private double[] mKaigen = { 2019.0501, 1989.0108, 1926.1225, 1912.0730, 1868.0908, 1865.0407, 1864, 1861, 1860, 1854, 1848, 1844, 1830, 1818 };
-        private string[] mGengou = { "令和", "平成", "昭和", "大正", "明治", "慶応", "元治", "文久", "万延", "安政", "嘉永", "弘化", "天保", "文政" };
+        private double[] mKaigen = {    //  改元の日付(yyyy.mmdd)
+            2019.0501, 1989.0108, 1926.1225, 1912.0730, 1868.0908, 1865.0407, 1864,   1861,   1860,   1854,   1848,   1844,   1830,   1818
+        };
+        private string[] mGengou = {    //  元号名
+            "令和",    "平成",     "昭和",   "大正",    "明治",    "慶応",    "元治", "文久", "万延", "安政", "嘉永", "弘化", "天保", "文政"
+        };
         private string[] mMonth = {
             "january","february","march","april","may","june","july","august","september","october","novmber","december",
             "jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec",
@@ -661,6 +669,92 @@ namespace WpfLib
         public System.Drawing.Bitmap cnvBitmapImage2Bitmap(BitmapImage bitmapImage)
         {
             return new System.Drawing.Bitmap(bitmapImage.StreamSource);
+        }
+
+        /// <summary>
+        /// BitmapSourceをBitmapに変換
+        /// 参考: https://qiita.com/YSRKEN/items/a24bf2173f0129a5825c
+        /// </summary>
+        /// <param name="bitmapSource">BitmapSourceデータ</param>
+        /// <returns>Bitmapデータ</returns>
+        public System.Drawing.Bitmap cnvBitmapSource2Bitmap(BitmapSource bitmapSource)
+        {
+            var bitmap = new System.Drawing.Bitmap(
+                bitmapSource.PixelWidth, bitmapSource.PixelHeight,
+                System.Drawing.Imaging.PixelFormat.Format32bppPArgb
+            );
+            var bitmapData = bitmap.LockBits(
+                new System.Drawing.Rectangle(System.Drawing.Point.Empty, bitmap.Size),
+                System.Drawing.Imaging.ImageLockMode.WriteOnly,
+                System.Drawing.Imaging.PixelFormat.Format32bppPArgb
+            );
+            bitmapSource.CopyPixels(
+                System.Windows.Int32Rect.Empty,
+                bitmapData.Scan0,
+                bitmapData.Height * bitmapData.Stride,
+                bitmapData.Stride
+            );
+            bitmap.UnlockBits(bitmapData);
+            return bitmap;
+        }
+
+        /// <summary>
+        /// BitMap からBitmapSourceに変換
+        /// https://qiita.com/YSRKEN/items/a24bf2173f0129a5825c
+        /// </summary>
+        /// <param name="bitmap"></param>
+        /// <returns></returns>
+        public System.Windows.Media.Imaging.BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)
+        {
+            // MemoryStreamを利用した変換処理
+            using (var ms = new System.IO.MemoryStream()) {
+                // MemoryStreamに書き出す
+                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                // MemoryStreamをシーク
+                ms.Seek(0, System.IO.SeekOrigin.Begin);
+                // MemoryStreamからBitmapFrameを作成
+                // (BitmapFrameはBitmapSourceを継承しているのでそのまま渡せばOK)
+                System.Windows.Media.Imaging.BitmapSource bitmapSource =
+                    System.Windows.Media.Imaging.BitmapFrame.Create(
+                        ms,
+                        System.Windows.Media.Imaging.BitmapCreateOptions.None,
+                        System.Windows.Media.Imaging.BitmapCacheOption.OnLoad
+                    );
+                return bitmapSource;
+            }
+        }
+
+
+        /// <summary>
+        /// Bitmapデータをトリミングする
+        /// </summary>
+        /// <param name="bitmap">Bitmapデータ</param>
+        /// <param name="sp">領域の始点</param>
+        /// <param name="ep">領域の終点</param>
+        /// <returns>切り取ったBitmapデータ</returns>
+        public System.Drawing.Bitmap trimingBitmap(System.Drawing.Bitmap bitmap, System.Windows.Point sp, System.Windows.Point ep)
+        {
+            System.Windows.Rect rect = new System.Windows.Rect(sp, ep);
+            //  画像をトリミングする
+            System.Drawing.Rectangle rectAngle = new System.Drawing.Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+            System.Drawing.Bitmap resultImg = bitmap.Clone(rectAngle, bitmap.PixelFormat);
+            bitmap.Dispose();
+            return resultImg;
+        }
+
+        /// <summary>
+        /// 全画面をキャプチャする
+        /// </summary>
+        /// <returns>Bitmapデータ</returns>
+        public System.Drawing.Bitmap getFullScreenCapture()
+        {
+            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(
+                System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width,
+                System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height);
+            System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap);
+            graphics.CopyFromScreen(new System.Drawing.Point(0, 0), new System.Drawing.Point(0, 0), bitmap.Size);
+            graphics.Dispose();
+            return bitmap;
         }
 
         /// <summary>
@@ -1133,10 +1227,8 @@ namespace WpfLib
                     if (ep <= sp)
                         break;
                     string tagData = html.Substring(sp, ep - sp + 1);
-                    // Console.WriteLine($"{tagData}");
                     string data = string.Join(",", getHtmlTagDataAll(tagData));
                     taglist.Add(data);
-                    // taglist.Add(getParaData + " [" + data + "]");
                 }
                 pos = html.IndexOf(">", pos);
                 if (0 > pos)
@@ -2518,35 +2610,35 @@ namespace WpfLib
 
         public string[] mDatePattern = {
             //  [month] dd, yyyy
-            "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec).*?([12][0-9]|3[01]|[1-9]),.*?(19[0-9][0-9]|2[01][0-9][0-9])",
+            "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec).*?([12][0-9]|3[01]|[1-9]),.*?(1[89][0-9][0-9]|2[01][0-9][0-9])",
             //  [元号]yy年mm月dd日
-            "(令和|平成|昭和|大正|明治)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([0-2][0-9]|3[01]|[1-9])日",
+            "(令和|平成|昭和|大正|明治|慶応|元治|文久|万延|安政|嘉永|弘化|天保|文政)([1-9]|[0-9][0-9])年([1-9]|[01][0-2])月([0-2][0-9]|3[01]|[1-9])日",
             //  yyyy年ww周
-            "(^19[0-9][0-9]|2[01][0-9][0-9])年([1-5][0-9]|[1-9])週",
+            "(^1[89][0-9][0-9]|2[01][0-9][0-9])年([1-5][0-9]|[1-9])週",
             //  yyyy年mm月w週
-            "(^19[0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([1-5])週",
+            "(^1[89][0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([1-5])週",
             //  yyyy年mm月dd日
-            "(19[0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([12][0-9]|3[01]|[1-9])日",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])年([1-9]|1[0-2])月([12][0-9]|3[01]|[1-9])日",
             //  yyyy年mm月
-            "(19[0-9][0-9]|2[01][0-9][0-9])年(1[0-2]|[1-9])月",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])年(1[0-2]|[1-9])月",
             //  yyyy年
-            "(19[0-9][0-9]|2[01][0-9][0-9])年",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])年",
             //  mm月dd日
             "([1-9]|1[0-2])月([1-9]|[12][0-9]|3[01])日",
             //  yyyy/mm/dd
             "(19[0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])/([12][0-9]|3[01]|0[1-9]|[1-9])",
             //  yyyy/mm
-            "(19[0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])/([1-9]|1[0-2]|0[1-9])",
             //  yyyy-mm-dd
-            "(19[0-9][0-9]|2[01][0-9][0-9])-([1-9]|1[0-2]|0[1-9])-([12][0-9]|3[01]|0[1-9]|[1-9])",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])-([1-9]|1[0-2]|0[1-9])-([12][0-9]|3[01]|0[1-9]|[1-9])",
             //  dd/mm/yyyy
             "(1[0-2]|0[1-9]|[1-9])/([1-9]|[12][0-9]|3[01]|0[1-9])/(19[0-9][0-9]|2[01][0-9][0-9])",
             //  yyyymmdd
-            "(19[0-9][0-9]|2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])(1[0-2]|0[1-9])([12][0-9]|3[01]|0[1-9])",
             //  yyyy
-            "(19[0-9][0-9]|2[01][0-9][0-9])",
+            "(1[89][0-9][0-9]|2[01][0-9][0-9])",
             //  dd[month]yyyy
-            "([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(19[0-9][0-9]|2[01][0-9][0-9])",
+            "([0-9][0-9])(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(1[89][0-9][0-9]|2[01][0-9][0-9])",
             //  dd-[month]-yy
             "([0-9][0-9]|[0-9])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-9][0-9])",
         };
@@ -2561,7 +2653,6 @@ namespace WpfLib
             for (int i = 0; i < mDatePattern.Length; i++) {
                 Match match = Regex.Match(text, mDatePattern[i]);
                 if (0 < match.Value.Length) {
-                    Console.WriteLine($"{i} {match.Index} {match.Value}");
                     return (i, match.Value);
                 }
             }
@@ -3165,11 +3256,12 @@ namespace WpfLib
         /// <summary>
         /// 西暦(yyyy/mm/dd)を和暦に変換する
         /// </summary>
-        /// <param name="date">西暦(省略時は現在日)</param>
+        /// <param name="date">西暦(yyyy/mm/dd)(省略時は現在日)</param>
         /// <returns>和暦</returns>
         public string toWareki(string date = "")
         {
             DateTime dt;
+            DateTime calenderStart = DateTime.Parse("1868/09/08");   //  カレンダの範囲1868/09/18-9999/12/31)
             if (date.Length == 0)
                 dt = DateTime.Now;
             else
@@ -3179,7 +3271,27 @@ namespace WpfLib
             CultureInfo ci = new CultureInfo("Ja-JP", true);
             ci.DateTimeFormat.Calendar = jc;
             //  DateTime日付を和暦で表示する
-            return dt.ToString("ggy年M月d日", ci);
+            if (calenderStart < dt)
+                return dt.ToString("ggy年M月d日", ci);
+            else
+                return getWareki(date);
+        }
+
+        /// <summary>
+        /// 西暦和暦変換(文政(1818年)以降令和まで
+        /// </summary>
+        /// <param name="date">yyyy/mm/dd</param>
+        /// <returns>[元号]yy年mm月dd日</returns>
+        public string getWareki(string date)
+        {
+            int year = int.Parse(date.Substring(0, 4));
+            int month = int.Parse(date.Substring(5, 2));
+            int day = int.Parse(date.Substring(8, 2));
+            for (int i = 0; i < mKaigen.Length; i++) {
+                if ((int)mKaigen[i] <= year)
+                    return $"{mGengou[i]}{year - (int)mKaigen[i] + 1}年{month}月{day}日";
+            }
+            return $"{year}年{month}月{day}日";
         }
 
         //  ---  ファイル・ディレクトリ関連  ------
