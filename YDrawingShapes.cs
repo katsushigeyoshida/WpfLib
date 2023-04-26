@@ -25,18 +25,18 @@ namespace WpfLib
     /// setWindowSize()
     /// getWindowSize()
     /// setWindowSize(double width, double height)  Windowのサイズを設定する
-    /// getColor16(int colorNo) 16色の内から番号で指定した色を取得する
-    /// getColor15(int colorNo) 白を除く15色から番号で指定した色を取得する
-    /// setColor(Brush color)   描画要素の色を設定
+    /// getColor16(int colorNo)     16色の内から番号で指定した色を取得する
+    /// getColor15(int colorNo)     白を除く15色から番号で指定した色を取得する
+    /// setColor(Brush color)       描画要素の色を設定
     /// setColor(byte a,byte r, byte g, byte b) 描画要素の色設定をARGBでおこなう
-    /// getColor()              描画要素の色の取得
+    /// getColor()                  描画要素の色の取得
     /// setThickness(double thickness)  線の太さを設定する
-    /// getThickness()          線幅の取得
+    /// getThickness()              線幅の取得
     /// setFillColor(Brush color)   要素内の塗潰しの色を設定
-    /// getFillColor()          要素の塗潰し色の取得
+    /// getFillColor()              要素の塗潰し色の取得
     /// setTextColor(Brush color)   文字の色設定
     /// setTextSize(double size)    文字の大きさを設定
-    /// getTextSize()           文字サイズの取得
+    /// getTextSize()               文字サイズの取得
     /// 
     /// drawLine(Point ps, Point pe)    線分の表示
     /// drawLine(double xs, double ys, double xe, double ye)    線分の表示
@@ -59,8 +59,8 @@ namespace WpfLib
     /// 
     /// drawBitmap(System.Drawing.Bitmap bitmap, double ox, double oy, double width, double height) リソースファイルの表示
     /// drawImageFile(string filePath, double ox, double oy, double width, double height)   イメージファイルを表示
-    /// cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap) BitmapをBitmapImageに変換
-    /// cnvImageFile2BitmapImage(string filePath)   イメージファイルをBitmapImageに変換
+    /// cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap)     BitmapをBitmapImageに変換
+    /// cnvImageFile2BitmapImage(string filePath)               イメージファイルをBitmapImageに変換
     /// setCanvasBitmapImage(Canvas canvas, BitmapImage bitmapImage, double ox, double oy, double width, double height) BitmapImageをcanvasに登録
     /// Bitmap verticalCombineImage(System.Drawing.Bitmap[] src)            画像を縦方向に連結
     /// Bitmap horizontalCombineImage(System.Drawing.Bitmap[] src)          画像の水平方向に連結
@@ -70,7 +70,7 @@ namespace WpfLib
     /// void screenCapture(int left, int top, int width, int height)        スクリーンキャプチャーしてClipBoardに入れる
     /// void SaveBitmapSourceToFile(BitmapSource bitmapSource, string filePath) 画像データをファイルに保存
     /// string imageOverlap(string baseImagePath, string lapImagePath, string saveImagePath, Color transportColors)   イメージファイル同士を重ねる
-    /// Bitmap colorReplace(Bitmap imgSrc, ColorMap[] cms)  画像データの色変換
+    /// Bitmap colorReplace(Bitmap imgSrc, ColorMap[] cms)                  画像データの色変換
     /// 
     /// 
     /// </summary>
