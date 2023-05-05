@@ -17,9 +17,10 @@ namespace WpfLib
         public Window mMainWindow = null;                   //  親ウィンドウの設定
         public int mHorizontalAliment = -1;                 //  0: Left 1: Center 2:Right
         public int mVerticalAliment = -1;                   //  0:Top 1:Center 2:Bottom
+        public bool mOneClick = false;                      //  OneClickで選択
 
-        public List<string> mMenuList;
-        public string mResultMenu;
+        public List<string> mMenuList;                      //  メニューリストデータ
+        public string mResultMenu;                          //  選択結果
 
         public MenuDialog()
         {
@@ -67,6 +68,18 @@ namespace WpfLib
         private void lbMenuList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             selectMenu();
+        }
+
+        /// <summary>
+        /// ワンクリックで選択終了
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lbMenuList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (mOneClick) {
+                selectMenu();
+            }
         }
 
         /// <summary>

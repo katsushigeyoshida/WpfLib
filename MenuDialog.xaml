@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfLib"
         mc:Ignorable="d"
-        Title="MenuDialog" Height="300" Width="200" Closing="Window_Closing" Loaded="Window_Loaded">
+        Title="MenuDialog" Height="300" Width="200" Closing="Window_Closing" Loaded="Window_Loaded" >
     <Grid>
-        <ListBox x:Name="lbMenuList" MouseDoubleClick="lbMenuList_MouseDoubleClick" PreviewKeyDown="lbMenuList_PreviewKeyDown" />
+        <ListBox x:Name="lbMenuList" MouseDoubleClick="lbMenuList_MouseDoubleClick" PreviewKeyDown="lbMenuList_PreviewKeyDown" SelectionChanged="lbMenuList_SelectionChanged"
+                 />
     </Grid>
 </Window>
