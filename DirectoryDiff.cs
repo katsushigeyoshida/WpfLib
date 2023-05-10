@@ -53,22 +53,23 @@ namespace WpfLib
         /// <param name="srcDir"></param>
         /// <param name="destDir"></param>
         public DirectoryDiff(string srcDir, string destDir)
-        { 
-            mSrcDir = srcDir;
-            mDestDir = destDir;
-            mSrcFiles = getDirectories(srcDir);
-            mDestFiles = getDirectories(destDir);
+        {
+            char[] trimChar = {'\\'};
+            mSrcDir = srcDir.TrimEnd(trimChar);
+            mDestDir = destDir.TrimEnd(trimChar);
+            mSrcFiles = getDirectories(mSrcDir);
+            mDestFiles = getDirectories(mDestDir);
 
             foreach (FileInfo srcFile in mSrcFiles) {
-                mFiles.Add(new FilesData(srcFile.FullName.Substring(srcDir.Length), srcFile, null));
+                mFiles.Add(new FilesData(srcFile.FullName.Substring(mSrcDir.Length + 1), srcFile, null));
             }
             foreach (FileInfo destFile in mDestFiles) {
-                string destPath = destFile.FullName.Substring(destDir.Length);
-                int n = mFiles.FindIndex(x => x.mRelPath == destPath);
+                string destRelPath = destFile.FullName.Substring(mDestDir.Length + 1);
+                int n = mFiles.FindIndex(x => x.mRelPath == destRelPath);
                 if (0 <= n) {
                     mFiles[n].mDstFile = destFile;
                 } else {
-                    mFiles.Add(new FilesData(destPath, null, destFile));
+                    mFiles.Add(new FilesData(destRelPath, null, destFile));
                 }
             }
         }
@@ -82,9 +83,11 @@ namespace WpfLib
             List<FilesData> files = new List<FilesData>();
             foreach (var file in mFiles) {
                 if (file.mSrcFile != null && file.mDstFile != null) {
+                    //  両方に存在するファイル
                     if (file.mSrcFile.LastAccessTime > file.mDstFile.LastAccessTime)
                         files.Add(file);
-                } else if (file.mSrcFile != null) {
+                } else if (file.mSrcFile != null && file.mDstFile == null) {
+                    //  コピー先にないファイル
                     files.Add(file);
                 }
             }
@@ -115,14 +118,17 @@ namespace WpfLib
             List<FilesData> fileList = getUpdateFile();
             int count = 0;
             foreach(var file in fileList) {
-                if (file.mSrcFile != null && file.mDstFile != null) {
-                    if (fileCopy(file.mSrcFile.FullName, file.mDstFile.FullName))
-                        count++;
-                } else if (file.mSrcFile != null) {
-                    string dstPath = Path.Combine(mDestDir, file.mSrcFile.Name);
-                    if (fileCopy(file.mSrcFile.FullName, dstPath))
-                        count++;
+                if (file.mSrcFile == null)
+                    continue;
+                string dstPath;
+                if (file.mDstFile == null) {
+                    //  コピー先にないファイル
+                    dstPath = Path.Combine(mDestDir, file.mRelPath);
+                } else {
+                    dstPath = file.mDstFile.FullName;
                 }
+                if (fileCopy(file.mSrcFile.FullName, dstPath))
+                    count++;
             }
             return count;
         }
