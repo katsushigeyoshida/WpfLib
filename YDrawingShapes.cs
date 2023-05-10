@@ -57,10 +57,17 @@ namespace WpfLib
     /// measureText(string text)        文字列の大きさを求める
     /// measureTextRatio(string text)   文字列の縦横比を求める(高さ/幅)
     /// 
-    /// drawBitmap(System.Drawing.Bitmap bitmap, double ox, double oy, double width, double height) リソースファイルの表示
-    /// drawImageFile(string filePath, double ox, double oy, double width, double height)   イメージファイルを表示
-    /// cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap)     BitmapをBitmapImageに変換
-    /// cnvImageFile2BitmapImage(string filePath)               イメージファイルをBitmapImageに変換
+    /// void drawBitmap(System.Drawing.Bitmap bitmap, double ox, double oy, double width, double height) リソースファイルの表示
+    /// void drawImageFile(string filePath, double ox, double oy, double width, double height)   イメージファイルを表示
+    /// void drawImageFile2(string filePath, double ox, double oy, double width, double height) イメージファイルをCanvasに表示する
+    /// void drawImageFile2(string filePath, Rect rect)                     イメージファイルをCanvasに表示する
+    /// void drawImageFile3(string filePath, Rect orgRect, Rect trimRect, Size size)    イメージファイルを読み込んでトリミングし、Canvasに張り付ける
+    /// Bitmap getFile2Bitmap(string filePath, double ox, double oy, double width, double height)   イメージファイルをBitmapで取得(トリミングあり)
+    /// Bitmap getFile2Bitmap(string filePath, Rect trimRect, Size size)    イメージファイルを読み込んでトリミングする
+    /// BitmapImage cnvBitmap2BitmapImage(System.Drawing.Bitmap bitmap)     BitmapをBitmapImageに変換
+    /// BitmapSource bitmap2BitmapSource(Bitmap bitmap)                     BitMap からBitmapSourceに変換
+    /// Bitmap trimingBitmap(Bitmap bitmap, Point sp, Point ep)             Bitmapデータをトリミングする
+    /// cnvImageFile2BitmapImage(string filePath)                           イメージファイルをBitmapImageに変換
     /// setCanvasBitmapImage(Canvas canvas, BitmapImage bitmapImage, double ox, double oy, double width, double height) BitmapImageをcanvasに登録
     /// Bitmap verticalCombineImage(System.Drawing.Bitmap[] src)            画像を縦方向に連結
     /// Bitmap horizontalCombineImage(System.Drawing.Bitmap[] src)          画像の水平方向に連結
@@ -1044,6 +1051,49 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// BitMap からBitmapSourceに変換
+        /// https://qiita.com/YSRKEN/items/a24bf2173f0129a5825c
+        /// </summary>
+        /// <param name="bitmap"></param>
+        /// <returns></returns>
+        public System.Windows.Media.Imaging.BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)
+        {
+            // MemoryStreamを利用した変換処理
+            using (var ms = new System.IO.MemoryStream()) {
+                // MemoryStreamに書き出す
+                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                // MemoryStreamをシーク
+                ms.Seek(0, System.IO.SeekOrigin.Begin);
+                // MemoryStreamからBitmapFrameを作成
+                // (BitmapFrameはBitmapSourceを継承しているのでそのまま渡せばOK)
+                System.Windows.Media.Imaging.BitmapSource bitmapSource =
+                    System.Windows.Media.Imaging.BitmapFrame.Create(
+                        ms,
+                        System.Windows.Media.Imaging.BitmapCreateOptions.None,
+                        System.Windows.Media.Imaging.BitmapCacheOption.OnLoad
+                    );
+                return bitmapSource;
+            }
+        }
+
+        /// <summary>
+        /// Bitmapデータをトリミングする
+        /// </summary>
+        /// <param name="bitmap">Bitmapデータ</param>
+        /// <param name="sp">領域の始点</param>
+        /// <param name="ep">領域の終点</param>
+        /// <returns>切り取ったBitmapデータ</returns>
+        public System.Drawing.Bitmap trimingBitmap(System.Drawing.Bitmap bitmap, System.Windows.Point sp, System.Windows.Point ep)
+        {
+            System.Windows.Rect rect = new System.Windows.Rect(sp, ep);
+            //  画像をトリミングする
+            System.Drawing.Rectangle rectAngle = new System.Drawing.Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+            System.Drawing.Bitmap resultImg = bitmap.Clone(rectAngle, bitmap.PixelFormat);
+            bitmap.Dispose();
+            return resultImg;
+        }
+
+        /// <summary>
         /// イメージファイルをBitmapImageに変換する
         /// </summary>
         /// <param name="filePath">ファイルパス</param>
@@ -1164,32 +1214,6 @@ namespace WpfLib
                 }
             }
             return dst;
-        }
-
-        /// <summary>
-        /// BitMap からBitmapSourceに変換
-        /// https://qiita.com/YSRKEN/items/a24bf2173f0129a5825c
-        /// </summary>
-        /// <param name="bitmap"></param>
-        /// <returns></returns>
-        public System.Windows.Media.Imaging.BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)
-        {
-            // MemoryStreamを利用した変換処理
-            using (var ms = new System.IO.MemoryStream()) {
-                // MemoryStreamに書き出す
-                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-                // MemoryStreamをシーク
-                ms.Seek(0, System.IO.SeekOrigin.Begin);
-                // MemoryStreamからBitmapFrameを作成
-                // (BitmapFrameはBitmapSourceを継承しているのでそのまま渡せばOK)
-                System.Windows.Media.Imaging.BitmapSource bitmapSource =
-                    System.Windows.Media.Imaging.BitmapFrame.Create(
-                        ms,
-                        System.Windows.Media.Imaging.BitmapCreateOptions.None,
-                        System.Windows.Media.Imaging.BitmapCacheOption.OnLoad
-                    );
-                return bitmapSource;
-            }
         }
 
         /// <summary>
