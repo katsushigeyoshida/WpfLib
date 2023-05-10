@@ -155,6 +155,7 @@ namespace WpfLib
     /// string[] getFiles(string path)              指定されたパスからファイルリストを作成
     /// List<string> getDirectories(string path)    定されたパスからディレクトリリストを作成
     /// List<string> getFilesDirectories(string folder, string fileName)    フォルダとファイルの一覧を取得
+    /// List<FileInfo> getDirectoriesInfo(string folder)        ファイル情報検索(サブディレクトリを含む)
     /// List<string> getDrives()                    ドライブの一覧を取得する
     /// string getAppFolderPath()                   実行ファイルのフォルダを取得
     /// String getLastFolder(String folder)         フルパスのディレクトリから最後のフォルダ名を取り出す
@@ -3564,6 +3565,34 @@ namespace WpfLib
                     fileDirList.Add(file);
                 }
                 return fileDirList;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// ファイル情報検索(サブディレクトリを含む)
+        /// </summary>
+        /// <param name="folder">検索フォルダ</param>
+        /// <returns>ファイルリスト</returns>
+        public List<FileInfo> getDirectoriesInfo(string folder, string fileName = "*")
+        {
+            List<FileInfo> fileList = new List<FileInfo>();
+            try {
+                DirectoryInfo di = new DirectoryInfo(folder);
+                foreach (DirectoryInfo dir in di.GetDirectories()) {
+                    List<FileInfo> filesInfo = getDirectoriesInfo(dir.FullName, fileName);
+                    if (filesInfo != null) {
+                        fileList.AddRange(filesInfo);
+                    }
+                }
+                string[] files = Directory.GetFiles(folder, fileName);
+                foreach (var file in files) {
+                    FileInfo fi = new FileInfo(file);
+                    if (fi != null)
+                        fileList.Add(fi);
+                }
+                return fileList;
             } catch (Exception e) {
                 return null;
             }
