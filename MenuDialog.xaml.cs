@@ -30,14 +30,14 @@ namespace WpfLib
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             WindowFormSave();
+
+            WindowFormLoad();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowFormLoad();
-
             lbMenuList.ItemsSource = mMenuList;
-            Height = Math.Min(mMenuList.Count * 28, Height);
+            Height = Math.Min(mMenuList.Count * 28 + 25, Height);
 
             if (mMainWindow != null) {
                 //  親ウィンドウに対しての表示位置
