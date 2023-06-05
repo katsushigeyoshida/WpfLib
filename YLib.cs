@@ -49,7 +49,8 @@ namespace WpfLib
     /// Bitmap cnvBitmapImage2Bitmap(BitmapImage bitmapImage)   BitmapImageをBitmapに変換
     /// Bitmap cnvBitmapSource2Bitmap(BitmapSource bitmapSource)    BitmapSourceをBitmapに変換
     /// BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)  BitMap からBitmapSourceに変換
-    /// itmap trimingBitmap(Bitmap bitmap, .Point sp, Point ep) Bitmapイメージをトリミングする
+    /// Bitmap trimingBitmap(Bitmap bitmap, .Point sp, Point ep)    Bitmapイメージをトリミングする
+    /// BitmapSource canvas2Bitmap(System.Windows.Controls.Canvas canvas)   Canvas を BitmapSourceに変換する
     /// Bitmap getFullScreenCapture()                       全画面をキャプチャする
     /// List<string> getIPTC(string path)                   JPEGファイルからIPTC情報の取得
     /// string getIPTCall(string path)                      JPEGファイルの全IPTC情報を文字列化
@@ -85,6 +86,7 @@ namespace WpfLib
     /// 
     /// 文字列処理
     /// string stripBrackets(string text, char sb = '[', char eb = ']') 文字列から括弧で囲まれた領域を取り除く
+    /// string getBracketInData(string text, char sb = '[', char eb = ']')  文字列から括弧内のデータを取り出す
     /// string trimControllCode(string buf)         文字列内のコントロールコードを除去
     /// bool IsNumberString(string num)             数値文字列かを判定
     /// bool boolParse(string str, bool val = true) 文字列を論理値に変換
@@ -104,6 +106,7 @@ namespace WpfLib
     /// String setDigitSeparator(String val)        文字列が数値の場合、桁区切り(3桁)を入れる
     /// string cnvHtmlSpecialCode(string html)      HTMLで使われいる{&#??;]のコードを通常の文字に置換
     /// int lastIndexCountOf(string text, string value, int count)  文字列を後ろから検索してn個目の位置
+    /// Size measureText(string text, double textSize)  テキストの大きさを求める
     /// 
     /// ストップウォッチ
     /// void stopWatchStartNew()                    ストップウォッチ機能初期化・計測開始
@@ -262,6 +265,13 @@ namespace WpfLib
 
         private bool mError = false;
         private string mErrorMessage;
+        public bool mDebugWrite = false;
+
+        private void debugWrite(string str)
+        {
+            if (mDebugWrite)
+                System.Diagnostics.Debug.WriteLine(str);
+        }
 
         public YLib()
         {
@@ -524,7 +534,7 @@ namespace WpfLib
                     return System.Drawing.Color.FromArgb(0xFF, 0xFF, 0xFF);
                 }
             } catch (Exception e) {
-                System.Diagnostics.Debug.WriteLine($"hexString2Color: {e.Message}");
+                debugWrite($"hexString2Color: {e.Message}");
                 return System.Drawing.Color.FromArgb(0xFF, 0xFF, 0xFF);
             }
         }
@@ -548,7 +558,7 @@ namespace WpfLib
                 bitmap.EndInit();
                 stream.Close();
             } catch (Exception e) {
-                System.Diagnostics.Debug.WriteLine("YLib.byte2BitmapImage: "+e.Message);
+                debugWrite("YLib.byte2BitmapImage: "+e.Message);
             }
             return bitmap;
         }
@@ -741,6 +751,31 @@ namespace WpfLib
             System.Drawing.Bitmap resultImg = bitmap.Clone(rectAngle, bitmap.PixelFormat);
             bitmap.Dispose();
             return resultImg;
+        }
+
+        /// <summary>
+        /// Canvas を BitmapSourceに変換する
+        /// </summary>
+        /// <param name="canvas">Canvas</param>
+        /// <returns>BitmapSource</returns>
+        public BitmapSource canvas2Bitmap(System.Windows.Controls.Canvas canvas)
+        {
+            //  Canvasの位置
+            Thickness margin = canvas.Margin;
+            Point offset = new Point(margin.Left, margin.Top);
+            // Window Objectの起点から画像を取得
+            var renderBitmap = new RenderTargetBitmap(
+                (int)(canvas.ActualWidth + offset.X),       // 画像の幅
+                (int)(canvas.ActualHeight + offset.Y),      // 画像の高さ
+                96.0d,                 // 横96.0DPI
+                96.0d,                 // 縦96.0DPI
+                PixelFormats.Pbgra32); // 32bit(RGBA各8bit)
+            renderBitmap.Render(canvas);
+            //  Canvasの領域をトリミングする
+            System.Drawing.Bitmap bitmap = cnvBitmapSource2Bitmap(renderBitmap);
+            bitmap = trimingBitmap(bitmap, offset,
+                new Point(canvas.ActualWidth + offset.X, canvas.ActualHeight + offset.Y));
+            return bitmap2BitmapSource(bitmap);
         }
 
         /// <summary>
@@ -979,7 +1014,7 @@ namespace WpfLib
             Match m = reg.Match(html);
             List<string[]> listData = new List<string[]>();
             while (m.Success) {
-                System.Diagnostics.Debug.WriteLine($"{html.Length} {m.Index} {m.Length}");
+                debugWrite($"{html.Length} {m.Index} {m.Length}");
                 string[] data = new string[m.Groups.Count];
                 for (int i = 0; i < m.Groups.Count; i++) {
                     data[i] = m.Groups[i].ToString();
@@ -1815,6 +1850,40 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 括弧内の文字列を抽出する(括弧内括弧も含める)
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <param name="sb">開始括弧文字(省略時'[')</param>
+        /// <param name="eb">終了括弧文字(省略時']')</param>
+        /// <param name="braket">括弧も含める</param>
+        /// <returns>文字列</returns>
+        public string getBracketInData(string text, char sb = '[', char eb = ']', bool braket = false)
+        {
+            int count = 0;
+            string buf = "";
+            int sp = text.IndexOf(sb);
+            if (sp < 0 || sp + 1 >= text.Length)
+                return buf;
+            if (braket)
+                buf += text[sp];
+            for (int i = sp + 1; i < text.Length; i++) {
+                if (text[i] == '[') {
+                    count++;
+                } else if (text[i] == ']') {
+                    if (0 < count) {
+                        count--;
+                    } else {
+                        if (braket)
+                            buf += text[i];
+                        return buf;
+                    }
+                }
+                buf += text[i];
+            }
+            return buf;
+        }
+
+        /// <summary>
         /// 括弧で囲まれた文字列を抽出する(ディフォルトは'{','}')
         /// 抽出した文字列に括弧は含まれない
         /// </summary>
@@ -2405,6 +2474,25 @@ namespace WpfLib
                 return indexList[indexList.Count - count];
             else
                 return -1;
+        }
+
+        /// <summary>
+        /// テキストの大きさを求める
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <param name="textSize">FontSize</param>
+        /// <returns>大きさ(size)</returns>
+        public Size measureText(string text, double textSize)
+        {
+            System.Windows.Controls.TextBlock textBlock = new System.Windows.Controls.TextBlock();
+            textBlock.Text = text;
+            //textBlock.Foreground = mTextColor;
+            textBlock.FontSize = textSize;             //  文字サイズ
+            //  auto sized (https://code.i-harness.com/ja-jp/q/8d5d0e)
+            textBlock.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
+            textBlock.Arrange(new Rect(textBlock.DesiredSize));
+
+            return new Size(textBlock.ActualWidth, textBlock.ActualHeight);
         }
 
         // ---  ストップウォッチ  ---
@@ -3675,7 +3763,7 @@ namespace WpfLib
                 if (0 < folder.Length && !Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
             } catch (Exception e) {
-                System.Diagnostics.Debug.WriteLine(e.Message);
+                debugWrite(e.Message);
                 return false;
             }
             return true;
@@ -3789,7 +3877,7 @@ namespace WpfLib
                 } catch (Exception e) {
                     mError = true;
                     mErrorMessage = e.Message;
-                    System.Diagnostics.Debug.WriteLine("saveCsvData: " + e.Message);
+                    debugWrite("saveCsvData: " + e.Message);
                     return false;
                 }
             }
@@ -3832,7 +3920,7 @@ namespace WpfLib
                 } catch (Exception e) {
                     mError = true;
                     mErrorMessage = e.Message;
-                    System.Diagnostics.Debug.WriteLine("loadCsvData: " + e.Message);
+                    debugWrite("loadCsvData: " + e.Message);
                     return null;
                 }
             } else {
@@ -3864,7 +3952,7 @@ namespace WpfLib
                 } catch (Exception e) {
                     mError = true;
                     mErrorMessage = e.Message;
-                    System.Diagnostics.Debug.WriteLine("saveListData: " + e.Message);
+                    debugWrite("saveListData: " + e.Message);
                 }
             }
         }
@@ -3893,7 +3981,7 @@ namespace WpfLib
                 } catch (Exception e) {
                     mError = true;
                     mErrorMessage = e.Message;
-                    System.Diagnostics.Debug.WriteLine("loadListData: " + e.Message);
+                    debugWrite("loadListData: " + e.Message);
                 }
             }
             return null;
@@ -3947,7 +4035,7 @@ namespace WpfLib
             } catch (Exception e) {
                 mError = true;
                 mErrorMessage = e.Message;
-                System.Diagnostics.Debug.WriteLine("loadJsonData: " + e.Message);
+                debugWrite("loadJsonData: " + e.Message);
                 return null;
             }
 
@@ -3972,7 +4060,7 @@ namespace WpfLib
             } catch (Exception e) {
                 mError = true;
                 mErrorMessage = e.Message;
-                System.Diagnostics.Debug.WriteLine("saveTextFile: " + e.Message);
+                debugWrite("saveTextFile: " + e.Message);
             }
         }
 
@@ -3993,7 +4081,7 @@ namespace WpfLib
             } catch (Exception e) {
                 mError = true;
                 mErrorMessage = e.Message;
-                System.Diagnostics.Debug.WriteLine("loadTextFile: " + e.Message);
+                debugWrite("loadTextFile: " + e.Message);
             }
             return buffer;
         }
@@ -4018,7 +4106,7 @@ namespace WpfLib
             } catch (Exception e) {
                 mError = true;
                 mErrorMessage = e.Message;
-                System.Diagnostics.Debug.WriteLine("loadBinData: " + e.Message);
+                debugWrite("loadBinData: " + e.Message);
             }
             return null;
         }
@@ -4038,7 +4126,7 @@ namespace WpfLib
             } catch (Exception e) {
                 mError = true;
                 mErrorMessage = e.Message;
-                System.Diagnostics.Debug.WriteLine("saveBinData: " + e.Message);
+                debugWrite("saveBinData: " + e.Message);
             }
         }
 
