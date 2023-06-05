@@ -87,23 +87,23 @@ namespace WpfLib
                                     //  StackPanelだとLineとEllipseは表示れるかRectAngleやTextBlockが表示されない
         protected double mWindowWidth;
         protected double mWindowHeight;
-        private string[] mColor16Title = {
+        public string[] mColor16Title = {
             "Black", "Silver", "Gray",  "White",  "Maroon", "Red",  "Purple", "Fuchsia",
             "Green", "Lime",   "Olive", "Yellow", "Navy",   "Blue", "Teal",   "Aqua" };
-        private Brush[] mColor16 = {Brushes.Black,Brushes.Silver,Brushes.Gray,Brushes.White,
+        public Brush[] mColor16 = {Brushes.Black,Brushes.Silver,Brushes.Gray,Brushes.White,
                                 Brushes.Maroon,Brushes.Red,Brushes.Purple,Brushes.Fuchsia,
                                 Brushes.Green,Brushes.Lime,Brushes.Olive,Brushes.Yellow,
                                 Brushes.Navy,Brushes.Blue,Brushes.Teal,Brushes.Aqua
                         };
-        private string[] mColor15Title = {  //  white抜き
+        public string[] mColor15Title = {  //  white抜き
             "Black", "Silver", "Gray",  "Maroon", "Red",  "Purple", "Fuchsia",
             "Green", "Lime",   "Olive", "Yellow", "Navy", "Blue",   "Teal",    "Aqua" };
-        private Brush[] mColor15 = {Brushes.Black,Brushes.Silver,Brushes.Gray,
+        public Brush[] mColor15 = {Brushes.Black,Brushes.Silver,Brushes.Gray,
                                 Brushes.Maroon,Brushes.Red,Brushes.Purple,Brushes.Fuchsia,
                                 Brushes.Green,Brushes.Lime,Brushes.Olive,Brushes.Yellow,
                                 Brushes.Navy,Brushes.Blue,Brushes.Teal,Brushes.Aqua
                         };
-        private string[] mColorTitle = {
+        public static string[] mColorTitle = {
             "AliceBlue","AntiqueWhite","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue",
             "BlueViolet","Brown","BurlyWood","CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson",
             "Cyan","DarkBlue","DarkCyan","DarkGoldenrod","DarkGray","DarkGreen","DarkKhaki","DarkMagenta","DarkOliveGreen","DarkOrange",
@@ -120,7 +120,7 @@ namespace WpfLib
             "Teal","Thistle","Tomato","Transparent","Turquoise","Violet","Wheat","White","WhiteSmoke","Yellow",
             "YellowGreen",
         };
-        private Brush[] mColor = {
+        public static Brush[] mColor = {
             Brushes.AliceBlue,Brushes.AntiqueWhite,Brushes.Aqua,Brushes.Aquamarine,Brushes.Azure,
             Brushes.Beige,Brushes.Bisque,Brushes.Black,Brushes.BlanchedAlmond,Brushes.Blue,
             Brushes.BlueViolet,Brushes.Brown,Brushes.BurlyWood,Brushes.CadetBlue,Brushes.Chartreuse,
