@@ -90,6 +90,9 @@
     <Compile Include="MenuDialog.xaml.cs">
       <DependentUpon>MenuDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MessageBoxEx.xaml.cs">
+      <DependentUpon>MessageBoxEx.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PdfView.xaml.cs">
       <DependentUpon>PdfView.xaml</DependentUpon>
     </Compile>
@@ -159,6 +162,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MenuDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MessageBoxEx.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
