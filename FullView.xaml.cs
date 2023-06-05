@@ -22,6 +22,7 @@ namespace WpfLib
         public FullView()
         {
             InitializeComponent();
+
         }
 
 
@@ -38,6 +39,9 @@ namespace WpfLib
 
             canvas.Width = mBitmapSource.Width;
             canvas.Height = mBitmapSource.Height;
+
+            Width = mBitmapSource.Width + 2 + 15;
+            Height = mBitmapSource.Height + 30 + 10;
         }
 
         /// <summary>
