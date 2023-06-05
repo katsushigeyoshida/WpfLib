@@ -27,37 +27,57 @@ namespace WpfLib
     ///   8/4/2  →  (8/4)/2      2^3^4  → (2^3)^4
     /// 
     /// 
-    /// int setExpression(string str)
-    /// double calculate()
-    /// int argKeySet(string str)
-    /// void setArgValue(string key, string data)
-    /// Dictionary<string, string> getArgDic()
-    /// string[] getArgKey()
-    /// string replaceArg()
-    /// string stripExpressData(string str)
-    /// List<string> expressList(string str)
-    /// int getBracketSize(string str, int start)
-    /// int getMonadicstring(string str, int start)
-    /// string[] stringSeperate(string str)
-    /// double monadicExpression(string str)
-    /// int express3(int i, ref double x, List<string> expList)
-    /// int express2(int i, ref double x, List<string> expList)
-    /// double expression(string str)
-    /// double asinh(double x)
-    /// double acosh(double x)
-    /// double atanh(double x)
-    /// int permutation(int n, int r)
-    /// int combination(int n, int k)
-    /// double factorial(int x)
-    /// double fibonacci(int n)
-    /// int Lcm(int a, int b)
-    /// int Gcd(int a, int b)
-    /// double getJD(int nYear, int nMonth, int nDay, int nHour = 0, int nMin = 0, int nSec = 0)
-    /// double getMJD(int nYear, int nMonth, int nDay, int nHour, int nMin, int nSec)
-    /// double sum(string express, int n, int k)
-    /// double product(string express, int n, int k)
-    /// double deg2dms(double deg)
-    /// double dms2deg(double dms)
+    /// int setExpression(string str)               計算式を入れて引数を設定
+    /// double calculate()                          設定された計算式で計算
+    /// int argKeySet(string str)                   計算式から引数([]内)を取り出しHashTableに保存
+    /// void setArgValue(string key, string data)   引数リストに値を設定する
+    /// Dictionary<string, string> getArgDic()      計算式の引数のHashTableを取り出す
+    /// string[] getArgKey()                        引数のキーワードを文字列の配列で取得
+    /// string replaceArg()                         引数を数値に置き換えた式を作成する
+    /// ----  単独関数  ----
+    /// string stripExpressData(string str)         数式文字(数値、予約関数名,括弧でくくられた文字)以外の文字を除く
+    /// string expressString(string express, Dictionary<string, string> argList)    数式の変数を変数辞書で置換える
+    /// List<string> getArgs(string express)        数式から変数を抽出
+    /// Dictionary<string, string> getExpressList(string str)   [a]=xxxxxの等式から引数の数式辞書の作成(;区切の複数式)
+    /// Dictionary<string, string> getExpressList(List<string> strList) [a]=xxxxxの等式の数式リストから引数の数式辞書(変数名、数式)の作成
+    /// (string key, string val) getExpressArgVal(string express)   式から変数と数式に分割
+    /// ----  数式処理関数  ----
+    /// List<string> expressList(string str)        文字列を数値と演算子と括弧内文字列に分解してLISTを作る
+    /// int getBracketSize(string str, int start)   文字列内の括弧の対を検索しその中の文字数を求める(括弧は含めない)
+    /// string getBracketString(string str, int start = 0)  文字列の中の括弧内の文字列を抽出する(括弧は含まない)
+    /// int getMonadicstring(string str, int start) 定数または単項演算子の場合のサイズを返す(括弧を含む)
+    /// string[] getFuncArgArray(string func)       関数の引数を配列にして取出す
+    /// string[] stringSeperate(string str)         文字列を括弧を考慮してカンマで分割して配列で返す(括弧の中は分割しない)
+    /// double monadicExpression(string str)        定数と単項演算子の計算
+    /// int express3(int i, ref double x, List<string> expList) べき乗のみを優先して計算
+    /// int express2(int i, ref double x, List<string> expList) 剰余のみ優先して計算するための関数
+    /// double expression(string str)               計算式の実行
+    /// double asinh(double x)                      逆双曲関数 sinh^-1 = log(x±√(x^2+1))
+    /// double acosh(double x)                      逆双曲関数 cosh^-1 = log(x±√(x^2-1))
+    /// double atanh(double x)                      逆双曲関数 tanh^-1 = 1/2log((1+x)/(1-x))
+    /// int permutation(int n, int r)               順列の組合せの数(nPr)
+    /// int combination(int n, int k)               組み合わせの数 n個の中からk個選ぶ nCk
+    /// double factorial(int x)                     階乗の計算 n!
+    /// double fibonacci(int n)                     フィボナッチ数列を求める
+    /// int Lcm(int a, int b)                       最小公倍数
+    /// int Gcd(int a, int b)                       最大公約数(ユークリッドの互除法)
+    /// double getJD(int nYear, int nMonth, int nDay, int nHour = 0, int nMin = 0, int nSec = 0)    ユリウス日の取得
+    /// double getMJD(int nYear, int nMonth, int nDay, int nHour, int nMin, int nSec)   準ユリウス日の取得
+    /// double JD2Date(double jd)                   ユリウス日を年月日に変換して yyyymmdd の実数で返す
+    /// (int year, int month, int day) JulianDay2Date(double jd)    ユリウス日から年月日を求める
+    /// double sum(string express, int n, int k)    式(f(x)のxがnからkまでの合計を求める
+    /// double sum(string[]  arg)                   引数の合計を求める
+    /// double product(string express, int n, int k)    式(f(x)のxがnからkまでの積を求める
+    /// double product(string[] arg)                引数の積を求める
+    /// double repeat(string express, double initVal, int n, int k) 式 y = f(x,y) を nからkまで繰り返した結果を求める
+    /// double deg2dms(double deg)                  度(時)(ddd.dddd)を度分秒(時分秒)表記(ddd.mmss)にする
+    /// double dms2deg(double dms)                  度分秒(時分秒)表記(ddd.mmss)を度(時)(ddd.dddd)にする 
+    /// double hour2hms(double hour)                時(hhh.hhhh)を時分秒表記(hh.mmss)にする
+    /// double hms2hour(double hms)                 時分秒表記(hh.mmss)を度(時)(hh.hhhh)にする 
+    /// double deg2hour(double deg)                 度から時(hh.hhhh)に変換
+    /// double hour2deg(double hour)                時(hh.hhhh)から度に変換
+    /// double rad2hour(double rad)                 ラジアンから時(hh.hhhh)に変換
+    /// double hour2rad(double hour)                時(hh.hhhh)からラジアンに変換
     /// </summary>
     public class YCalc
     {
@@ -142,6 +162,14 @@ namespace WpfLib
         private Dictionary<string, string> mArgDic;
         public bool mError = false;
         public string mErrorMsg;
+        public bool mDebugWrite = false;
+
+        private void debugWrite(string str)
+        {
+            if (mDebugWrite)
+                System.Diagnostics.Debug.WriteLine(str);
+        }
+
         public YCalc()
         {
             mArgDic = new Dictionary<string, string>();
@@ -169,15 +197,25 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// 計算式から引数([]内)を取り出しHashTableに保存 
+        /// 計算式から引数([]内)を取り出しHashTableに保存(初期かあり)
         /// </summary>
         /// <param name="str">計算式</param>
         /// <returns>引数の数</returns>
-        private int argKeySet(string str)
+        public int argKeySet(string str)
+        {
+            mArgDic.Clear();
+            return argKeyAdd(str);
+        }
+
+        /// <summary>
+        /// 計算式から引数([]内)を取り出しHashTableに保存(初期化なし)
+        /// </summary>
+        /// <param name="str">計算式</param>
+        /// <returns></returns>
+        public int argKeyAdd(string str)
         {
             string buf = "";
             int i = 0;
-            mArgDic.Clear();
             while (i < str.Length) {
                 if (str[i] == '[') {
                     buf += str[i];
@@ -210,7 +248,7 @@ namespace WpfLib
 
         /// <summary>
         /// 計算式の引数のHashTableを取り出す
-        /// このHashTableを編集して計算式をつく直す
+        /// このHashTableを編集して計算式を作り直す
         /// </summary>
         /// <returns>引数のHashTable</returns>
         public Dictionary<string, string> getArgDic()
@@ -240,12 +278,14 @@ namespace WpfLib
         {
             string exprrss = mExpression;
             foreach (KeyValuePair<string, string> kvp in mArgDic) {
-                //Console.WriteLine(kvp.Key + " " + kvp.Value);
+                //debugWrite(kvp.Key + " " + kvp.Value);
                 if (0 < kvp.Value.Length)
                     exprrss = exprrss.Replace(kvp.Key, kvp.Value);
             }
             return exprrss;
         }
+
+        //  ----  単独関数  ----
 
         /// <summary>
         /// 数式文字(数値、予約関数名,括弧でくくられた文字)以外の文字を除く
@@ -274,6 +314,100 @@ namespace WpfLib
             }
             return string.Join(null, expList);
         }
+
+
+        /// <summary>
+        /// 数式の変数を変数辞書で置換える
+        /// </summary>
+        /// <param name="express">数式文字列</param>
+        /// <param name="argList">変数辞書</param>
+        /// <returns>置き換え後の数式</returns>
+        public string expressString(string express, Dictionary<string, string> argList)
+        {
+            List<string> args = getArgs(express);
+            foreach (var arg in args) {
+                if (argList.ContainsKey(arg)) {
+                    string argval = argList[arg];
+                    if (0 < argval.Length) {
+                        string argExpress = expressString(argval, argList);
+                        express = express.Replace(arg, argExpress);
+                    }
+                }
+            }
+
+            return express;
+        }
+
+        /// <summary>
+        /// 数式から変数を抽出
+        /// </summary>
+        /// <param name="express">数式</param>
+        /// <returns>変数リスト</returns>
+        public List<string> getArgs(string express)
+        {
+            List<string> argList = new List<string>();
+            int p = 0;
+            while (p < express.Length) {
+                int ps = express.IndexOf("[", p);
+                if (ps < 0) break;
+                int pe = express.IndexOf("]", ps);
+                if (ps < pe) {
+                    string arg = express.Substring(ps, pe - ps + 1);
+                    if (!argList.Contains(arg))
+                        argList.Add(arg);
+                    p = pe + 1;
+                } else
+                    p = ps + 1;
+            }
+            return argList;
+        }
+
+        /// <summary>
+        /// [a]=xxxxxの等式から引数の数式辞書の作成(;区切の複数式)
+        /// </summary>
+        /// <param name="str">;区切の複数式</param>
+        /// <returns>数式辞書</returns>
+        public Dictionary<string, string> getArgDic(string str)
+        {
+            string[] strList = str.Split(';');
+            return getArgDic(strList.ToList());
+        }
+
+        /// <summary>
+        /// [a]=xxxxxの等式の数式リストから引数の数式辞書(変数名、数式)の作成
+        /// </summary>
+        /// <param name="str">数式リスト</param>
+        /// <returns>数式辞書</returns>
+        public Dictionary<string, string> getArgDic(List<string> strList)
+        {
+            Dictionary<string, string> expressList = new Dictionary<string, string>();
+            for (int i = 0; i < strList.Count; i++) {
+                (string key, string val) = getExpressArgVal(strList[i]);
+                if (0 < key.Length && !expressList.ContainsKey(key))
+                    expressList.Add(key, val);
+            }
+            return expressList;
+        }
+
+        /// <summary>
+        /// 等式から変数と数式に分割
+        /// </summary>
+        /// <param name="express">等式</param>
+        /// <returns>(変数,数式)</returns>
+        public (string key, string val) getExpressArgVal(string express)
+        {
+            int p = express.IndexOf('=');
+            if (0 < p) {
+                string key = express.Substring(0, p).Trim();
+                string val = express.Substring(p + 1, express.Length - p - 1).Trim();
+                if (0 < key.Length)
+                    return (key, val);
+            }
+            return ("", "");
+        }
+
+
+        //  ----  数式処理関数 -----
 
         /// <summary>
         /// 文字列を数値と演算子と括弧内文字列に分解してLISTを作る
@@ -487,7 +621,7 @@ namespace WpfLib
             }
             string ope = str.Substring(0, str.IndexOf('('));
             string data = str.Substring(str.IndexOf('(') + 1, str.Length - str.IndexOf('(') - 2);
-            //Console.WriteLine(ope+" "+data);
+            //debugWrite(ope+" "+data);
             string[] datas = stringSeperate(data);
             if (0 == datas.Length) {
             } else if (1 == datas.Length) {
@@ -669,7 +803,7 @@ namespace WpfLib
                 while (i + 2 < expList.Count()) {
                     string ope = expList[i + 1];
                     double z = expression(expList[i + 2]);
-                    Console.WriteLine("express3: " + i + ": " + y + " " + ope + " " + z);
+                    debugWrite("express3: " + i + ": " + y + " " + ope + " " + z);
                     if (ope.CompareTo("^") == 0) {
                         x = Math.Pow(y, z);
                     } else {
@@ -698,7 +832,7 @@ namespace WpfLib
                 while (i + 2 < expList.Count()) {
                     string ope = expList[i + 1];
                     double z = expression(expList[i + 2]);
-                    Console.WriteLine("express2:" + i + ":" + y + " " + ope + " " + z);
+                    debugWrite("express2:" + i + ":" + y + " " + ope + " " + z);
                     if (ope.CompareTo("*") == 0) {
                         i = express3(i, ref z, expList);
                         x = y * z;
@@ -709,8 +843,11 @@ namespace WpfLib
                         x = y / z;
                     } else if (ope.CompareTo("%") == 0) {
                         i = express3(i, ref z, expList);
-                        if (z == 0d)
+                        if (x == 0d) {
+                            mError = true;
+                            mErrorMsg = "0割り";
                             return -1;
+                        }
                         x = y % z;
                     } else if (ope.CompareTo("^") == 0) {
                         x = Math.Pow(y, z);
@@ -732,7 +869,7 @@ namespace WpfLib
         /// <returns>計算結果</returns>
         public double expression(string str)
         {
-            Console.WriteLine("expression: [" + str + "]");
+            debugWrite("expression: [" + str + "]");
             List<string> expList;
             mError = false;
             //  文字列を数値と演算子、括弧内の分解リストを作成
@@ -757,7 +894,7 @@ namespace WpfLib
                     }
                     //  数値の場合、前の演算子で計算する
                     if (success) {
-                        Console.WriteLine("expression: " + i + ": " + result + " " + ope + " " + x);
+                        debugWrite("expression: " + i + ": " + result + " " + ope + " " + x);
                         if (ope.CompareTo("+") == 0) {
                             i = express2(i, ref x, expList);     //  剰除が先にあれば計算しておく
                             result += x;
@@ -769,8 +906,11 @@ namespace WpfLib
                             result *= x;
                         } else if (ope.CompareTo("/") == 0) {
                             i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
-                            if (x == 0d)
+                            if (x == 0d) {
+                                mError = true;
+                                mErrorMsg = "0割り";
                                 return -1;
+                            }
                             result /= x;
                         } else if (ope.CompareTo("%") == 0) {
                             i = express3(i, ref x, expList);     //  べき乗が先にあれば計算しておく
