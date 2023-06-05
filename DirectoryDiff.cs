@@ -43,7 +43,6 @@ namespace WpfLib
         /// </summary>
         public DirectoryDiff()
         {
-
         }
 
         /// <summary>
@@ -72,6 +71,57 @@ namespace WpfLib
                     mFiles.Add(new FilesData(destRelPath, null, destFile));
                 }
             }
+        }
+
+        /// <summary>
+        /// ファイルリストから同一ファイルを除く
+        /// 日付とサイズをチェック
+        /// </summary>
+        public void stripSameFile()
+        {
+            for (int i = mFiles.Count - 1; i >= 0; i--) {
+                if (sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile)) {
+                    mFiles.RemoveAt(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// ファイル同士の同一性をチェック
+        /// </summary>
+        /// <param name="srcFile"></param>
+        /// <param name="dstFile"></param>
+        /// <returns></returns>
+        private bool sameFile(FileInfo srcFile, FileInfo dstFile)
+        {
+            if (srcFile == null || dstFile == null)
+                return false;
+            //  日時の比較は1秒以下の誤差がある場合があるので文字列に変換して比較
+            if (srcFile.LastWriteTime.ToString().CompareTo(dstFile.LastWriteTime.ToString()) != 0) 
+                return false;
+            if (srcFile.Length != dstFile.Length)
+                return false;
+            return true;
+        }
+
+        /// <summary>
+        /// 比較リストへの変換
+        /// </summary>
+        /// <returns></returns>
+        public List<List<string>> getStringList()
+        {
+            List<List<string>> fileStringLiset = new List<List<string>>();
+            foreach (FilesData fileData in mFiles) {
+                List<string> buf = new List<string>();
+                buf.Add(Path.GetFileName(fileData.mRelPath));
+                buf.Add(Path.GetDirectoryName(fileData.mRelPath));
+                buf.Add(fileData.mSrcFile == null ? "" : fileData.mSrcFile.LastWriteTime.ToString());
+                buf.Add(fileData.mSrcFile == null ? "" : fileData.mSrcFile.Length.ToString());
+                buf.Add(fileData.mDstFile == null ? "" : fileData.mDstFile.LastWriteTime.ToString());
+                buf.Add(fileData.mDstFile == null ? "" : fileData.mDstFile.Length.ToString());
+                fileStringLiset.Add(buf);
+            }
+            return fileStringLiset;
         }
 
         /// <summary>
