@@ -51,6 +51,7 @@ namespace WpfLib
     /// BitmapSource bitmap2BitmapSource(System.Drawing.Bitmap bitmap)  BitMap からBitmapSourceに変換
     /// Bitmap trimingBitmap(Bitmap bitmap, .Point sp, Point ep)    Bitmapイメージをトリミングする
     /// BitmapSource canvas2Bitmap(System.Windows.Controls.Canvas canvas)   Canvas を BitmapSourceに変換する
+    /// void image2Clipbord(System.Windows.Media.ImageSource imageSource)   Imageコントロールの可増をClipbordにコピー
     /// Bitmap getFullScreenCapture()                       全画面をキャプチャする
     /// List<string> getIPTC(string path)                   JPEGファイルからIPTC情報の取得
     /// string getIPTCall(string path)                      JPEGファイルの全IPTC情報を文字列化
@@ -776,6 +777,18 @@ namespace WpfLib
             bitmap = trimingBitmap(bitmap, offset,
                 new Point(canvas.ActualWidth + offset.X, canvas.ActualHeight + offset.Y));
             return bitmap2BitmapSource(bitmap);
+        }
+
+        /// <summary>
+        /// Imageコントロールの画像をクリップボードに貼り付ける
+        /// </summary>
+        /// <param name="imageSource">Image.Source</param>
+        public void image2Clipbord(System.Windows.Media.ImageSource imageSource)
+        {
+            System.Windows.Media.Imaging.BitmapSource bitmapSource = (System.Windows.Media.Imaging.BitmapSource)imageSource;
+            System.Drawing.Bitmap bitmap = cnvBitmapSource2Bitmap(bitmapSource);
+            //  クリップボードに張り付ける
+            System.Windows.Clipboard.SetImage(bitmap2BitmapSource(bitmap));
         }
 
         /// <summary>
