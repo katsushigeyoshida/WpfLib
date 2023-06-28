@@ -115,26 +115,49 @@ namespace WpfLib
             double d = 1.0;
             double cx = ImImage.ActualWidth / 2.0;
             double cy = ImImage.ActualHeight / 2.0;
-            if (e.KeyboardDevice.Modifiers == ModifierKeys.Control)
+            if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
                 d = 0.5;
-            if (e.Key == Key.Left) {                //  左に移動
-                //  前のデータファイルを表示
-                nextImage(-1);
-            } else if (e.Key == Key.Right) {        //  右に移動
-                //  次のデータファイルを表示
-                nextImage(1);
-            } else if (e.Key == Key.Up) {           //  上に移動
-                //  拡大
-                imageZoom(1.25, cx, cy);
-            } else if (e.Key == Key.Down) {         //  下に移動
-                //  縮小
-                imageZoom(1 / 1.25, cx, cy);
-            } else if (e.Key == Key.PageUp) {       //  拡大
-            } else if (e.Key == Key.PageDown) {     //  縮小
-            } else if (e.Key == Key.F5) {           //  再表示
-            } else if (e.Key == Key.Home) {         //  初期状態
-                //  イメージを初期状態にする
-                ImImage.RenderTransform = new MatrixTransform(new Matrix());
+                if (e.Key == Key.Left) {                //  左に移動
+                    //  前のデータファイルを表示
+                    nextImage(-1);
+                } else if (e.Key == Key.Right) {        //  右に移動
+                    //  次のデータファイルを表示
+                    nextImage(1);
+                } else if (e.Key == Key.C) {            //  画面コピー
+                    ylib.image2Clipbord(ImImage.Source);
+                } else if (e.Key == Key.E) {            //  コメント登録
+                    setComment();
+                }
+            } else {
+                if (e.Key == Key.Left) {                //  左に移動
+                    Matrix matrix = ((MatrixTransform)ImImage.RenderTransform).Matrix;
+                    matrix.Translate( -50, 0);
+                    ImImage.RenderTransform = new MatrixTransform(matrix);
+                } else if (e.Key == Key.Right) {        //  右に移動
+                    Matrix matrix = ((MatrixTransform)ImImage.RenderTransform).Matrix;
+                    matrix.Translate(50, 0);
+                    ImImage.RenderTransform = new MatrixTransform(matrix);
+                } else if (e.Key == Key.Up) {           //  上に移動
+                    Matrix matrix = ((MatrixTransform)ImImage.RenderTransform).Matrix;
+                    matrix.Translate(0, -50);
+                    ImImage.RenderTransform = new MatrixTransform(matrix);
+                } else if (e.Key == Key.Down) {         //  下に移動
+                    Matrix matrix = ((MatrixTransform)ImImage.RenderTransform).Matrix;
+                    matrix.Translate(0, 50);
+                    ImImage.RenderTransform = new MatrixTransform(matrix);
+                } else if (e.Key == Key.PageUp) {       //  拡大
+                    imageZoom(1.25, cx, cy);
+                } else if (e.Key == Key.PageDown) {     //  縮小
+                    imageZoom(1 / 1.25, cx, cy);
+                } else if (e.Key == Key.F5) {           //  再表示
+                } else if (e.Key == Key.Home) {         //  初期状態
+                                                        //  イメージを初期状態にする
+                    ImImage.RenderTransform = new MatrixTransform(new Matrix());
+                } else if (e.Key == Key.R) {            //  回転
+                    Matrix matrix = ((MatrixTransform)ImImage.RenderTransform).Matrix;
+                    matrix.RotateAt(90, cx, cy);
+                    ImImage.RenderTransform = new MatrixTransform(matrix);
+                }
             }
         }
 
@@ -230,6 +253,51 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// [コピー]コンテキストメニュー
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void imClipCopyMenu_Click(object sender, RoutedEventArgs e)
+        {
+            ylib.image2Clipbord(ImImage.Source);
+        }
+
+        /// <summary>
+        /// [コメント追加]コンテキストメニュー
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void imCommenMenu_Click(object sender, RoutedEventArgs e)
+        {
+            setComment();
+        }
+
+        /// <summary>
+        /// コメントデータを設定する
+        /// </summary>
+        private void setComment()
+        {
+            ExifInfo exifInfo = new ExifInfo(mImagePath);
+            string comment = exifInfo.getUserComment();
+            if (comment.Length <= 0)
+                comment += ylib.getIPTC(mImagePath)[4];
+            InputBox dlg = new InputBox();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.Title = "コメント登録";
+            dlg.mEditText = comment;
+            if (dlg.ShowDialog() == true) {
+                if (exifInfo.setUserComment(dlg.mEditText))
+                    if (!exifInfo.save()) {
+                        MessageBox.Show(exifInfo.mErrorMsg);
+                    } else {
+                        setPhotoInfo(mImagePath);
+                    }
+            }
+
+        }
+
+        /// <summary>
         /// 画像ファイルの移動
         /// </summary>
         /// <param name="next"></param>
@@ -274,6 +342,7 @@ namespace WpfLib
             TbPhotoInfo.Text += " [" + bmpImage.PixelWidth + "x" + bmpImage.PixelHeight + "]";
             TbPhotoInfo.Text += " " + exifInfo.getCamera("カメラ {0} {1}");
             TbPhotoInfo.Text += " " + exifInfo.getCameraSetting(" 1/{0} s F{1} ISO {2} 焦点距離 {3} mm");
+            exifInfo.close();
         }
 
         /// <summary>

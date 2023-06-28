@@ -7,22 +7,30 @@
         mc:Ignorable="d"
         Title="ImageView" Height="400" Width="400" Closing="Window_Closing" Loaded="Window_Loaded" LayoutUpdated="Window_LayoutUpdated" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid>
-        <Image x:Name="ImImage" Margin="0,0,0,30" MouseWheel="ImImage_MouseWheel" MouseLeftButtonDown="ImImage_MouseLeftButtonDown" MouseMove="ImImage_MouseMove" MouseLeftButtonUp="ImImage_MouseLeftButtonUp" />
+        <Image x:Name="ImImage" Margin="0,0,0,30" MouseWheel="ImImage_MouseWheel"
+               MouseLeftButtonDown="ImImage_MouseLeftButtonDown" MouseMove="ImImage_MouseMove" MouseLeftButtonUp="ImImage_MouseLeftButtonUp" >
+            <Image.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Name="imClipCopyMenu" Header="コピー" ToolTip="画像をクリップボードにコピー Ctrl+C" Click="imClipCopyMenu_Click" />
+                    <MenuItem Name="imCommenMenu" Header="コメント追加" ToolTip="コメントの追加・修正 Ctrl+E" Click="imCommenMenu_Click"  />
+                </ContextMenu>
+            </Image.ContextMenu>
+        </Image>
         <StatusBar Height="30" VerticalAlignment="Bottom" >
             <Button x:Name="BtGInfo" Margin="0,0,0,0" Width="25" Height="25" Click="Button_Click"
                 ToolTip="タグ情報を表示する"  HorizontalAlignment="Right" VerticalAlignment="Top" >
                 <Path Data="M10,8 L10,15 M10,3 10,6 M10,0 A8,8 0 1 0 9,18 M9,18 A8,8 0 1 0 9,0" Margin="1" Stroke="Black" StrokeThickness="1.5" />
             </Button>
             <Button x:Name="BtGZoomReset" Margin="0,0,0,0" Width="25" Height="25" Click="Button_Click" 
-                ToolTip="全体を表示する" HorizontalAlignment="Right" VerticalAlignment="Top" >
+                ToolTip="全体を表示する(Home Key)" HorizontalAlignment="Right" VerticalAlignment="Top" >
                 <Path Data="M10,3 L10,15 M10,3 7,5 M10,0 A8,8 0 1 0 9,18 M9,18 A8,8 0 1 0 9,0" Margin="1" Stroke="Black" StrokeThickness="1.5" />
             </Button>
             <Button x:Name="BtGZoomUp" Margin="0,0,0,0" Click="Button_Click" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="25"
-                    ToolTip="画像を拡大する" >
+                    ToolTip="画像を拡大する(PageUpKey)" >
                 <Path Data="M10,3 L10,15 M4,9 16,9 M10,0 A8,8 0 1 0 9,18 M9,18 A8,8 0 1 0 9,0" Margin="1" Stroke="Black" StrokeThickness="1.5" />
             </Button>
             <Button x:Name="BtGZoomDown" Margin="0,0,0,0" Click="Button_Click" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="25"
-                    ToolTip="画像を縮小する" >
+                    ToolTip="画像を縮小する(PageDownKey)" >
                 <Path Data="M4,9 16,9 M10,0 A8,8 0 1 0 9,18 M9,18 A8,8 0 1 0 9,0" Margin="1" Stroke="Black" StrokeThickness="1.5" />
             </Button>
             <Button x:Name="BtRotate" Margin="0,0,0,0" Click="Button_Click" VerticalAlignment="Top" 
@@ -30,11 +38,11 @@
                 <Path Data="M10,0 A10,10 0 1 1 1,10 M1,10 L1,18 M1,10 L8,13" Stroke="DarkGreen" StrokeThickness="2" Stretch="Fill" Margin="2" Width="15" Height="15" />
             </Button>
             <Button x:Name="BtPrevImage" Margin="0,0,0,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="24" Height="25"
-                    ToolTip="前の画像ファイルを表示する" >
+                    ToolTip="前の画像ファイルを表示する(Ctrl+Left Key)" >
                 <Path Fill="DarkGreen" Margin="3" Width="15" Height="15" Data="M 4,0 L 2,2 L 4,4 Z M 2,0 L 0,2 L2,4 Z" Stretch="Fill" StrokeLineJoin="Round"/>
             </Button>
             <Button x:Name="BtNextImage" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="25" Height="25" Margin="0,0,0,0"
-                    ToolTip="次の画像ファイルを表示する" >
+                    ToolTip="次の画像ファイルを表示する(Ctrl+Right Key)" >
                 <Path Fill="DarkGreen" Margin="3" Width="15" Height="15" Data="M 0,0 L 2,2 L 0,4 Z M 2,0 L 4,2 L2,4 Z" Stretch="Fill" StrokeLineJoin="Round"/>
             </Button>
             <TextBlock x:Name="TbPhotoInfo" Margin="0,0,0,0" Width="800" HorizontalAlignment="Left" />
