@@ -179,6 +179,7 @@ namespace WpfLib
 
         private System.Drawing.Bitmap mBitMap;      //  対象ファイルのBitmap
         private string mFilePath = "";
+        public string mErrorMsg = "";
 
         private YLib ylib = new YLib();
         private YCalc ycalc = new YCalc();
@@ -211,9 +212,9 @@ namespace WpfLib
         /// <summary>
         /// ファイルに保存
         /// </summary>
-        public void save()
+        public bool save()
         {
-            save(mFilePath);
+            return save(mFilePath);
             //  ファイルが開放されていない場合の対応
             //string path = Path.Combine(Path.GetDirectoryName(mFilePath), "tmpImage.jpg");
             //if (File.Exists(path))
@@ -230,10 +231,16 @@ namespace WpfLib
         /// JPEGでファイルに保存する
         /// </summary>
         /// <param name="path">保存ファイル名</param>
-        public void save(string path)
+        public bool save(string path)
         {
-            mBitMap.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
-            mBitMap.Dispose();
+            try {
+                mBitMap.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
+                mBitMap.Dispose();
+            } catch (Exception e) {
+                mErrorMsg = e.Message;
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
