@@ -52,6 +52,7 @@ namespace WpfLib
     /// Bitmap trimingBitmap(Bitmap bitmap, .Point sp, Point ep)    Bitmapイメージをトリミングする
     /// BitmapSource canvas2Bitmap(System.Windows.Controls.Canvas canvas)   Canvas を BitmapSourceに変換する
     /// void image2Clipbord(System.Windows.Media.ImageSource imageSource)   Imageコントロールの可増をClipbordにコピー
+    /// void saveBitmaImage(BitmapSource bitmapSource, string path) BitmapImageをファイルに保存
     /// Bitmap getFullScreenCapture()                       全画面をキャプチャする
     /// List<string> getIPTC(string path)                   JPEGファイルからIPTC情報の取得
     /// string getIPTCall(string path)                      JPEGファイルの全IPTC情報を文字列化
@@ -747,11 +748,14 @@ namespace WpfLib
         public System.Drawing.Bitmap trimingBitmap(System.Drawing.Bitmap bitmap, System.Windows.Point sp, System.Windows.Point ep)
         {
             System.Windows.Rect rect = new System.Windows.Rect(sp, ep);
-            //  画像をトリミングする
-            System.Drawing.Rectangle rectAngle = new System.Drawing.Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
-            System.Drawing.Bitmap resultImg = bitmap.Clone(rectAngle, bitmap.PixelFormat);
-            bitmap.Dispose();
-            return resultImg;
+            if (1 < rect.Width && 1 < rect.Height) {
+                //  画像をトリミングする
+                System.Drawing.Rectangle rectAngle = new System.Drawing.Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+                System.Drawing.Bitmap resultImg = bitmap.Clone(rectAngle, bitmap.PixelFormat);
+                bitmap.Dispose();
+                return resultImg;
+            }
+            return null;
         }
 
         /// <summary>
@@ -789,6 +793,34 @@ namespace WpfLib
             System.Drawing.Bitmap bitmap = cnvBitmapSource2Bitmap(bitmapSource);
             //  クリップボードに張り付ける
             System.Windows.Clipboard.SetImage(bitmap2BitmapSource(bitmap));
+        }
+
+        /// <summary>
+        /// BitmapSourceをファイルに保存する
+        /// ファイル名の拡張子でEncoderを決める
+        /// </summary>
+        /// <param name="bitmapSource">BitmapSource</param>
+        /// <param name="path">保存ファイル名</param>
+        public void saveBitmaImage(BitmapSource bitmapSource, string path)
+        {
+            string ext = Path.GetExtension(path);
+            BitmapEncoder encoder = null;
+            if (ext.ToLower() == ".png")
+                encoder = new PngBitmapEncoder();
+            else if (ext.ToLower() == ".jpg" || ext.ToLower() == "jpeg")
+                encoder = new JpegBitmapEncoder();
+            else if (ext.ToLower() == ".bmp")
+                encoder = new BmpBitmapEncoder();
+            else if (ext.ToLower() == ".gif")
+                encoder = new GifBitmapEncoder();
+
+            using (var os = new FileStream(path, FileMode.Create)) {
+                // 変換したBitmapをエンコードしてFileStreamに保存する。
+                // BitmapEncoder が指定されなかった場合は、PNG形式とする。
+                encoder = encoder ?? new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+                encoder.Save(os);
+            }
         }
 
         /// <summary>
@@ -3484,7 +3516,7 @@ namespace WpfLib
             // ダイアログのインスタンスを生成
             var dialog = new OpenFileDialog();
 
-            // ファイルの種類を設
+            // ファイルの種類を設定
             string filter = "";
             foreach (string ext in exts) {
                 filter += ext + "ファイル (*." + ext + ")|*." + ext + "|";
@@ -3549,6 +3581,36 @@ namespace WpfLib
 
             // ファイルの種類を設定
             dialog.Filter = ext + "ファイル (*." + ext + ")|*." + ext + "|全てのファイル (*.*)|*.*";
+            dialog.FileName = fileName;
+            if (initFolder != null && 0 < initFolder.Length)
+                dialog.InitialDirectory = initFolder;
+
+            // ダイアログを表示する
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                return dialog.FileName;
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// ファイル選択保存ダイヤログ
+        /// </summary>
+        /// <param name="initFolder">初期フォルダ</param>
+        /// <param name="exts">拡張子リスト(.なし)</param>
+        /// <param name="fileName">ファイル名の初期値</param>
+        /// <returns></returns>
+        public string saveFileSelect(string initFolder, List<string> exts, string fileName = "")
+        {
+            // ダイアログのインスタンスを生成
+            var dialog = new SaveFileDialog();
+
+            // ファイルの種類を設定
+            string filter = "";
+            foreach (string ext in exts) {
+                filter += ext + "ファイル (*." + ext + ")|*." + ext + "|";
+            }
+            dialog.Filter = filter + "全てのファイル (*.*)|*.*";
+
             dialog.FileName = fileName;
             if (initFolder != null && 0 < initFolder.Length)
                 dialog.InitialDirectory = initFolder;
