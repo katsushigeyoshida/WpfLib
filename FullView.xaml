@@ -5,12 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfLib"
         mc:Ignorable="d"
-        Title="FullView" Height="450" Width="500" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown" >
+        Title="FullView" Height="450" Width="500" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown" Closing="Window_Closing" >
     <Grid>
         <ScrollViewer x:Name="svImage" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" >
             <Canvas x:Name="canvas" Margin="0" MouseLeftButtonDown="canvas_MouseLeftButtonDown" MouseMove="canvas_MouseMove" >
                 <Image x:Name="imScreen" Margin="0" />
             </Canvas>
         </ScrollViewer>
+        <Image x:Name="imScreen2" Margin="0" />
     </Grid>
 </Window>

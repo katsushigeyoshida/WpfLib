@@ -13,10 +13,14 @@ namespace WpfLib
     /// </summary>
     public partial class FullView : Window
     {
+        private double mWindowWidth;                            //  ウィンドウの高さ
+        private double mWindowHeight;                           //  ウィンドウ幅
+
         public BitmapSource mBitmapSource;      //  トリミングする画像データ
         public Point mStartPoint = new Point(); //  指定領域の始点
         public Point mEndPoint = new Point();   //  指定領域の終点
         public bool mFullScreen = true;         //  全画面表示
+        public bool mIsModeless = false;
         private bool mMouseDown = false;
 
         public FullView()
@@ -33,15 +37,58 @@ namespace WpfLib
                 this.WindowStyle = WindowStyle.None;
                 // 最大化表示
                 this.WindowState = WindowState.Maximized;
+            } else {
+                WindowFormLoad();
             }
+            if (mIsModeless) {
+                imScreen2.Source = mBitmapSource;
+            } else {
+                imScreen.Source = mBitmapSource;
 
-            imScreen.Source = mBitmapSource;
+                canvas.Width = mBitmapSource.Width;
+                canvas.Height = mBitmapSource.Height;
 
-            canvas.Width = mBitmapSource.Width;
-            canvas.Height = mBitmapSource.Height;
+                Width = mBitmapSource.Width + 2 + 15;
+                Height = mBitmapSource.Height + 30 + 10;
+            }
+        }
 
-            Width = mBitmapSource.Width + 2 + 15;
-            Height = mBitmapSource.Height + 30 + 10;
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            WindowFormSave();
+        }
+
+        /// <summary>
+        /// Windowの状態を前回の状態にする
+        /// </summary>
+        private void WindowFormLoad()
+        {
+            //  前回のWindowの位置とサイズを復元する(登録項目をPropeties.settingsに登録して使用する)
+            Properties.Settings.Default.Reload();
+            if (Properties.Settings.Default.FullViewWidth < 100 ||
+                Properties.Settings.Default.FullViewHeight < 100 ||
+                SystemParameters.WorkArea.Height < Properties.Settings.Default.FullViewHeight) {
+                Properties.Settings.Default.FullViewWidth = mWindowWidth;
+                Properties.Settings.Default.FullViewHeight = mWindowHeight;
+            } else {
+                Top = Properties.Settings.Default.FullViewTop;
+                Left = Properties.Settings.Default.FullViewLeft;
+                Width = Properties.Settings.Default.FullViewWidth;
+                Height = Properties.Settings.Default.FullViewHeight;
+            }
+        }
+
+        /// <summary>
+        /// Window状態を保存する
+        /// </summary>
+        private void WindowFormSave()
+        {
+            //  Windowの位置とサイズを保存(登録項目をPropeties.settingsに登録して使用する)
+            Properties.Settings.Default.FullViewTop = Top;
+            Properties.Settings.Default.FullViewLeft = Left;
+            Properties.Settings.Default.FullViewWidth = Width;
+            Properties.Settings.Default.FullViewHeight = Height;
+            Properties.Settings.Default.Save();
         }
 
         /// <summary>
@@ -131,7 +178,8 @@ namespace WpfLib
                 control = true;
             if (e.Key == Key.Escape) {
                 //  ESCキーで終了
-                DialogResult = false;
+                if (!mIsModeless)
+                    DialogResult = false;
                 Close();
             }
         }
