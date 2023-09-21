@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="SelectMenu" Height="65" Width="300" Loaded="Window_Loaded">
     <Grid>
-        <ComboBox Name="CbMenu" Margin="0,0,0,0" SelectionChanged="CbMenu_SelectionChanged"/>
+        <ComboBox Name="CbMenu" Margin="0,0,0,0" SelectionChanged="CbMenu_SelectionChanged" MouseDoubleClick="CbMenu_MouseDoubleClick"/>
 
     </Grid>
 </Window>

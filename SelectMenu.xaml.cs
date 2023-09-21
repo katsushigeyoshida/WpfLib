@@ -53,5 +53,15 @@ namespace WpfLib
                 Close();
             }
         }
+
+        private void CbMenu_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (0 <= CbMenu.SelectedIndex) {
+                mSelectIndex = CbMenu.SelectedIndex;
+                mSelectItem = CbMenu.Items[CbMenu.SelectedIndex].ToString();
+                DialogResult = true;
+                Close();
+            }
+        }
     }
 }
