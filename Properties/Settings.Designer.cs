@@ -12,7 +12,7 @@ namespace WpfLib.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.7.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -308,6 +308,102 @@ namespace WpfLib.Properties {
             }
             set {
                 this["MenuDialgLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowWidth {
+            get {
+                return ((double)(this["DiffFolderWindowWidth"]));
+            }
+            set {
+                this["DiffFolderWindowWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowHeight {
+            get {
+                return ((double)(this["DiffFolderWindowHeight"]));
+            }
+            set {
+                this["DiffFolderWindowHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowTop {
+            get {
+                return ((double)(this["DiffFolderWindowTop"]));
+            }
+            set {
+                this["DiffFolderWindowTop"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowLeft {
+            get {
+                return ((double)(this["DiffFolderWindowLeft"]));
+            }
+            set {
+                this["DiffFolderWindowLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FullViewWidth {
+            get {
+                return ((double)(this["FullViewWidth"]));
+            }
+            set {
+                this["FullViewWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FullViewHeight {
+            get {
+                return ((double)(this["FullViewHeight"]));
+            }
+            set {
+                this["FullViewHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FullViewTop {
+            get {
+                return ((double)(this["FullViewTop"]));
+            }
+            set {
+                this["FullViewTop"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FullViewLeft {
+            get {
+                return ((double)(this["FullViewLeft"]));
+            }
+            set {
+                this["FullViewLeft"] = value;
             }
         }
     }
