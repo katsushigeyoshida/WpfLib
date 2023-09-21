@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -32,6 +33,7 @@ namespace WpfLib
     /// void DoEvents()                     コントロールを明示的に更新
     /// void Swap<T>(ref T lhs, ref T rhs)  ジェネリックによるswap関数
     /// void fileExecute(string path, bool unchk = fals)       ファイルを実行
+    /// bool processStart(string prog, string arg)  プログラムの実行
     /// void openUrl(string url)            URLを(標準ブラウザで)開く
     /// string GetFilePropertyValue(string file, int property_index)    ファイルプロパティの値を取得
     /// List<string> GetFilePropertyAll(string path)    ファイルプロパティ値の全取得
@@ -400,6 +402,27 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// プログラムの実行
+        /// ylib.processStart(mDiffTool, $"\"{srcPath}\" \"{destPath}\"");
+        /// </summary>
+        /// <param name="prog">プログラムのパス</param>
+        /// <param name="arg">プログラムの引数</param>
+        /// <returns>実行の可否</returns>
+        public bool processStart(string prog, string arg)
+        {
+            try {
+                if (File.Exists(prog))
+                    Process.Start(prog, arg);
+                else
+                    return false;
+            } catch (Exception e) {
+                Debug.WriteLine(e.Message);
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// URLを標準ブラウザで開く
         /// Process.Start()でエラー(.NET COre)になる時に使用
         /// https://oita.oika.me/2017/09/17/dotnet-core-process-start-with-url/
@@ -425,6 +448,31 @@ namespace WpfLib
                     throw;
                 }
             }
+        }
+
+
+        /// <summary>
+        /// メッセージダイヤログ(親indowの中央に表示)
+        /// ボタンの種類 MessageBoxButton.OK/OKCancel/YesNo/YesNoCancel
+        /// </summary>
+        /// <param name="owner">オーナー</param>
+        /// <param name="message">メッセージ</param>
+        /// <param name="title">タイトル</param>
+        /// <param name="dlgTitle">タイトル</param>
+        /// <param name="buttonType">ボタンの種類</param>
+        /// <returns></returns>
+        public MessageBoxResult messageBox(Window owner, string message, string title = "",
+            string dlgTitle = "", MessageBoxButton buttonType = MessageBoxButton.OK)
+        {
+            MessageBoxEx dlg = new MessageBoxEx();
+            dlg.Owner = owner;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mMessage = message;
+            dlg.Title = dlgTitle;
+            dlg.mTitle = title;
+            dlg.mButton = buttonType;
+            dlg.ShowDialog();
+            return dlg.mResult;
         }
 
         /// <summary>
