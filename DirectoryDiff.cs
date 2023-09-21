@@ -12,6 +12,8 @@ namespace WpfLib
         public string mRelPath;
         public FileInfo mSrcFile;
         public FileInfo mDstFile;
+        public ulong mSrcCrc;
+        public ulong mDstCrc;
 
         /// <summary>
         /// コンストラクタ
@@ -37,6 +39,8 @@ namespace WpfLib
         private string mSrcDir;
         private string mDestDir;
         public List<FilesData> mFiles = new List<FilesData>();
+        public bool mHashChk = true;
+        private HashCode mHash = new HashCode(HashCode.HashType.CRC32L);
 
         /// <summary>
         /// コンストラクタ
@@ -51,24 +55,31 @@ namespace WpfLib
         /// </summary>
         /// <param name="srcDir"></param>
         /// <param name="destDir"></param>
-        public DirectoryDiff(string srcDir, string destDir)
+        public DirectoryDiff(string srcDir, string destDir, bool hashChk = true)
         {
             char[] trimChar = {'\\'};
             mSrcDir = srcDir.TrimEnd(trimChar);
             mDestDir = destDir.TrimEnd(trimChar);
             mSrcFiles = getDirectories(mSrcDir);
             mDestFiles = getDirectories(mDestDir);
+            mHashChk = hashChk;
 
             foreach (FileInfo srcFile in mSrcFiles) {
                 mFiles.Add(new FilesData(srcFile.FullName.Substring(mSrcDir.Length + 1), srcFile, null));
+                if (mHashChk)
+                    mFiles[mFiles.Count - 1].mSrcCrc = mHash.GetCrc32L(srcFile.FullName);
             }
             foreach (FileInfo destFile in mDestFiles) {
                 string destRelPath = destFile.FullName.Substring(mDestDir.Length + 1);
                 int n = mFiles.FindIndex(x => x.mRelPath == destRelPath);
                 if (0 <= n) {
                     mFiles[n].mDstFile = destFile;
+                    if (mHashChk)
+                        mFiles[n].mDstCrc = mHash.GetCrc32L(destFile.FullName);
                 } else {
                     mFiles.Add(new FilesData(destRelPath, null, destFile));
+                    if (mHashChk)
+                        mFiles[mFiles.Count - 1].mDstCrc = mHash.GetCrc32L(destFile.FullName);
                 }
             }
         }
@@ -80,8 +91,12 @@ namespace WpfLib
         public void stripSameFile()
         {
             for (int i = mFiles.Count - 1; i >= 0; i--) {
-                if (sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile)) {
-                    mFiles.RemoveAt(i);
+                if (mHashChk) {
+                    if (mFiles[i].mSrcCrc == mFiles[i].mDstCrc)
+                        mFiles.RemoveAt(i);
+                } else {
+                    if (sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile))
+                        mFiles.RemoveAt(i);
                 }
             }
         }
@@ -134,7 +149,7 @@ namespace WpfLib
             foreach (var file in mFiles) {
                 if (file.mSrcFile != null && file.mDstFile != null) {
                     //  両方に存在するファイル
-                    if (file.mSrcFile.LastAccessTime > file.mDstFile.LastAccessTime)
+                    if (file.mSrcFile.LastWriteTime > file.mDstFile.LastWriteTime)
                         files.Add(file);
                 } else if (file.mSrcFile != null && file.mDstFile == null) {
                     //  コピー先にないファイル
@@ -167,7 +182,7 @@ namespace WpfLib
         {
             List<FilesData> fileList = getUpdateFile();
             int count = 0;
-            foreach(var file in fileList) {
+            foreach (var file in fileList) {
                 if (file.mSrcFile == null)
                     continue;
                 string dstPath;
@@ -218,7 +233,7 @@ namespace WpfLib
         /// <param name="srcPath">コピー元ファイル名</param>
         /// <param name="dstPath"><コピー先ファイル名/param>
         /// <returns>コピーの可否</returns>
-        public bool fileCopy(string srcPath,  string dstPath)
+        public bool fileCopy(string srcPath, string dstPath)
         {
             try {
                 string dstDir = Path.GetDirectoryName(dstPath);
