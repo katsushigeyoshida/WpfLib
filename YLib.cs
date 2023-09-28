@@ -2601,6 +2601,7 @@ namespace WpfLib
 
         /// <summary>
         /// ストップウォッチ機能ラップ時間取得
+        /// Console.WriteLine($"pow2: {ylib.stopWatchLapTime().TotalSeconds.ToString()}");
         /// </summary>
         /// <returns>計測時間</returns>
         public TimeSpan stopWatchLapTime()
