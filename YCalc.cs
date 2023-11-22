@@ -52,6 +52,7 @@ namespace WpfLib
     /// int express3(int i, ref double x, List<string> expList) べき乗のみを優先して計算
     /// int express2(int i, ref double x, List<string> expList) 剰余のみ優先して計算するための関数
     /// double expression(string str)               計算式の実行
+    /// ----  算術関数  ----
     /// double asinh(double x)                      逆双曲関数 sinh^-1 = log(x±√(x^2+1))
     /// double acosh(double x)                      逆双曲関数 cosh^-1 = log(x±√(x^2-1))
     /// double atanh(double x)                      逆双曲関数 tanh^-1 = 1/2log((1+x)/(1-x))
@@ -940,6 +941,8 @@ namespace WpfLib
             }
             return result;
         }
+
+        /// ----  算術関数  ----
 
         /// <summary>
         /// 逆双曲関数 sinh^-1 = log(x±√(x^2+1))
