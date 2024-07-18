@@ -35,6 +35,8 @@ namespace WpfLib
     /// void fileExecute(string path, bool unchk = fals)       ファイルを実行
     /// bool processStart(string prog, string arg)  プログラムの実行
     /// void openUrl(string url)            URLを(標準ブラウザで)開く
+    /// MessageBoxResult messageBox(Window owner, string message, string title = "",
+    ///     string dlgTitle = "", MessageBoxButton buttonType = MessageBoxButton.OK)
     /// string GetFilePropertyValue(string file, int property_index)    ファイルプロパティの値を取得
     /// List<string> GetFilePropertyAll(string path)    ファイルプロパティ値の全取得
     /// 
@@ -62,6 +64,7 @@ namespace WpfLib
     /// ネットワーク関連
     /// void WebSerach(string url, string searchWord)       Web検索Google,Bing..)のWebページを開く
     /// bool webFileDownload(string url, string filePath)   Web上のファイルをダウンロードする
+    /// string getWebDownloadString(string url, int encordType = 0) Webデータの取り込み
     /// string getWebText(string url)                       URLのWebデータの読込
     /// string getWebText(string url, int encordType = 0)   エンコードタイプを指定してURLのWebデータの読込
     /// 
@@ -89,8 +92,11 @@ namespace WpfLib
     /// string getJsonDataString(string jsonData)   JSON形式の文字列から{}内の文字列を取得
     /// 
     /// 文字列処理
+    /// int indexOf(string text, string val, int count = 1) 文字列を前から検索
+    /// int lastIndexOf(string text, string val, int count = 1)  文字列を後から検索
     /// string stripBrackets(string text, char sb = '[', char eb = ']') 文字列から括弧で囲まれた領域を取り除く
     /// string getBracketInData(string text, char sb = '[', char eb = ']')  文字列から括弧内のデータを取り出す
+    /// List<string> extractBrackets(string text, char sb = '{', char eb = '}', bool withBracket = false)   括弧で囲まれた文字列を抽出
     /// string trimControllCode(string buf)         文字列内のコントロールコードを除去
     /// bool IsNumberString(string num)             数値文字列かを判定
     /// bool boolParse(string str, bool val = true) 文字列を論理値に変換
@@ -99,10 +105,13 @@ namespace WpfLib
     /// double string2Double(string str)            数値文字列を数値に変換
     /// double string2double(string num)            文字列の先頭が数値の場合、数値に変換
     /// string string2StringNum(string num)         文字列から数値に関係ない文字を除去し、実数に変換できる文字列にする
+    /// List<string> string2StringNumbers(string num)   文字列の中から複数の数値文字列を抽出
+    /// string string2StringNumber(string num)      文字列の中から数値文字列を抽出
     /// string strZne2Han(string zenStr)            文字列内の全角英数字を半角に変換
     /// string strNumZne2Han(string zenStr)         文字列内の全角数値を半角に変換
     /// String strControlCodeCnv(String str)        文字列の中の改行コード、','、'"'を'\'付きコードに置き換える
     /// String strControlCodeRev(String str)        文字列の中の'\'付きコードを通常のコードに戻す
+    /// string stripControlCode(string str)         文字列からコントロールコードを除外
     /// String[] seperateString(String str)         文字列をカンマセパレータで分解して配列に格納
     /// int getWithoutCharIndex(string str, string withoutChar) 文字列から指定文字以外の文字位置を検索
     /// void setEncording(int n)                    ファイルのRead/Writeで文字コードを指定
@@ -156,9 +165,12 @@ namespace WpfLib
     /// string folderSelect(string initFolder)      フォルダの選択ダイヤログの表示
     /// string filesSelect(string searchFolder, string ext)     ファイル選択ダイヤログ(複数の拡張子を指定できる)
     /// string fileSelect(string searchFolder, string ext)      ファイル選択ダイヤログ
+    /// List<string> fileSelect(string searchFolder, List<string> exts) ファイル選択ダイヤログ(複数選択)
     /// string consoleFileSelect(string folder, string fname)   Console用ファイル選択
     /// string saveFileSelect(string searchFolder, string ext)  ファイル選択保存ダイヤログ
+    /// string saveFileSelect(string initFolder, List<string> exts, string fileName = "")   ファイル選択保存ダイヤログ
     /// void copyDrectory(string srcDir, string destDir)        ディレクトリをコピーする
+    /// void fileCopy(string srcFile, string destFile, int copyType)    ファイルのコピー
     /// string[] getFiles(string path)              指定されたパスからファイルリストを作成
     /// List<string> getDirectories(string path)    定されたパスからディレクトリリストを作成
     /// List<string> getFilesDirectories(string folder, string fileName)    フォルダとファイルの一覧を取得
@@ -172,15 +184,18 @@ namespace WpfLib
     /// Boolean createPathFolder(string path)       ファイルパスからフォルダ作成
     /// void saveCsvData(string path, string[] format, List<string[]> data) タイトルをつけてCSV形式でListデータをファイルに保存
     /// List<String[]> loadCsvData(string filePath, string[] title) CSV形式のファイルを読み込みList<String[]>形式で出力
-    /// void saveCsvData(string path, List<String[]> csvData)       データをCSV形式でファイルに書き込む
+    /// bool saveCsvData(string path, List<String[]> csvData)       データをCSV形式でファイルに書き込む
     /// List<String[]> loadCsvData(string filePath)                 CSV形式のファイルを読み込む
     /// void saveListData(string path, List<String> listData)       Listデータを行単位でファイルに保存
-    /// List<String> loadListData(string filePath)                  ファイルデータを行単位でListデータとして取り込む
+    /// List<String> loadListData(string filePath)      ファイルデータを行単位でListデータとして取り込む
+    /// List<string[]> loadJsonData(string filePath)    JSON形式のファイルを読み込む
     /// void saveTextFile(string path, string buffer)   テキストファイルの保存
     /// string loadTextFile(string path)                テキストファイルの読込
     /// byte[] loadBinData(string path)                 バイナリファイルの読込
     /// void saveBinData(string path, byte[] buffer)    バイナリデータをファイルに書き込む
     /// bool gzipDecompress(string ipath, string opath) gzipファイルを解凍
+    /// long getFileSize(string path)               ファイルサイズの取得
+    /// string convInvalidFileNameChars(string fileName, char vc = '_') ファイル名で使用できない文字("<>|:*?\/)を置換える
     /// 
     /// 数値処理
     /// double movingAverage(List<double> data, int pos, int nearCount, bool center)    移動平均を求める
@@ -4301,7 +4316,35 @@ namespace WpfLib
             return true;
         }
 
+        /// <summary>
+        /// ファイルサイズの取得
+        /// </summary>
+        /// <param name="path">ファイルパス</param>
+        /// <returns></returns>
+        public long getFileSize(string path)
+        {
+            if (!File.Exists(path))
+                return 0;
+            FileInfo file = new FileInfo(path);
+            return file.Length;
+        }
 
+        /// <summary>
+        /// ファイル名で使用できない文字("<>|:*?\/)を置換える
+        /// </summary>
+        /// <param name="fileName">ファイル名</param>
+        /// <param name="vc">置換える文字</param>
+        /// <returns>変換ファイル名</returns>
+        public string convInvalidFileNameChars(string fileName, char vc = '_')
+        {
+            string valid = fileName;
+            char[] invalidch = Path.GetInvalidFileNameChars();
+
+            foreach (char c in invalidch) {
+                valid = valid.Replace(c, vc);
+            }
+            return valid;
+        }
 
         //  ---  数値処理  ---
 
