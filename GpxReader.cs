@@ -537,6 +537,15 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// GPSデータをCSV形式文字列に変換(日時、座標、標高))
+        /// </summary>
+        /// <returns></returns>
+        public string toCsvString()
+        {
+            return $"{mDateTime},{mLatitude},{mLongitude},{mElevator}";
+        }
+
+        /// <summary>
         /// 測定時間を設定
         /// </summary>
         /// <param name="dateTime">文字列</param>
