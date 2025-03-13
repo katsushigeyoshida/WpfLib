@@ -1619,14 +1619,15 @@ namespace WpfLib
         /// <summary>
         /// GPSデータを取得する
         /// </summary>
+        /// <param name="dataType">取得データの種別</param>
         /// <returns></returns>
         public int getDataRecordAll(DATATYPE dataType)
         {
             mDataType = dataType;
-            if (mDataType == DATATYPE.gpxData) {
+            if (mDataType == DATATYPE.gpxData) {                //  (DateTime,Latitude,Longitude,Elevator)
                 if (mListGpsData == null)
                     mListGpsData = new List<GpsData>();
-            } else if (mDataType == DATATYPE.gpxSimpleData) {
+            } else if (mDataType == DATATYPE.gpxSimpleData) {   //  座標のみ(Latitude,Longitude)
                 if (mListGpsPointData == null)
                     mListGpsPointData = new List<Point>();
                 if (mGpsInfoData == null)
