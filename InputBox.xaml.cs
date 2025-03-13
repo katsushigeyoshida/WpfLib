@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace WpfLib
@@ -23,6 +24,8 @@ namespace WpfLib
         public bool mReadOnly = false;                      //  リードオンリー,OKボタン非表示
         public int mFontSize = 12;                          //  文字サイズ
         public bool mFontZoomButtomVisible = true;          //  文字ズームボタン表示/非表示
+
+        private YLib ylib = new YLib();
 
         public InputBox()
         {
@@ -150,6 +153,60 @@ namespace WpfLib
                 mFontSize++;
             }
             EditText.FontSize = mFontSize;
+        }
+
+        /// <summary>
+        /// マウスダブルクリック操作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Window_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            textOpen(lineSelect());
+        }
+
+        /// <summary>
+        /// 選択文字列を開く
+        /// </summary>
+        private void textOpen(string word = "")
+        {
+            //  選択文字列
+            if (word.Length <= 0)
+                word = EditText.SelectedText;
+            if (0 < word.Length && (0 <= word.IndexOf("http") || 0 <= word.IndexOf("file:"))) {
+                int ps = word.IndexOf("http");
+                if (ps < 0)
+                    ps = word.IndexOf("file:");
+                if (0 < ps) {
+                    int pe = word.IndexOfAny(new char[] { ' ', '\t', '\n' }, ps);
+                    if (0 < pe) {
+                        word = word.Substring(ps, pe - ps);
+                    } else {
+                        word = word.Substring(ps);
+                    }
+                }
+                ylib.openUrl(word);
+            } else if (0 < word.Length && File.Exists(word)) {
+                ylib.openUrl(word);
+            }
+        }
+
+        /// <summary>
+        /// 一行分を抽出
+        /// </summary>
+        /// <returns></returns>
+        private string lineSelect()
+        {
+            int pos = EditText.SelectionStart;
+            pos = pos >= EditText.Text.Length ? 0 : pos;
+            int sp = EditText.Text.LastIndexOf("\n", pos);
+            int ep = EditText.Text.IndexOf("\n", pos);
+            if (0 <= sp && 0 <= ep && sp == ep) {
+                pos++;
+                ep = EditText.Text.IndexOf("\n", pos);
+            }
+            ep = ep < 0 ? EditText.Text.Length : ep;
+            return EditText.Text.Substring(sp + 1, ep - sp - 1);
         }
     }
 }
