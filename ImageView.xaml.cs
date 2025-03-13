@@ -335,7 +335,9 @@ namespace WpfLib
             System.Windows.Media.Imaging.BitmapImage bmpImage = ylib.getBitmapImage(path);
             ExifInfo exifInfo = new ExifInfo(path);
             Point coodinate = exifInfo.getExifGpsCoordinate();
-            TbPhotoInfo.Text = exifInfo.getDateTime();
+            string[] datetime = exifInfo.getDateTime().Split(':');
+            TbPhotoInfo.Text = datetime.Length == 5 ?
+                $"{datetime[0]}/{datetime[1]}/{datetime[2]}:{datetime[3]}:{datetime[4]}" : exifInfo.getDateTime();
             if (coodinate.isEmpty())
                 TbPhotoInfo.Text += " (座標なし)";
             TbPhotoInfo.Text += " " + ylib.getIPTC(path)[4] + exifInfo.getUserComment();
