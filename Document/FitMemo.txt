@@ -1,0 +1,132 @@
+﻿CANMOR FIT file
+
+0226-0745
+Distance 16.6km
+Duration  6:52
+Ave Spd   5.9kph
+Ave Pace 10.2/km
+Max Speed 6.3kph
+Max Pace  9.6/km
+Asent     1109m
+Steps    23431
+Calories 1150kcal
+1: D:\WSRC\Sample\FitSampleData\FIT_20250226_000_岩殿山・真木お伊勢山.fit
+
+HexDump? y/N
+HeaderSize:14 ProtcolVer:16 ProfileVer:620 DataSize:109825 DataType:.FIT CRC:-19707
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[0]
+Architecture:0 
+GlobalMessageNumber:0 [FileId] 
+Fields:4
+TimeCreated() :-1.0000,
+Manufacturer():255.0000,
+Product()     :0.0000,
+Type()        :4.0000
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[1]
+Architecture:0 
+GlobalMessageNumber:21 [Event] 
+Fields:6
+Timestamp(s):
+Data()      :0.0000,
+Data16()    :0.0000,
+Event()     :0.0000,
+EventType() :0.0000,
+EventGroup():1.0000
+
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[2]
+Architecture:0 
+GlobalMessageNumber:20 [Record] 
+Fields:7
+Timestamp(s),PositionLat(semicircles),PositionLong(semicircles),Distance(m),Altitude(m),Speed(m/s),BallSpeed(m/s)
+2025/02/26 08:03:05,35.614165,138.945027,0.0000,139.0000,0.1290,0.1200
+2025/02/26 08:03:10,35.614196,138.945047,0.0000,139.0000,0.1900,0.1900
+2025/02/26 08:03:15,35.614241,138.945039,9.4100,141.0000,0.9890,0.9800
+2025/02/26 08:03:20,35.614290,138.945098,17.8500,210.4000,1.3390,1.3300
+
+2025/02/26 14:42:20,35.594745,138.884286,16583.5000,471.6000,0.0300,0.0300
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[1]
+Architecture:0 
+GlobalMessageNumber:21 [Event] 
+Fields:6
+Timestamp(s):2025/02/26 14:42:23,
+Data()      :24632.0000,
+Data16()    :24632.0000,
+Event()     :0.0000,
+EventType() :4.0000,
+EventGroup():1.0000
+
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[3]
+Architecture:0 
+GlobalMessageNumber:19 [Lap] 
+Fields:21
+Timestamp(s)                  :2025/02/26 14:42:23,
+StartTime()                   :2025/02/26 07:46:00,
+StartPositionLat(semicircles) :35.614165,
+StartPositionLong(semicircles):138.945027,
+EndPositionLat(semicircles)   :35.594745,
+EndPositionLong(semicircles)  :138.884286,
+TotalElapsedTime(s)           :24632.0000,
+TotalTimerTime(s)             :24632.0000,
+TotalDistance(m)              :16583.5000,
+                              :00005B87,
+TotalMovingTime(s)            :10170.0000,
+MessageIndex()                :0.0000,
+TotalCalories(kcal)           :1150.0000,
+AvgSpeed(m/s)                 :1.6300,
+MaxSpeed(m/s)                 :1.7390,
+TotalAscent(m)                :1109.0000,
+TotalDescent(m)               :778.0000,
+Event()                       :9.0000,
+EventType()                   :1.0000,
+LapTrigger()                  :7.0000,
+Sport()                       :100.0000
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[4]
+Architecture:0 
+GlobalMessageNumber:18 [Session] 
+Fields:25
+Timestamp(s)                  :2025/02/26 14:42:23,
+StartTime()                   :2025/02/26 07:46:00,
+StartPositionLat(semicircles) :35.614165,
+StartPositionLong(semicircles):138.945027,
+TotalElapsedTime(s)           :24632.0000,
+TotalTimerTime(s)             :24632.0000,
+TotalDistance(m)              :16583.5000,
+                              :00005B87,
+NecLat(semicircles)           :35.626396,
+NecLong(semicircles)          :138.956414,
+SwcLat(semicircles)           :35.594693,
+SwcLong(semicircles)          :138.884272,
+TotalMovingTime(s)            :10170.0000,
+MessageIndex()                :0.0000,
+TotalCalories(kcal)           :1150.0000,
+AvgSpeed(m/s)                 :1.6300,
+MaxSpeed(m/s)                 :1.7390,
+TotalAscent(m)                :1109.0000,
+TotalDescent(m)               :778.0000,
+FirstLapIndex()               :0.0000,
+NumLaps()                     :1.0000,
+Event()                       :8.0000,
+EventType()                   :1.0000,
+Sport()                       :100.0000,
+Trigger()                     :0.0000
+
+RecordlHeader:[Normal] MessageType:[Definition Message] MessageTypeSecific:[False] LocaMessageType:[5]
+Architecture:0 
+GlobalMessageNumber:34 [Activity] 
+Fields:7
+Timestamp()       :2025/02/26 14:42:23,
+TotalTimerTime(s) :24632.0000,
+LocalTimestamp()  :2025/02/26 14:42:23,
+NumSessions()     :1.0000,
+Type()            :0.0000,
+Event()           :26.0000,
+EventType()       :1.0000
+CRC:[0x9274]
+
+Program End
