@@ -1201,7 +1201,7 @@ namespace WpfLib
 
         /// <summary>
         /// 指定されたタグ名、パラメータ名、パラメータデータで囲まれたHTMLソースを抽出
-        /// 指定したタグは含まない
+        /// 指定したタグは含まない <tag oara="paraData">data</tag>
         /// </summary>
         /// <param name="html">HTMLソース</param>
         /// <param name="tag">タグ名</param>
@@ -1467,6 +1467,7 @@ namespace WpfLib
 
         /// <summary>
         /// タグ名、パラメータ名、パラメータデータを指定してデータを抽出
+        /// <div class="box" > </div>
         /// </summary>
         /// <param name="html">HTMLソース</param>
         /// <param name="tag">タグ名</param>
@@ -1648,6 +1649,68 @@ namespace WpfLib
             }
             return "";
         }
+
+        /// <summary>
+        /// htmlデータからタグを抽出 (<tagName .... >)
+        /// </summary>
+        /// <param name="tagData">タグデータ(html)</param>
+        /// <param name="pos">開始位置</param>
+        /// <returns>タグデータ</returns>
+        public string getHtmlTag(string tagData, int pos = 0)
+        {
+            string tag = "";
+            bool tagFlag = false;
+            while (pos < tagData.Length) {
+                if (tagData[pos] == '<') {
+                    tagFlag = true;
+                    tag += tagData[pos];
+                } else if (tagFlag && tagData[pos] == '>') {
+                    tag += tagData[pos];
+                    break;
+                } else if (tagFlag && tagData[pos] == '\\') {
+                    pos++;
+                } else if (tagFlag && tagData[pos] == '"') {
+                    while (pos < tagData.Length && tagData[pos] != '"') {
+                        tag += tagData[pos++];
+                    }
+                    if (tagData[pos] == '"')
+                        tag += tagData[pos];
+                } else if (tagFlag) {
+                    tag += tagData[pos];
+                }
+                pos++;
+            }
+            return tag;
+        }
+
+        /// <summary>
+        /// タグ内のパラメータのデータの取得(<tag tagPara="tagParaData"...>)
+        /// </summary>
+        /// <param name="tagData">タグデータ</param>
+        /// <param name="tagPara">タグパラメータ名</param>
+        /// <param name="pos">開始位置</param>
+        /// <returns>タグパラメータデータ</returns>
+        public string getTagParaData(string tagData, string tagPara, int pos = 0)
+        {
+            int n = tagData.IndexOf(tagPara + "=", pos);
+            if (n < 0) return "";
+            n = tagData.IndexOf("\"", pos + n);
+            if (n < 0) return "";
+            pos = n + 1;
+            string tagParaData = "";
+            while (pos < tagData.Length) {
+                if (tagData[pos] == '"') {
+                    return tagParaData.Trim();
+                } else if (tagData[pos] == '\\') {
+                    pos++;
+                } else {
+                    tagParaData += tagData[pos];
+                }
+                pos++;
+            }
+            return tagParaData;
+        }
+
 
         /// <summary>
         /// パラメータのタイトルでタグ全体を取得する
@@ -3742,16 +3805,24 @@ namespace WpfLib
         /// 例 path = D:\folder\*.flac
         /// </summary>
         /// <param name="path">パス名</param>
+        /// <param name="recursive">再帰検索</param>
         /// <returns>ファイルリスト</returns>
-        public string[] getFiles(string path)
+        public string[] getFiles(string path, bool recursive = false)
         {
+            List<string> files = new List<string>();
             try {
                 string folder = Path.GetDirectoryName(path);
                 string ext = Path.GetFileName(path);
-                return Directory.GetFiles(folder, ext);
+                if (recursive) {
+                    string[] folders = Directory.GetDirectories(folder);
+                    foreach(string dir in folders)
+                        files.AddRange(getFiles(Path.Combine(dir, ext), recursive));
+                }
+                files.AddRange(Directory.GetFiles(folder, ext));
             } catch (Exception e) {
-                return null;
+                Debug.WriteLine($"getFiles Exception Error : {e.Message}");
             }
+            return files.ToArray();
         }
 
         /// <summary>
