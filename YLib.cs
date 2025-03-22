@@ -73,15 +73,22 @@ namespace WpfLib
     /// List<string[]> getPattern(string html, string pattern)  正規表現を使ったHTMLからのパターン抽出
     /// List<string[]> getPattern2(string html, string pattern) 正規表現を使ったHTMLからのパターン抽出
     /// List<string> getHtmlTagData(string html, string tag, string para, string paraData, int pos = 0) タグ名やパメータ名を指定してタグデータを抽出
+    /// string getHtmlTagSrc(string html, string tag, int pos = 0)  HTMLソースから指定タグのデータを抽出
     /// string getHtmlTagSrc(string html, string tag, string para, string paraData, int pos = 0)    タグ名やパラメータ名を指定してTMLのソース抽出
     /// List<string> getHtmlTagList(string html)                HTMLソースからTAGデータごとに分解したリストを作る
     /// int getHtmlTagType(string tagData)                      タグデータの種類を判別
     /// string getHtmlTagName(string tagData)                   '<','>'で囲まれたタグデータからタグ名を抽出
     /// List<string> getHtmlTagDataAll(string html, int pos = 0)    HTMLソースからデータのみを抽出
     /// (string, string, string) getHtmlTagData(string html, string tag)    TAGデータの抽出(入れ子対応)
+    /// (string, string, string) getHtmlTagData(string html, string tag, string para, string paraData)  タグ名、パラメータ名、パラメータデータを指定してデータを抽出
     /// (string, string, string, int, int) getHtmlTagData(string html, string tag, int pos) TAGデータの抽出(入れ子対応)
+    /// (int, int) getHtmlTagDataPos(string html, string tag, int pos = 0)  TAGの開始位置と終了位置の検索(TAGを含む)
     /// string stripHtmlTagData(string html, string tag)    HTMLソースからタグで囲まれた領域を除く
-    /// string getHtmlTagPara(string tagData, string paraName)   '<','>'で囲まれたタグデータからパラメータを抽出
+    /// string stripHtmlTagData(string html)                HTMLソースからタグの部分('<' - '>')を除きデータのみにする
+    /// string getHtmlTagPara(string tagData, string paraName, int pos = 0) '<','>'で囲まれたタグデータからパラメータを抽出
+    /// string getHtmlTagPara(string tagData, string tagName, string paraName, int pos = 0) '<','>'で囲まれたタグデータからパラメータを抽出
+    /// string getHtmlTag(string tagData, int pos = 0)      htmlデータからタグを抽出 (<tagName .... >)
+    /// string getTagParaData(string tagData, string tagPara, int pos = 0)  タグ内のパラメータのデータの取得(<tag tagPara="tagParaData"...>)
     /// string getHtmlTagParaDataTitle(string tagData, string paraTitle, string paraData = "")  パラメータのタイトルでタグ全体を取得する
     /// string stripHtmlParaData(string para, string paraTitle) HTMLのタグパラメータからデータだけを取り出す
     /// int findHtmlParaDataTagPos(string para , string paraTitle)  HTMLのデータからタグパラメータの存在するタグの開始位置を取得する
@@ -104,6 +111,7 @@ namespace WpfLib
     /// double doubleParse(string str, double val = 0.0)    文字列を実数に変換
     /// double string2Double(string str)            数値文字列を数値に変換
     /// double string2double(string num)            文字列の先頭が数値の場合、数値に変換
+    /// long string2long(string num)                文字列を数値に変換(long)
     /// string string2StringNum(string num)         文字列から数値に関係ない文字を除去し、実数に変換できる文字列にする
     /// List<string> string2StringNumbers(string num)   文字列の中から複数の数値文字列を抽出
     /// string string2StringNumber(string num)      文字列の中から数値文字列を抽出
@@ -2219,6 +2227,22 @@ namespace WpfLib
             string nbuf = string2StringNum(num);
             double val;
             val = double.TryParse(nbuf, out val) ? val : 0;
+            return val;
+        }
+
+        /// <summary>
+        /// 文字列を数値に変換(long)
+        /// </summary>
+        /// <param name="num">文字列</param>
+        /// <returns>数値</returns>
+        public long string2long(string num)
+        {
+            if (num == null)
+                return 0;
+
+            string nbuf = string2StringNum(num);
+            long val;
+            val = long.TryParse(nbuf, out val) ? val : 0;
             return val;
         }
 
@@ -4410,10 +4434,8 @@ namespace WpfLib
         {
             string valid = fileName;
             char[] invalidch = Path.GetInvalidFileNameChars();
-
-            foreach (char c in invalidch) {
+            foreach (char c in invalidch)
                 valid = valid.Replace(c, vc);
-            }
             return valid;
         }
 

@@ -1,4 +1,14 @@
-﻿CANMOR FIT file
+﻿FIT https://developer.garmin.com/fit/protocol/
+
+FIT File Protcol
+
+Record m: header,   Difinition Message
+Record n: header,   Data1,  Data2,  Data3,  Data4,  Data5
+Record o: header,   Data1,  Data2,  Data3
+
+
+
+CANMOR FIT file
 
 0226-0745
 Distance 16.6km
