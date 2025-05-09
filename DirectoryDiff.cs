@@ -30,6 +30,79 @@ namespace WpfLib
     }
 
     /// <summary>
+    /// ファイル比較表示用データクラス
+    /// </summary>
+    public class DiffFile
+    {
+        public string mFileName { get; set; }       //  ファイル名
+        public string mRelPath { get; set; }        //  相対パス
+        public DateTime mSrcLastDate { get; set; }  //  比較元ファイル日付
+        public long mSrcSize { get; set; }          //  比較元ファイルサイズ
+        public ulong mSrcCrc { get; set; }          //  比較元ファイルハッシュ
+        public DateTime mDstLastDate { get; set; }  //  比較先ファイル日付
+        public long mDstSize { get; set; }          //  比較先ファイルサイズ
+        public ulong mDstCrc { get; set; }          //  比較先ファイルハッシュ
+
+        /// <summary>
+        /// データ設定
+        /// </summary>
+        /// <param name="fileName">ファイル名</param>
+        /// <param name="relPath">相対パス</param>
+        /// <param name="srcLastDate">比較元ファイル日付</param>
+        /// <param name="srcSize">比較元ファイルサイズ</param>
+        /// <param name="srcCrc">比較元ファイルハッシュ</param>
+        /// <param name="dstLastDate">比較先ファイル日付</param>
+        /// <param name="dstSize">比較先ファイルサイズ</param>
+        /// <param name="dstCrc">比較先ファイルハッシュ</param>
+        public DiffFile(string fileName, string relPath, DateTime srcLastDate, int srcSize, ulong srcCrc, DateTime dstLastDate, int dstSize, ulong dstCrc)
+        {
+            mFileName = fileName;
+            mRelPath = relPath;
+            mSrcLastDate = srcLastDate;
+            mSrcSize = srcSize;
+            mSrcCrc = srcCrc;
+            mDstLastDate = dstLastDate;
+            mDstSize = dstSize;
+            mDstCrc = dstCrc;
+        }
+
+        /// <summary>
+        /// FilesDataを設定
+        /// </summary>
+        /// <param name="fileData">FilesData</param>
+        public DiffFile(FilesData fileData)
+        {
+            mFileName = Path.GetFileName(fileData.mRelPath);
+            mRelPath = Path.GetDirectoryName(fileData.mRelPath);
+            mSrcLastDate = fileData.mSrcFile == null ? new DateTime() : fileData.mSrcFile.LastWriteTime;
+            mSrcSize = fileData.mSrcFile == null ? 0 : fileData.mSrcFile.Length;
+            mSrcCrc = fileData.mSrcCrc;
+            mDstLastDate = fileData.mDstFile == null ? new DateTime() : fileData.mDstFile.LastWriteTime;
+            mDstSize = fileData.mDstFile == null ? 0 : fileData.mDstFile.Length;
+            mDstCrc = fileData.mDstCrc;
+        }
+
+        /// <summary>
+        /// パス名の取得
+        /// </summary>
+        /// <returns>ファイルパス</returns>
+        public string getPath()
+        {
+            return Path.Combine(mRelPath, mFileName);
+        }
+
+        /// <summary>
+        /// フォルダを指定してパス名の取得
+        /// </summary>
+        /// <param name="folder">フォルダ名</param>
+        /// <returns>ファイルパス</returns>
+        public string getPath(string folder)
+        {
+            return Path.Combine(folder, Path.Combine(mRelPath, mFileName));
+        }
+    }
+
+    /// <summary>
     /// ディレクトリ比較
     /// </summary>
     public class DirectoryDiff
@@ -41,6 +114,8 @@ namespace WpfLib
         public List<FilesData> mFiles = new List<FilesData>();
         public bool mHashChk = true;
         private HashCode mHash = new HashCode(HashCode.HashType.CRC32L);
+
+        private YLib ylib = new YLib();
 
         /// <summary>
         /// コンストラクタ
@@ -55,13 +130,13 @@ namespace WpfLib
         /// </summary>
         /// <param name="srcDir"></param>
         /// <param name="destDir"></param>
-        public DirectoryDiff(string srcDir, string destDir, bool hashChk = true)
+        public DirectoryDiff(string srcDir, string destDir, bool hashChk = true, string targetFile = "", string exceptFile = "", string exceptDir = "")
         {
             char[] trimChar = {'\\'};
             mSrcDir = srcDir.TrimEnd(trimChar);
             mDestDir = destDir.TrimEnd(trimChar);
-            mSrcFiles = getDirectories(mSrcDir);
-            mDestFiles = getDirectories(mDestDir);
+            mSrcFiles = getDirectories(mSrcDir, targetFile, exceptFile, exceptDir);
+            mDestFiles = getDirectories(mDestDir, targetFile, exceptFile, exceptDir);
             mHashChk = hashChk;
 
             foreach (FileInfo srcFile in mSrcFiles) {
@@ -88,24 +163,31 @@ namespace WpfLib
         /// ファイルリストから同一ファイルを除く
         /// 日付とサイズをチェック
         /// </summary>
-        public void stripSameFile()
+        /// <param name="same">同一ファイルのみ</param>
+        /// <returns>ファイルリスト</returns>
+        public List<FilesData> stripSameFile(bool same)
         {
-            for (int i = mFiles.Count - 1; i >= 0; i--) {
-                if (mHashChk) {
-                    if (mFiles[i].mSrcCrc == mFiles[i].mDstCrc)
-                        mFiles.RemoveAt(i);
-                } else {
-                    if (sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile))
-                        mFiles.RemoveAt(i);
+            List<FilesData> files = new List<FilesData>();
+            if (!same)
+                files = mFiles.GetRange(0, mFiles.Count);
+            else 
+                for (int i = mFiles.Count - 1; i >= 0; i--) {
+                    if (mHashChk) {
+                        if (mFiles[i].mSrcCrc != mFiles[i].mDstCrc)
+                            files.Add(mFiles[i]);
+                    } else {
+                        if (!sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile))
+                            files.Add(mFiles[i]);
+                    }
                 }
-            }
+            return files;
         }
 
         /// <summary>
         /// ファイル同士の同一性をチェック
         /// </summary>
-        /// <param name="srcFile"></param>
-        /// <param name="dstFile"></param>
+        /// <param name="srcFile">比較元ファイル</param>
+        /// <param name="dstFile">比較先ファイル</param>
         /// <returns></returns>
         private bool sameFile(FileInfo srcFile, FileInfo dstFile)
         {
@@ -231,7 +313,7 @@ namespace WpfLib
         /// ファイルコピー
         /// </summary>
         /// <param name="srcPath">コピー元ファイル名</param>
-        /// <param name="dstPath"><コピー先ファイル名/param>
+        /// <param name="dstPath">コピー先ファイル名</param>
         /// <returns>コピーの可否</returns>
         public bool fileCopy(string srcPath, string dstPath)
         {
@@ -252,23 +334,37 @@ namespace WpfLib
         /// ファイル検索
         /// </summary>
         /// <param name="folder">検索フォルダ</param>
+        /// <param name="targetFile">対象ファイル</param>
+        /// <param name="exceptFile">除外ファイル</param>
+        /// <param name="exceptDir">除外フォルダ</param>
         /// <returns>ファイルリスト</returns>
-        public List<FileInfo> getDirectories(string folder)
+        public List<FileInfo> getDirectories(string folder, string targetFile = "", string exceptFile = "", string exceptDir = "")
         {
             List<FileInfo> fileList = new List<FileInfo>();
+            List<string> targetFiles = targetFile.Split(' ').ToList();
+            List<string> exceptFiles = exceptFile.Split(' ').ToList();
+            List<string> exceptDirectories = exceptDir.Split(' ').ToList();
+            targetFiles.RemoveAll(p => p.Length == 0);
+            exceptFiles.RemoveAll(p => p.Length == 0);
+            exceptDirectories.RemoveAll(p => p.Length == 0);
             try {
                 DirectoryInfo di = new DirectoryInfo(folder);
                 foreach (DirectoryInfo dir in di.GetDirectories()) {
-                    List<FileInfo> filesInfo = getDirectories(dir.FullName);
-                    if (filesInfo != null) {
-                        fileList.AddRange(filesInfo);
+                    if (!exceptChk(dir.Name, exceptDirectories)) {
+                        List<FileInfo> filesInfo = getDirectories(dir.FullName, targetFile, exceptFile, exceptDir);
+                        if (filesInfo != null && 0 < filesInfo.Count) {
+                            fileList.AddRange(filesInfo);
+                        }
                     }
                 }
                 string[] files = Directory.GetFiles(folder);
                 foreach (var file in files) {
-                    FileInfo fi = new FileInfo(file);
-                    if (fi != null)
-                        fileList.Add(fi);
+                    string fileName = Path.GetFileName(file);
+                    if (targetChk(fileName, targetFiles) && !exceptChk(file, exceptFiles)) {
+                        FileInfo fi = new FileInfo(file);
+                        if (fi != null)
+                            fileList.Add(fi);
+                    }
                 }
                 return fileList;
             } catch (Exception e) {
@@ -276,5 +372,39 @@ namespace WpfLib
             }
         }
 
+        /// <summary>
+        /// 対象ファイルチェック
+        /// </summary>
+        /// <param name="fileName">ファイル名</param>
+        /// <param name="targetFiles">対象ファイルリスト(ワイルドカード)</param>
+        /// <returns>対象の有無</returns>
+        private bool targetChk(string fileName, List<string> targetFiles)
+        {
+            if (0 < targetFiles.Count) {
+                foreach (string wc in targetFiles) {
+                    if (ylib.wcMatch(fileName, wc))
+                        return true;
+                }
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 除外ファイルチェック
+        /// </summary>
+        /// <param name="fileName">ファイル名</param>
+        /// <param name="exceptFiles">除外ファイルリスト(ワイルドカード)</param>
+        /// <returns>除外の有無</returns>
+        private bool exceptChk(string fileName, List<string> exceptFiles)
+        {
+            if (0 < exceptFiles.Count) {
+                foreach (string wc in exceptFiles) {
+                    if (ylib.wcMatch(fileName, wc))
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }
