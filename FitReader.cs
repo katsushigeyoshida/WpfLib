@@ -1325,9 +1325,10 @@ namespace WpfLib
             pos += mRrecordHeader.size;
             if (fieldsDef != null) {
                 foreach (FieldDefinition fieldDef in fieldsDef) {
-                    fieldDef.Data = YLib.ByteCopy(data, pos, fieldDef.Size);
-                    pos += fieldDef.Size;
-                    if (data.Length <= pos)
+                    if (pos + fieldDef.Size < data.Length) {
+                        fieldDef.Data = YLib.ByteCopy(data, pos, fieldDef.Size);
+                        pos += fieldDef.Size;
+                    } else
                         return;
                 }
                 mFieldDefinitions = fieldsDef;
@@ -1337,9 +1338,10 @@ namespace WpfLib
             this.mGglobalMessageNumber = globalMessageNumber;
             if (developerFieldData != null && 0 < developerFieldData.Count) {
                 foreach (DeveloperFieldDescription fieldDef in developerFieldData) {
-                    fieldDef.Data = YLib.ByteCopy(data, pos, fieldDef.Size);
-                    pos += fieldDef.Size;
-                    if (data.Length <= pos)
+                    if (pos + fieldDef.Size < data.Length) {
+                        fieldDef.Data = YLib.ByteCopy(data, pos, fieldDef.Size);
+                        pos += fieldDef.Size;
+                    } else
                         return;
                 }
                 mDeveloperFieldData = developerFieldData;
@@ -1446,8 +1448,8 @@ namespace WpfLib
         public List<Point> mListGpsPointData;                   //  GPS座標データリスト[DATATYPE.gpsSImpleData]
         public GpsInfoData mGpsInfoData;                        //  gpsデータ情報
 
-        private byte[] mFitData;                                //  FIT データ
-        private int mPos = 0;                                   //  読込位置
+        public byte[] mFitData;                                 //  FIT データ
+        public int mPos = 0;                                    //  読込位置
         private FileHeader mHeader;                             //  ファイルヘッダ
         private List<FieldDefinition> mDefinitionData;          //  定義データ
         private List<DeveloperFieldDescription> mDeveloperFields;   //  開発者用定義データ  
@@ -1455,6 +1457,7 @@ namespace WpfLib
         public int mBackSize = 0;                               //  データの残量
 
         YLib ylib = new YLib();
+
         /// <summary>
         /// コンストラクタ
         /// </summary>

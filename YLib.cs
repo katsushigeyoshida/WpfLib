@@ -1973,6 +1973,52 @@ namespace WpfLib
         //  ---  文字列処理  ------
 
         /// <summary>
+        /// ワイルドカードによる文字検索
+        /// </summary>
+        /// <param name="srcstr">文字列</param>
+        /// <param name="pattern">検索パターン</param>
+        /// <returns>有無</returns>
+        public bool wcMatch(string srcstr, string pattern)
+        {
+            if (pattern == null || pattern.Length == 0)
+                return true;
+            int si = 0, si2 = -1, fi = 0, fi2 = -1;
+            string ss = srcstr.ToLower();
+            string fs = pattern.ToLower();
+            do {
+                if (fs[fi] == '*') {
+                    fi2 = fi;
+                    fi++;
+                    if (fs.Length <= fi)
+                        return true;
+                    for (; (si < ss.Length) && (ss[si] != fs[fi]); si++)
+                        ;
+                    si2 = si;
+                    if (ss.Length <= si)
+                        return false;
+                }
+                if (fs[fi] != '?') {
+                    if (ss.Length <= si)
+                        return false;
+                    if (ss[si] != fs[fi]) {
+                        if (si2 < 0)
+                            return false;
+                        si = si2 + 1;
+                        fi = fi2;
+                        continue;
+                    }
+                }
+                si++;
+                fi++;
+                if (fs.Length <= fi && si < ss.Length)
+                    return false;
+                if (ss.Length <= si && fi < fs.Length && fs[fi] != '*' && fs[fi] != '?')
+                    return false;
+            } while (si < ss.Length && fi < fs.Length);
+            return true;
+        }
+
+        /// <summary>
         /// 文字列を前から検索する
         /// </summary>
         /// <param name="text">検索される文字列</param>
@@ -2163,7 +2209,7 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// 文字列を整数に変換
+        /// 文字列を整数に変換(0xがつくと16進として変換)
         /// 変換できない場合はdefaultを使用
         /// </summary>
         /// <param name="str">数値文字列</param>
@@ -2173,7 +2219,9 @@ namespace WpfLib
         {
             int i;
             str = str.Replace(",", "");
-            if (int.TryParse(str.Trim(), out i))
+            if (str.StartsWith("0x"))
+                return Convert.ToInt32(str, 16);
+            else if (int.TryParse(str.Trim(), out i))
                 return i;
             else
                 return val;
@@ -4012,6 +4060,7 @@ namespace WpfLib
         /// <returns></returns>
         public bool saveCsvData(string path, string[] format, List<string[]> data)
         {
+            if (path == null || path.Length == 0 || data == null) return false;
             List<string[]> dataList = new List<string[]>();
             dataList.Add(format);
             foreach (string[] v in data)
