@@ -5,15 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfLib"
         mc:Ignorable="d"
-        Title="InputBox" Height="100" Width="440" Loaded="Window_Loaded" Closing="Window_Closing" MouseDoubleClick="Window_MouseDoubleClick">
+        Title="InputBox" Height="100" Width="440" Loaded="Window_Loaded" Closing="Window_Closing"
+        MouseDoubleClick="Window_MouseDoubleClick" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid>
-        <TextBox x:Name="EditText" TextWrapping="Wrap" Text="TextBox" Margin="10,0,10,40"/>
+        <TextBox x:Name="EditText" TextWrapping="Wrap" Text="TextBox" Margin="10,0,10,40">
+            <TextBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="コピー Ctrl+C" Name="tbCopyMenu" Command="ApplicationCommands.Copy" />
+                    <MenuItem Header="切取り Ctrl+X" Name="tbCutMenu" Command="ApplicationCommands.Cut" />
+                    <MenuItem Header="貼付け Ctrl+V" Name="tbPasteMenu" Command="ApplicationCommands.Paste" />
+                    <MenuItem Header="開く" Name="tbOpenMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="計算 F9" Name="tbCalculateMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="16進10進変換計算 F11" Name="tbHexCalculateMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="10進16進変換" Name="tbDec2HexConvMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="日時の挿入/変換 F8" Name="tbDateTimeMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="Webアドレス変換 F7" Name="tbAdressMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="ファイル選択    F6" Name="tbFileSelectMenu" Click="tbMenu_Click" />
+                </ContextMenu>
+            </TextBox.ContextMenu>
+        </TextBox>
         <Button Name="OK" Content="OK" Margin="0,0,100,10" Click="OK_Click" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom"/>
         <Button Name="Cancel" Content="Cancel" Margin="0,0,10,10" Click="Cancel_Click" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom"/>
-        <Button x:Name="BtGZoomUp" Margin="10,0,0,10" Click="Button_Click" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="25" >
+        <Button x:Name="BtGZoomUp" Margin="10,0,0,10" Click="Button_Click" Height="25" Width="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
+                ToolTip="フォント拡大">
             <Path Data="M10,3 L10,15 M4,9 16,9 M10,0 A8,8 0 1 0 9,18 M9,18 A8,8 0 1 0 9,0" Margin="1" Stroke="Black" StrokeThickness="1.5" />
         </Button>
-        <Button x:Name="BtGZoomDown" Margin="40,0,0,10" Click="Button_Click" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="25" >
+        <Button x:Name="BtGZoomDown" Margin="40,0,0,10" Click="Button_Click" Height="25" Width="25" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                ToolTip="フォント縮小">
             <Path Data="M4,9 16,9 M10,0 A8,8 0 1 0 9,18 M9,18 A8,8 0 1 0 9,0" Margin="1" Stroke="Black" StrokeThickness="1.5" />
         </Button>
     </Grid>

@@ -165,6 +165,8 @@ namespace WpfLib
         public string mErrorMsg;
         public bool mDebugWrite = false;
 
+        private YLib ylib = new YLib();
+
         private void debugWrite(string str)
         {
             if (mDebugWrite)
@@ -316,6 +318,65 @@ namespace WpfLib
             return string.Join(null, expList);
         }
 
+        /// <summary>
+        /// 16進数式文字列の式を10進文字列の式に変換
+        /// </summary>
+        /// <param name="str">16進数式文字列</param>
+        /// <returns>10進数式文字列</returns>
+        public string convHexExpressData(string str)
+        {
+            List<string> list = expressList(str, true);
+            List<string> expList = new List<string>();
+            for (int i = 0; i < list.Count; i++) {
+                if (ylib.isHexNumber(list[i])) {
+                    //  16進文字列を10進に変換
+                    long hex = ylib.longHexParse(list[i]);
+                    expList.Add(hex.ToString());
+                } else if (0 <= "({[\"\'".IndexOf(list[i][0])) {
+                    expList.Add(list[i]);
+                } else {
+                    int p = list[i].IndexOfAny(new char[] { '(', '[', '{' });
+                    string buf;
+                    if (0 < p)
+                        buf = list[i].Substring(0, p);
+                    else
+                        buf = list[i];
+                    if (0 <= mKeyWord.FindIndex(buf))
+                        expList.Add(list[i]);
+                }
+            }
+            return string.Join(null, expList);
+        }
+
+        /// <summary>
+        /// 10進数式文字列の式を16進文字列の式に変換
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public string dec2hexExpressData(string str)
+        {
+            List<string> list = expressList(str, true);
+            List<string> expList = new List<string>();
+            for (int i = 0; i < list.Count; i++) {
+                if (ylib.isDecNumber(list[i])) {
+                    //  10進文字列を16進に変換
+                    long hex = ylib.longParse(list[i]);
+                    expList.Add(hex.ToString("X"));
+                } else if (0 <= "({[\"\'".IndexOf(list[i][0])) {
+                    expList.Add(list[i]);
+                } else {
+                    int p = list[i].IndexOfAny(new char[] { '(', '[', '{' });
+                    string buf;
+                    if (0 < p)
+                        buf = list[i].Substring(0, p);
+                    else
+                        buf = list[i];
+                    if (0 <= mKeyWord.FindIndex(buf))
+                        expList.Add(list[i]);
+                }
+            }
+            return string.Join(null, expList);
+        }
 
         /// <summary>
         /// 数式の変数を変数辞書で置換える
@@ -417,17 +478,20 @@ namespace WpfLib
         /// </summary>
         /// <param name="str">計算式文字列</param>
         /// <returns>List配列</returns>
-        public List<string> expressList(string str)
+        public List<string> expressList(string str, bool hex = false)
         {
             List<string> expList = new List<string>();
             expList.Clear();
             string buf = "";
             for (int i = 0; i < str.Length; i++) {
-                if (Char.IsNumber(str[i]) || str[i] == '.' ||
+                if (!hex && (Char.IsNumber(str[i]) || str[i] == '.' ||
                     (i == 0 && str[i] == '-') ||
                     (0 < i && (str[i] == 'E' || str[i] == 'e') && Char.IsNumber(str[i - 1])) ||
-                    (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && (str[i] == '-' || str[i] == '+'))) {
+                    (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && (str[i] == '-' || str[i] == '+')))) {
                     //  数値
+                    buf += str[i];
+                } else if (hex &&  ylib.isHexNumber(str[i])) {
+                    //  16進数値
                     buf += str[i];
                 } else if (str[i] == ' ') {
                     //  空白は読み飛ばす

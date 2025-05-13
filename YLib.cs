@@ -2228,6 +2228,24 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// 文字列を整数に変換(0xがつくと16進として変換)
+        /// </summary>
+        /// <param name="str">数値文字列</param>
+        /// <param name="val">default値(省略時は0)</param>
+        /// <returns></returns>
+        public long longParse(string str, int val = 0)
+        {
+            long i;
+            str = str.Replace(",", "");
+            if (str.StartsWith("0x"))
+                return Convert.ToInt64(str, 16);
+            else if (long.TryParse(str.Trim(), out i))
+                return i;
+            else
+                return val;
+        }
+
+        /// <summary>
         /// 文字列を実数に変換
         /// 変換できない場合はdefaultを使用
         /// </summary>
@@ -2241,6 +2259,38 @@ namespace WpfLib
                 return d;
             else
                 return val;
+        }
+
+        /// <summary>
+        /// 16進文字列をintに変換
+        /// </summary>
+        /// <param name="str">16進文字列</param>
+        /// <param name="val">default値(省略時は0)</param>
+        /// <returns></returns>
+        public int intHexParse(string str, int val = 0)
+        {
+            str = str.Replace(" ", "");
+            if (int.TryParse(str, System.Globalization.NumberStyles.HexNumber, null, out int number)) {
+                return number;
+            } else {
+                return val;
+            }
+        }
+
+        /// <summary>
+        /// 16進文字列をlongに変換
+        /// </summary>
+        /// <param name="str">16進文字列</param>
+        /// <param name="val">default値(省略時は0)</param>
+        /// <returns></returns>
+        public long longHexParse(string str, int val = 0)
+        {
+            str = str.Replace(" ", "");
+            if (long.TryParse(str, System.Globalization.NumberStyles.HexNumber, null, out long number)) {
+                return number;
+            } else {
+                return val;
+            }
         }
 
         /// <summary>
@@ -2383,6 +2433,49 @@ namespace WpfLib
             if (0 <= sp)
                 data = string2StringNum(num.Substring(sp));
             return data;
+        }
+
+        /// <summary>
+        /// 文字列が16進数かの判定
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <returns>16進数?</returns>
+        public bool isHexNumber(string str)
+        {
+            foreach (char c in str) {
+                if (!isHexNumber(c))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 文字が16進数かの判定
+        /// </summary>
+        /// <param name="c">文字</param>
+        /// <returns>16進数?</returns>
+        public bool isHexNumber(char c)
+        {
+            if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')))
+                return false;
+            return true;
+        }
+
+        /// <summary>
+        /// 文字列が10進数かの判定(実数含む)
+        /// </summary>
+        /// <param name="str">文字列</param>
+        /// <returns>10進数?</returns>
+        public bool isDecNumber(string str)
+        {
+            for (int i = 0; i < str.Length; i++) {
+                if (!(Char.IsNumber(str[i]) || str[i] == '.' ||
+                    (i == 0 && str[i] == '-') ||
+                    (0 < i && (str[i] == 'E' || str[i] == 'e') && Char.IsNumber(str[i - 1])) ||
+                    (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && (str[i] == '-' || str[i] == '+'))))
+                    return false;
+            }
+            return true;
         }
 
         //private string string2stringNum(string num)
