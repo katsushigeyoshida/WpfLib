@@ -21,7 +21,8 @@ namespace WpfLib
         public bool mWindowSizeOutSet = false;              //  ウィンドウサイズの外部設定
         public Window mMainWindow = null;                   //  親ウィンドウの設定
 
-        public string mEditText;
+        public string mEditText;                            //  編集テキスト
+        public string mFilePath = "";                       //  編集中のファイルパス
         public bool mMultiLine = false;                     //  複数行入力可否
         public bool mReadOnly = false;                      //  リードオンリー,OKボタン非表示
         public bool mFileSelectMenu = false;                //  ファイル選択ダイヤログ
@@ -30,6 +31,7 @@ namespace WpfLib
         public bool mCalcMenu = false;                      //  計算メニュー
         public bool mHexCalcMenu = false;                   //  16進計算メニュー
         public int mFontSize = 12;                          //  文字サイズ
+        public string mFontFamily = "";                     //  フォントファミリ
         public bool mFontZoomButtomVisible = true;          //  文字ズームボタン表示/非表示
         public bool mCallBackOn = false;                    //  コールバック有り
         public Action callback;                             //  コールバック関数
@@ -50,6 +52,7 @@ namespace WpfLib
 
             mWindowWidth = Width;
             mWindowHeight = Height;
+
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -59,6 +62,9 @@ namespace WpfLib
                 Left = mMainWindow.Left + (mMainWindow.Width - Width) / 2;
                 Top = mMainWindow.Top + (mMainWindow.Height - Height) / 2;
             }
+
+            if (mFontFamily != "")
+                EditText.FontFamily = new System.Windows.Media.FontFamily(mFontFamily);
 
             //  コンテキストメニュー
             if (mReadOnly) {
@@ -320,6 +326,9 @@ namespace WpfLib
             EditText.SelectedText += $" = {result.ToString()}(0x{((long)result).ToString("X")})";
         }
 
+        /// <summary>
+        /// 10進数を16進に変換
+        /// </summary>
         private void textDec2HexCalculate()
         {
             YCalc calc = new YCalc();
