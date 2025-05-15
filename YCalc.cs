@@ -25,6 +25,7 @@ namespace WpfLib
     ///   3+8/4/2  →  3+((8/4)/2)
     /// 計算は左から順におこなう
     ///   8/4/2  →  (8/4)/2      2^3^4  → (2^3)^4
+    /// 0xで始まる数値は16進数として扱う
     /// 
     /// 
     /// int setExpression(string str)               計算式を入れて引数を設定
@@ -300,11 +301,17 @@ namespace WpfLib
             List<string> list = expressList(str);
             List<string> expList = new List<string>();
             for (int i  = 0; i < list.Count; i++) {
-                if (Char.IsNumber(list[i][0])) {
+                if (1 < list[i].Length && list[i][0] == '0' && list[i][1] == 'x') {
+                    //  16進文字列を数値として登録
+                    expList.Add(list[i]);
+                } else if (Char.IsNumber(list[i][0])) {
+                    //  普通も数値文字列
                     expList.Add(list[i]);
                 } else if (0 <= "({[\"\'".IndexOf(list[i][0])) {
+                    //  '(','{','"',''' で始まる文字列
                     expList.Add(list[i]);
                 } else {
+                    //  キーワードに登録された文字列
                     int p = list[i].IndexOfAny(new char[] { '(', '[', '{' });
                     string buf;
                     if (0 < p)
@@ -477,6 +484,7 @@ namespace WpfLib
         ///     →  1,+,23,*,sin(1.57),+,(1+2),*,5
         /// </summary>
         /// <param name="str">計算式文字列</param>
+        /// <param name="hex">16進文字列の時</param>
         /// <returns>List配列</returns>
         public List<string> expressList(string str, bool hex = false)
         {
@@ -484,8 +492,13 @@ namespace WpfLib
             expList.Clear();
             string buf = "";
             for (int i = 0; i < str.Length; i++) {
-                if (!hex && (Char.IsNumber(str[i]) || str[i] == '.' ||
+                if ((0 < buf.Length && buf[0] == '0' && str[i] == 'x') ||
+                    (1 < buf.Length && buf[0] == '0' && buf[1] == 'x' && ylib.isHexNumber(str[i]))) {
+                    //  16進数値
+                    buf += str[i];
+                } else if (!hex && (Char.IsNumber(str[i]) || str[i] == '.' ||
                     (i == 0 && str[i] == '-') ||
+                    (i == 1 && str[i] == 'x' && str[i - 1] == '0') ||
                     (0 < i && (str[i] == 'E' || str[i] == 'e') && Char.IsNumber(str[i - 1])) ||
                     (0 < i && (str[i - 1] == 'E' || str[i - 1] == 'e') && (str[i] == '-' || str[i] == '+')))) {
                     //  数値
@@ -953,6 +966,9 @@ namespace WpfLib
                     } else if (Char.IsLetter(expList[i][0])) {
                         //  単項演算子の計算
                         x = monadicExpression(expList[i]);
+                    } else if (1 < expList[i].Length && expList[i][0] == '0' && expList[i][1] == 'x') {
+                        //  0xで始まる16進数を10進に変換
+                        x = (double)ylib.longParse(expList[i]);
                     } else {
                         //  数値の判定、数値であればxに返す
                         success = Double.TryParse(expList[i], out x);
