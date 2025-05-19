@@ -20,14 +20,16 @@ namespace WpfLib
     /// <summary>
     /// System.Windows.Formsが見つからない時は参照の追加でアセンブリの中から選択する
     /// 
-    /// API関数
+    /// ---  API関数
+    /// 
     /// int GetWindowRect(IntPtr hWnd, out iRect rect)  ウインドウの外側のサイズを取得
     /// IntPtr GetForegroundWindow()                    フォアグラウンドウィンドウの取得
     /// short GetKeyState(int nVirtkey)                 マウスとキーのクリック判定用
     /// bool IsClickDownLeft()                          マウス左ボタン(0x01)(VK_LBUTTON)の状態
     /// bool IsClickDownRight()                         マウス右ボタン(0x02)(VK_RBUTTON)の状態
     /// 
-    /// システム関連
+    /// ---  システム関連
+    /// 
     /// bool getError()                     ERRORの発生を取得
     /// string getErrorMessage()            ERROR Messageの取得
     /// void DoEvents()                     コントロールを明示的に更新
@@ -40,7 +42,8 @@ namespace WpfLib
     /// string GetFilePropertyValue(string file, int property_index)    ファイルプロパティの値を取得
     /// List<string> GetFilePropertyAll(string path)    ファイルプロパティ値の全取得
     /// 
-    /// グラフィック関連
+    /// ---  グラフィック関連
+    /// 
     /// int getArgb2Uint(Byte a, Byte r, Byte g, Byte b)    ARGBからint値を作成(カラー値の変換)
     /// Brush getInt2Color(int color)                       4桁のHex数値からカラー値(Brush)を作成
     /// Color hexString2Color(string code)                  RGB16進文字列をカラーコードに変換
@@ -61,14 +64,16 @@ namespace WpfLib
     /// List<string> getIPTC(string path)                   JPEGファイルからIPTC情報の取得
     /// string getIPTCall(string path)                      JPEGファイルの全IPTC情報を文字列化
     /// 
-    /// ネットワーク関連
+    /// ---  ネットワーク関連
+    /// 
     /// void WebSerach(string url, string searchWord)       Web検索Google,Bing..)のWebページを開く
     /// bool webFileDownload(string url, string filePath)   Web上のファイルをダウンロードする
     /// string getWebDownloadString(string url, int encordType = 0) Webデータの取り込み
     /// string getWebText(string url)                       URLのWebデータの読込
     /// string getWebText(string url, int encordType = 0)   エンコードタイプを指定してURLのWebデータの読込
     /// 
-    /// HTML関連
+    /// ---  HTML関連
+    /// 
     /// List<string> getPattern(string html, string pattern, string group)  正規表現を使ったHTMLデータからパターン抽出
     /// List<string[]> getPattern(string html, string pattern)  正規表現を使ったHTMLからのパターン抽出
     /// List<string[]> getPattern2(string html, string pattern) 正規表現を使ったHTMLからのパターン抽出
@@ -94,11 +99,13 @@ namespace WpfLib
     /// int findHtmlParaDataTagPos(string para , string paraTitle)  HTMLのデータからタグパラメータの存在するタグの開始位置を取得する
     /// (int tagType, int start, int end) findHtmlTag(string html, string tagName, int pos = 0) タグを検索して種別と位置を求める
     /// 
-    /// データ処理関係
+    /// ---  データ処理関係
+    /// 
     /// List<string[]> splitJson(string jsonData, string baseTitle = "")    JSON形式の文字列から[名前:値]の対データをリストデータとして取得
     /// string getJsonDataString(string jsonData)   JSON形式の文字列から{}内の文字列を取得
     /// 
-    /// 文字列処理
+    /// ---  文字列処理
+    /// 
     /// int indexOf(string text, string val, int count = 1) 文字列を前から検索
     /// int lastIndexOf(string text, string val, int count = 1)  文字列を後から検索
     /// string stripBrackets(string text, char sb = '[', char eb = ']') 文字列から括弧で囲まれた領域を取り除く
@@ -129,14 +136,16 @@ namespace WpfLib
     /// int lastIndexCountOf(string text, string value, int count)  文字列を後ろから検索してn個目の位置
     /// Size measureText(string text, double textSize)  テキストの大きさを求める
     /// 
-    /// ストップウォッチ
+    /// ---  ストップウォッチ
+    /// 
     /// void stopWatchStartNew()                    ストップウォッチ機能初期化・計測開始
     /// TimeSpan stopWatchLapTime()                 ストップウォッチ機能ラップ時間取得
     /// TimeSpan stopWatchRestart()                 ストップウォッチ機能計測時間の取得と再スタート
     /// TimeSpan stopWatchStop()                    ストップウォッチ機能計測時間の取得と終了
     /// TimeSpan stopWatchTotalTime()               ストップウォッチ機能累積時間の取得
     /// 
-    /// 日付・時間処理
+    /// ---  日付・時間処理
+    /// 
     /// DateTime roundDateTimeMin(DateTime et, int min) 日時を分単位で丸める
     /// string second2String(double seconds)        秒数を時分秒の文字列に変換
     /// bool IsTime(string time)                    文字列の時刻タイプの判定
@@ -169,7 +178,8 @@ namespace WpfLib
     /// string toWareki(string date = "")           西暦を和暦に変換
     /// string getWareki(string date)               西暦和暦変換(文政(1818年)以降令和まで
     /// 
-    /// ファイル・ディレクトリ処理
+    /// ---  ファイル・ディレクトリ処理
+    /// 
     /// string folderSelect(string initFolder)      フォルダの選択ダイヤログの表示
     /// string filesSelect(string searchFolder, string ext)     ファイル選択ダイヤログ(複数の拡張子を指定できる)
     /// string fileSelect(string searchFolder, string ext)      ファイル選択ダイヤログ
@@ -205,7 +215,8 @@ namespace WpfLib
     /// long getFileSize(string path)               ファイルサイズの取得
     /// string convInvalidFileNameChars(string fileName, char vc = '_') ファイル名で使用できない文字("<>|:*?\/)を置換える
     /// 
-    /// 数値処理
+    /// ---  数値処理
+    /// 
     /// double movingAverage(List<double> data, int pos, int nearCount, bool center)    移動平均を求める
     /// double[] getMovingAverage(double[] data, int nearCount, bool center)    移動平均を行ったデータ配列を求める
     /// double graphStepSize(double range, double targetSteps, int fromBase = 10)   グラフ作成時の補助線間隔を求める
@@ -224,7 +235,8 @@ namespace WpfLib
     /// int Lcm(int a, int b)                   最小公倍数
     /// int Gcd(int a, int b)                   最大公約数
     /// 
-    /// 統計処理
+    /// ---  統計処理
+    /// 
     /// double getSumList(List<double> list)        ∑x リストの合計
     /// double getSqrSumList(List<double> list)     ∑x^2 リストの自乗和(二乗の合計)
     /// double getAverageList(List<double> list)    ∑x / n 平均値
@@ -247,7 +259,8 @@ namespace WpfLib
     /// double getCoefficentDeterminatio(List<Point> list, double a, double b)  決定係数(coefficient of determination)
     /// double getRegVariance(List<Point> list, double a, double b) 理論値に対する分散(回帰曲線の残差の二乗和)
     /// 
-    /// バイナリ処理
+    /// ---  バイナリ処理
+    /// 
     /// void binaryDump(byte[] data, int start, int size, string comment)   バイナリデータをコンソール出力
     /// string binary2HexString(byte[] data, int start, int size)   byte配列を16進の文字列に変換
     /// string binary2AsciiString(byte[] data, int start, int size) byte配列をASCII文字列に変換
@@ -266,12 +279,42 @@ namespace WpfLib
     /// Byte getInt2Byte(int value, int n)      int データからbyte単位で値を取得
     /// bool BinComp(byte[] a, byte[] b)        バイナリデータを比較
     /// bool BinComp(byte[] a, int astart, byte[] b, int bstart, int size)  バイナリデータを比較
-    /// byte[] ByteCopy(byte[] a, int start, int size)  byteデータをコピー
+    /// byte[] ByteCopy(byte[] a, int start, int size)              byteデータをコピー
     /// byte[] ByteOverWrite(byte[] src, int start, byte[] dest)    byte配列にbyteデータを上書きする
-    /// byte[] ByteCat(byte[] src1, byte[] src2)    byte配列同士を連結する
-    /// byte[] intList2ByteArray(List<Int32> intlist)   intリストをbyte配列に変換
+    /// byte[] ByteCat(byte[] src1, byte[] src2)                    byte配列同士を連結する
+    /// byte[] intList2ByteArray(List<Int32> intlist)               intリストをbyte配列に変換
     /// 
+    ///  ---  bit演算関連  ------
+    ///  
+    /// List<int> getBitOnNo(byte[] bytes)                  OnBit位置の取得
+    /// bool IsEmpty(byte[] bytes)                          Bit配列がすべて 0 かの確認
+    /// bool bitAnd(byte[] bytesA, byte[] bytesB)           2つの　bitリストの and で同一のbitがあればtrue
+    /// bool getBitOn(byte[] bytes, int n)                  Bitデータで指定位置のBitがOnかの確認
+    /// void bitOnAll(byte[] bytes, bool off = false)       すべてのBitをOn/Offにする
+    /// void bitOn(byte[] bytes, int n)                     BitデータをBit位置指定でOnにする
+    /// void bitOff(byte[] bytes, int n)                    BitデータをBit位置指定でOffにする
     /// 
+    ///  ---  単位変換関連  ------
+    ///  
+    ///  double R2D(double rad)                         ラジアンから度に変換
+    ///  double D2R(double deg)                         度からラジアンに変換
+    ///  double H2D(double hour)                        時(hh.hhhh)から度(ddd.dddd)
+    ///  double D2H(double deg)                         度(ddd.dddd)から時(hh.hhhh)に変換
+    ///  double H2R(double hour)                        時(hh.hhhh)からラジアンに変換
+    ///  double R2H(double rad)                         ラジアンから時(hh.hhhh)に変換
+    ///  string deg2DMS(double deg)                     度(ddd.dddd)を度分秒(dd°mm′ss″)文字列に変換
+    ///  double DMS2deg(string dms)                     度分秒(dd°mm′ss″)文字列を度(ddd.dddd)に変換
+    ///  string hour2HMS(double hour)                   時(hh.hhhh)を時分秒(HHhMMmSSs)文字列に変換
+    ///  double HMS2hour(string hms)                    時分秒(HHhMMmSSs)文字列を時(hh.hhhh)に変換
+    ///  double hhmmss2hour(string hhmmss)              時分秒(hhmmss)文字列を時(hh.hhhh)に変換
+    ///  double DMS2deg(int d, int m, double s)         度分秒(dd,mm,ss)を度(ddd.dddd)
+    ///  double HMS2hour(int h, int m, double s)        時分秒(hh,mm,ss)を時(hh.hhhh)に変換
+    ///  double HM2hour(string hm)                      時分(hhmm.m)を時(hh.hhhh)に変換
+    ///  double DM2deg(string dm)                       度分(±ddmm.m)を度(ddd.dddd)に変換
+    ///  double dm2deg(string dm)                       度分秒(±dd:mm:ss)を度(dd.ddddに変換
+    ///  double hm2hour(string hm)                      時分(hh:mm)を時(hh.hhhh)に変換
+    ///  
+    ///  
     /// </summary>
     public class YLib
     {
@@ -5708,6 +5751,352 @@ namespace WpfLib
                 Buffer.BlockCopy(b, 0, byteArray, sizeof(Int32) * i, sizeof(Int32));
             }
             return byteArray;
+        }
+
+
+        //  ---  bit演算関連  ------
+
+        /// <summary>
+        /// OnBit位置の取得
+        /// </summary>
+        /// <param name="bytes">bitリスト</param>
+        /// <returns>On位置リスト</returns>
+        public List<int> getBitOnNo(byte[] bytes)
+        {
+            List<int> bitNoList = new List<int>();
+            for (int i = 0; i < bytes.Length * 8; i++) {
+                if (getBitOn(bytes, i))
+                    bitNoList.Add(i);
+            }
+            return bitNoList;
+        }
+
+        /// <summary>
+        /// Bit配列がすべて 0 かの確認
+        /// </summary>
+        /// <param name="bytes">bitリスト</param>
+        /// <returns></returns>
+        public bool IsEmpty(byte[] bytes)
+        {
+            for (int i = 0; i < bytes.Length; i++)
+                if (bytes[i] != 0)
+                    return false;
+            return true;
+        }
+
+        /// <summary>
+        /// 2つの　bitリストの and で同一のbitがあればtrue
+        /// </summary>
+        /// <param name="bytesA">bitリストA</param>
+        /// <param name="bytesB">bitリストB</param>
+        /// <returns>同一bitの有無</returns>
+        public bool bitAnd(byte[] bytesA, byte[] bytesB)
+        {
+            for (int i = 0; i < bytesA.Length; i++) {
+                byte b = (byte)(bytesA[i] & bytesB[i]);
+                if (b != 0)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Bitデータで指定位置のBitがOnかの確認
+        /// </summary>
+        /// <param name="bytes">Bitデータ</param>
+        /// <param name="n">Bit位置</param>
+        /// <returns>On</returns>
+        public bool getBitOn(byte[] bytes, int n)
+        {
+            byte lb = bytes[n / 8];
+            byte b = 1;
+            b <<= n % 8;
+            return 0 != (lb & b);
+        }
+
+        /// <summary>
+        /// すべてのBitをOn/Offにする
+        /// </summary>
+        /// <param name="bytes">Bitデータ</param>
+        /// <param name="off">0クリア</param>
+        public void bitOnAll(byte[] bytes, bool off = false)
+        {
+            for (int i = 0; i < bytes.Length; i++) {
+                if (off)
+                    bytes[i] = 0x00;
+                else
+                    bytes[i] = 0xff;
+            }
+        }
+
+        /// <summary>
+        /// BitデータをBit位置指定でOnにする
+        /// </summary>
+        /// <param name="bytes">Bitデータ</param>
+        /// <param name="n">Bit位置</param>
+        public void bitOn(byte[] bytes, int n)
+        {
+            byte b = 1;
+            b <<= n % 8;
+            bytes[n / 8] |= b;
+        }
+
+        /// <summary>
+        /// BitデータをBit位置指定でOffにする
+        /// </summary>
+        /// <param name="bytes">Bitデータ</param>
+        /// <param name="n">Bit位置</param>
+        public void bitOff(byte[] bytes, int n)
+        {
+            byte b = 1;
+            b <<= n % 8;
+            bytes[n / 8] &= (byte)~b;
+        }
+
+        /// <summary>
+        /// 16進文字列に変換
+        /// </summary>
+        /// <param name="bytes">Bitデータ</param>
+        /// <param name="start">開始位置</param>
+        /// <param name="size">サイズ</param>
+        /// <returns>16進文字列</returns>
+        //public string binary2HexString(byte[] bytes, int start = 0, int size = 0)
+        //{
+        //    string buf = "";
+        //    if (size == 0) size = bytes.Length;
+        //    for (int i = start; i < start + size && i < bytes.Length; i++) {
+        //        buf += string.Format("{0:X2} ", bytes[i]);
+        //    }
+        //    return buf;
+        //}
+
+        //  ---  単位変換関連  ------
+
+        /// <summary>
+        /// ラジアンから度に変換
+        /// </summary>
+        /// <param name="rad">ラジアン(rad)</param>
+        /// <returns>度(deg)</returns>
+        public double R2D(double rad)
+        {
+            return rad * 180.0 / Math.PI;
+        }
+
+        /// <summary>
+        /// 度からラジアンに変換
+        /// </summary>
+        /// <param name="deg">度(deg)</param>
+        /// <returns>ラジアン(rad)</returns>
+        public double D2R(double deg)
+        {
+            return deg * Math.PI / 180.0;
+        }
+
+        /// <summary>
+        /// 時(hh.hhhh)から度(ddd.dddd)
+        /// </summary>
+        /// <param name="hour">時(hh.hhhh)</param>
+        /// <returns>度(ddd.dddd)</returns>
+        public double H2D(double hour)
+        {
+            // return Math.Floor(hour) * 360 / 24 + hour % 1.0;
+            return hour * 360.0 / 24.0;
+        }
+
+        /// <summary>
+        /// 度()ddd.dddd)から時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="deg">度(ddd.dddd)</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double D2H(double deg)
+        {
+            return deg * 24.0 / 360.0;
+        }
+
+        /// <summary>
+        /// 時(hh.hhhh)からラジアンに変換
+        /// </summary>
+        /// <param name="hour">時(hh.hhhh)</param>
+        /// <returns>ラジアン(rad)</returns>
+        public double H2R(double hour)
+        {
+            return hour * Math.PI / 12.0;
+        }
+
+        //  radian → hour(h.hhhh)
+        /// <summary>
+        /// ラジアンから時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="rad">ラジアン(rad)</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double R2H(double rad)
+        {
+            return rad * 12.0 / Math.PI;
+        }
+
+        private char[] mDMSChar = { '°', '′', '″' };
+
+        /// <summary>
+        /// 度(ddd.dddd)を度分秒(dd°mm′ss″)文字列に変換
+        /// </summary>
+        /// <param name="deg">度(ddd.ddddd)</param>
+        /// <returns>度分秒(dd°mm′ss″)</returns>
+        public string deg2DMS(double deg)
+        {
+            double deg2 = Math.Abs(deg);
+            string dms = (deg < 0 ? "-" : "+") + Math.Floor(deg2).ToString("00") + mDMSChar[0];
+            dms += Math.Floor((deg2 % 1.0) * 60).ToString("00") + mDMSChar[1];
+            dms += (((deg2 * 60.0) % 1.0) * 60).ToString("00.##") + mDMSChar[2];
+            return dms;
+        }
+
+        /// <summary>
+        /// 度分秒(dd°mm′ss″)文字列を度(ddd.dddd)に変換
+        /// </summary>
+        /// <param name="dms">度分秒(dd°mm′ss″)</param>
+        /// <returns>度(ddd.dddd)</returns>
+        public double DMS2deg(string dms)
+        {
+            string dms2 = dms[0] == '-' ? dms.Substring(1) : dms;
+            double d = doubleParse(dms2.Substring(0, dms2.IndexOf(mDMSChar[0])));
+            double m = doubleParse(dms2.Substring(dms2.IndexOf(mDMSChar[0]) + 1, dms2.IndexOf(mDMSChar[1]) - dms2.IndexOf(mDMSChar[0]) - 1));
+            double s = doubleParse(dms2.Substring(dms2.IndexOf(mDMSChar[1]) + 1, dms2.IndexOf(mDMSChar[2]) - dms2.IndexOf(mDMSChar[1]) - 1));
+            return (d + m / 60.0 + s / 3600.0) * (dms[0] == '-' ? -1.0 : 1.0);
+        }
+
+        /// <summary>
+        /// 時(hh.hhhh)を時分秒(HHhMMmSSs)文字列に変換
+        /// </summary>
+        /// <param name="hour">時(hh.hhhh)</param>
+        /// <returns>時分秒(HHhMMmSSs)</returns>
+        public string hour2HMS(double hour)
+        {
+            double hour2 = hour % 24.0;
+            hour2 = hour2 < 0 ? hour2 + 24 : hour2;
+            string hms = (hour < 0 ? "-" : "") + Math.Floor(hour2).ToString("00") + "h";
+            hms += Math.Floor((hour2 % 1.0) * 60).ToString("00") + "m";
+            hms += (((hour2 * 60.0) % 1.0) * 60).ToString("00.##") + "s";
+            return hms;
+        }
+
+        /// <summary>
+        /// 時分秒(HHhMMmSSs)文字列を時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="dms">時分秒(HHhMMmSSs)</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double HMS2hour(string hms)
+        {
+            string hms2 = hms[0] == '-' ? hms.Substring(1) : hms;
+            double h = doubleParse(hms2.Substring(0, hms2.IndexOf("h")));
+            double m = doubleParse(hms2.Substring(hms2.IndexOf("h") + 1, hms2.IndexOf("m") - hms2.IndexOf("h") - 1));
+            double s = doubleParse(hms2.Substring(hms2.IndexOf("m") + 1, hms2.IndexOf("s") - hms2.IndexOf("m") - 1));
+            return (h + m / 60.0 + s / 3600.0) * (hms[0] == '-' ? -1.0 : 1.0);
+        }
+
+        /// <summary>
+        /// 時分秒(hhmmss)文字列を時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="hhmmss">時分秒(hhmmss)</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double hhmmss2hour(string hhmmss)
+        {
+            double h = doubleParse(hhmmss.Substring(0, 2));
+            double m = doubleParse(hhmmss.Substring(2, 2));
+            double s = doubleParse(hhmmss.Substring(4, 2));
+            return h + m / 60.0 + s / 3600.0;
+        }
+
+        /// <summary>
+        /// 度分秒(dd,mm,ss)を度(ddd.dddd)
+        /// </summary>
+        /// <param name="d">度</param>
+        /// <param name="m">分</param>
+        /// <param name="s">秒</param>
+        /// <returns>度(ddd.dddd)</returns>
+        public double DMS2deg(int d, int m, double s)
+        {
+            return d + m / 60.0 + s / 3600.0;
+        }
+
+        //  hms → hour
+        /// <summary>
+        /// 時分秒(hh,mm,ss)を時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="h">時</param>
+        /// <param name="m">分</param>
+        /// <param name="s">秒</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double HMS2hour(int h, int m, double s)
+        {
+            return h + m / 60.0 + s / 3600.0;
+        }
+
+        /// <summary>
+        /// 時分(hhmm.m)を時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="hm">時分(hhmm.m)</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double HM2hour(string hm)
+        {
+            return DM2deg(hm);
+        }
+
+        /// <summary>
+        /// 度分(±ddmm.m)を度(ddd.dddd)に変換
+        /// </summary>
+        /// <param name="hm">度分(±ddmm.m)</param>
+        /// <returns>度(ddd.dddd)</returns>
+        public double DM2deg(string dm)
+        {
+            int n = 0;
+            int sign = 1;
+            if (dm[0] == '+') {
+                n = 1;
+            } else if (dm[0] == '-') {
+                n = 1;
+                sign = -1;
+            }
+            double d = doubleParse(dm.Substring(n, 2));
+            double m = 0.0;
+            if (n + 2 < dm.Length)
+                m = doubleParse(dm.Substring(n + 2));
+            return (d + m / 60.0) * sign;
+        }
+
+        /// <summary>
+        /// 度分秒(±dd:mm:ss)を度(dd.ddddに変換
+        /// </summary>
+        /// <param name="dm">度分秒(dd:mm:ss</param>
+        /// <returns>度(dd.dddd)</returns>
+        public double dm2deg(string dm)
+        {
+            return hm2hour(dm);
+        }
+
+        /// <summary>
+        /// 時分(hh:mm)を時(hh.hhhh)に変換
+        /// </summary>
+        /// <param name="hm">時分(hh:mm)</param>
+        /// <returns>時(hh.hhhh)</returns>
+        public double hm2hour(string hm)
+        {
+            string[] text = hm.Split(':');
+            if (0 < text.Length) {
+                int n = 0;
+                double sign = 1.0;
+                if (text[0][0] == '+') {
+                    n = 1;
+                } else if (text[0][0] == '-') {
+                    n = 1;
+                    sign = -1.0;
+                }
+                double hour = string2double(text[0].Substring(n));
+                for (int i = 1; i < text.Length; i++) {
+                    hour += string2double(text[i]) / Math.Pow(60.0, i);
+                }
+                return hour * sign;
+            }
+            return 0.0;
         }
     }
 }
