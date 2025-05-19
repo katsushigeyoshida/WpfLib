@@ -24,6 +24,7 @@ namespace WpfLib
         public string mEditText;                            //  編集テキスト
         public string mFilePath = "";                       //  編集中のファイルパス
         public bool mMultiLine = false;                     //  複数行入力可否
+        public bool mTextRapping = true;                    //  折り返し
         public bool mReadOnly = false;                      //  リードオンリー,OKボタン非表示
         public bool mFileSelectMenu = false;                //  ファイル選択ダイヤログ
         public bool mDateMenu = false;                      //  日付挿入
@@ -66,6 +67,13 @@ namespace WpfLib
             if (mFontFamily != "")
                 EditText.FontFamily = new System.Windows.Media.FontFamily(mFontFamily);
 
+            EditText.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+            EditText.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            if (mTextRapping)
+                EditText.TextWrapping = TextWrapping.Wrap;          //  折り返しあり
+            else
+                EditText.TextWrapping = TextWrapping.NoWrap;        //  折り返し無し
+
             //  コンテキストメニュー
             if (mReadOnly) {
                 tbCalculateMenu.Visibility = Visibility.Collapsed;
@@ -75,8 +83,10 @@ namespace WpfLib
                 tbFileSelectMenu.Visibility = Visibility.Collapsed;
             if (!mDateMenu)
                 tbDateTimeMenu.Visibility = Visibility.Collapsed;
-            if (!mCalcMenu)
+            if (!mCalcMenu) {
                 tbCalculateMenu.Visibility = Visibility.Collapsed;
+                tbFuncListMenu.Visibility = Visibility.Collapsed;
+            }
             if (!mHexCalcMenu) {
                 tbHexCalculateMenu.Visibility = Visibility.Collapsed;
                 tbDec2HexConvMenu.Visibility = Visibility.Collapsed;
@@ -90,7 +100,6 @@ namespace WpfLib
             //  複数行入力設定
             if (mMultiLine) {
                 EditText.AcceptsReturn = true;
-                EditText.TextWrapping = TextWrapping.Wrap;
                 EditText.VerticalContentAlignment = VerticalAlignment.Top;
                 if (!mWindowSizeOutSet)
                     WindowFormLoad();
@@ -133,40 +142,6 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// モードレスダイヤログでのデータ更新
-        /// </summary>
-        public void updateData()
-        {
-            mEditText = EditText.Text;
-        }
-
-        /// <summary>
-        /// [OK} ＯＫボタン
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OK_Click(object sender, RoutedEventArgs e)
-        {
-            mEditText = EditText.Text;
-            if (!mCallBackOn)
-                DialogResult = true;
-            Close();
-        }
-
-        /// <summary>
-        /// [Cancel] キャンセルボタン
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            if (!mCallBackOn)
-                DialogResult = false;
-            Close();
-        }
-
-
-        /// <summary>
         /// Windowの状態を前回の状態にする
         /// </summary>
         private void WindowFormLoad()
@@ -198,6 +173,32 @@ namespace WpfLib
             Properties.Settings.Default.InputBoxWindowHeight = Height;
             Properties.Settings.Default.Save();
         }
+
+        /// <summary>
+        /// [OK} ＯＫボタン
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OK_Click(object sender, RoutedEventArgs e)
+        {
+            mEditText = EditText.Text;
+            if (!mCallBackOn)
+                DialogResult = true;
+            Close();
+        }
+
+        /// <summary>
+        /// [Cancel] キャンセルボタン
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            if (!mCallBackOn)
+                DialogResult = false;
+            Close();
+        }
+
 
         /// <summary>
         /// [+][-] 文字サイズズームボタン
@@ -251,6 +252,8 @@ namespace WpfLib
                 textHexCalculate();
             } else if (menuItem.Name.CompareTo("tbDec2HexConvMenu") == 0) {
                 textDec2HexCalculate();
+            } else if (menuItem.Name.CompareTo("tbFuncListMenu") == 0) {
+                funcListMenu();
             } else if (menuItem.Name.CompareTo("tbAdressMenu") == 0) {
                 cnvEscapeString();
             } else if (menuItem.Name.CompareTo("tbFileSelectMenu") == 0) {
@@ -258,6 +261,14 @@ namespace WpfLib
             } else if (menuItem.Name.CompareTo("tbDateTimeMenu") == 0) {
                 textDateTime();
             }
+        }
+
+        /// <summary>
+        /// モードレスダイヤログでのデータ更新
+        /// </summary>
+        public void updateData()
+        {
+            mEditText = EditText.Text;
         }
 
         /// <summary>
@@ -343,6 +354,23 @@ namespace WpfLib
             //double result = calc.expression(express);
             //EditText.SelectedText += $" = {result.ToString()}(0x{((long)result).ToString("X")})";
 
+        }
+
+        /// <summary>
+        /// 関数一覧表示・挿入
+        /// </summary>
+        private void funcListMenu()
+        {
+            MenuDialog dlg = new MenuDialog();
+            dlg.mMainWindow = this;
+            dlg.Title = "計算式関数メニュー";
+            dlg.mMenuList = YCalc.mFuncList.ToList();
+            dlg.mOneClick = true;
+            dlg.ShowDialog();
+            if (dlg.mResultMenu != null) {
+                string text = EditText.SelectedText;
+                EditText.SelectedText = dlg.mResultMenu.Substring(0, dlg.mResultMenu.IndexOf(' '));
+            }
         }
 
         /// <summary>

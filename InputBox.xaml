@@ -8,7 +8,7 @@
         Title="InputBox" Height="100" Width="440" Loaded="Window_Loaded" Closing="Window_Closing"
         MouseDoubleClick="Window_MouseDoubleClick" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid>
-        <TextBox x:Name="EditText" TextWrapping="Wrap" Text="TextBox" Margin="10,0,10,40">
+        <TextBox x:Name="EditText" Margin="10,0,10,40" ToolTip="マウスの右ボタンで操作メニューを表示">
             <TextBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="コピー Ctrl+C" Name="tbCopyMenu" Command="ApplicationCommands.Copy" />
@@ -16,6 +16,7 @@
                     <MenuItem Header="貼付け Ctrl+V" Name="tbPasteMenu" Command="ApplicationCommands.Paste" />
                     <MenuItem Header="開く" Name="tbOpenMenu" Click="tbMenu_Click" />
                     <MenuItem Header="計算 F9" Name="tbCalculateMenu" Click="tbMenu_Click" />
+                    <MenuItem Header="関数一覧" Name="tbFuncListMenu" Click="tbMenu_Click" />
                     <MenuItem Header="16進10進変換計算 F11" Name="tbHexCalculateMenu" Click="tbMenu_Click" />
                     <MenuItem Header="10進16進変換" Name="tbDec2HexConvMenu" Click="tbMenu_Click" />
                     <MenuItem Header="日時の挿入/変換 F8" Name="tbDateTimeMenu" Click="tbMenu_Click" />
