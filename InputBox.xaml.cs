@@ -245,20 +245,28 @@ namespace WpfLib
         {
             MenuItem menuItem = (MenuItem)e.Source;
             if (menuItem.Name.CompareTo("tbOpenMenu") == 0) {
+                //  開く
                 textOpen();
             } else if (menuItem.Name.CompareTo("tbCalculateMenu") == 0) {
+                //  計算
                 textCalculate();
             } else if (menuItem.Name.CompareTo("tbHexCalculateMenu") == 0) {
+                //  16進計算
                 textHexCalculate();
             } else if (menuItem.Name.CompareTo("tbDec2HexConvMenu") == 0) {
+                //  10進16新変換
                 textDec2HexCalculate();
             } else if (menuItem.Name.CompareTo("tbFuncListMenu") == 0) {
+                //  計算関数一覧
                 funcListMenu();
             } else if (menuItem.Name.CompareTo("tbAdressMenu") == 0) {
+                //  エスケープシーケンス変換
                 cnvEscapeString();
             } else if (menuItem.Name.CompareTo("tbFileSelectMenu") == 0) {
+                //  ファイル選択
                 fileSelect();
             } else if (menuItem.Name.CompareTo("tbDateTimeMenu") == 0) {
+                //  日時変換
                 textDateTime();
             }
         }
@@ -338,22 +346,23 @@ namespace WpfLib
         }
 
         /// <summary>
-        /// 10進数を16進に変換
+        /// 10進数を16進に変換(空白区切で複数の数値を変換)
         /// </summary>
         private void textDec2HexCalculate()
         {
             YCalc calc = new YCalc();
             string text = EditText.SelectedText;
-            //  数式文字以外を除く
-            string express = ylib.stripControlCode(text);
-            express = calc.dec2hexExpressData(express);
+            string[] texts = text.Split(' ');
+            string buf = "";
+            foreach (string s in texts) {
+                //  数式文字以外を除く
+                string express = ylib.stripControlCode(s);
+                buf += calc.dec2hexExpressData(express) + " ";
+            }
             //  計算結果を挿入
             int pos = EditText.SelectionStart + EditText.SelectionLength;
             EditText.Select(pos, 0);
-            EditText.SelectedText = " => " + express;
-            //double result = calc.expression(express);
-            //EditText.SelectedText += $" = {result.ToString()}(0x{((long)result).ToString("X")})";
-
+            EditText.SelectedText = " => " + buf.Trim();
         }
 
         /// <summary>
