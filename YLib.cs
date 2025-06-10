@@ -269,6 +269,25 @@ namespace WpfLib
     /// long bitConvertLong(byte[] data, int start)                 byte配列をlongに変換
     /// long bitConvertLong(byte[] data, int start, int size)       byte配列をlongに変換
     /// long bitReverseConvertLong(byte[] data, int start, int size)    byte配列を逆順でlongに変換
+    /// Byte getInt2Byte(int value, int n)                          int データからbyte単位で値を取得
+    /// bool ByteComp(byte[] a, byte[] b)                           バイナリデータを比較
+    /// bool ByteComp(byte[] a, int astart, byte[] b, int bstart, int size) バイナリデータを比較
+    /// byte[] ByteCopy(byte[] a, int start, int size)              byteデータをコピー
+    /// byte[] ByteOverWrite(byte[] src, int start, byte[] dest)    byte配列にbyteデータを上書きする
+    /// byte[] ByteCat(byte[] src1, byte[] src2)                    byte配列同士を連結する
+    /// byte[] intList2ByteArray(List<Int32> intlist)               intリストをbyte配列に変換
+    /// byte[] convByte(byte[] data, int pos, int size, bool littleEndien = true)   byteからサイズ分のデータを抽出(リトルエンディアンの時は逆順にする)
+    /// long toInt(byte[] data, int size, int pos = 0, bool littleEndien = true)    指定サイズのバイトデータを数値に変換
+    /// long toInt(byte[] data, int size)                           指定サイズのバイトデータを数値に変換
+    /// ulong toUInt(byte[] data, int size, int pos, bool littleEndien = true)  指定サイズのバイトデータを数値に変換
+    /// ulong toUInt(byte[] data, int size)                         指定サイズのバイトデータを数値に変換
+    /// string dec2Byte(string str, bool littleEndian = true)       10進数文字列をbyte配列文字列に変換
+    /// string long2byteStr(long val, bool littleEndian = true)     ongをbyte配列文字列に変換
+    /// string byte2Dec(string str, bool endian = true)             string byte2Dec(string str, bool endian = true)
+    /// string reverseByte(string str)                              byte配列の文字列を逆順にする(12 34 56 → 56 34 12)
+    /// 
+    ///  ---  bit演算関連  ------
+    ///  
     /// long bitConvertBit(byte[] data, int startBit, int bitSize)  byte配列からbit単位で数値を取り出す
     /// uint bitOn(uint a, int n)               nビット目の値を1にする
     /// uint bitOff(uint a, int n)              nビット目の値を0にする
@@ -276,16 +295,6 @@ namespace WpfLib
     /// int bitGet(uint a, int n)               nビット目を反転
     /// int bitsCount(long bits)                bitの数を数える(32bitまで)
     /// int bitsCount2(long bits)               bitの数を数える(64bitまで)
-    /// Byte getInt2Byte(int value, int n)      int データからbyte単位で値を取得
-    /// bool BinComp(byte[] a, byte[] b)        バイナリデータを比較
-    /// bool BinComp(byte[] a, int astart, byte[] b, int bstart, int size)  バイナリデータを比較
-    /// byte[] ByteCopy(byte[] a, int start, int size)              byteデータをコピー
-    /// byte[] ByteOverWrite(byte[] src, int start, byte[] dest)    byte配列にbyteデータを上書きする
-    /// byte[] ByteCat(byte[] src1, byte[] src2)                    byte配列同士を連結する
-    /// byte[] intList2ByteArray(List<Int32> intlist)               intリストをbyte配列に変換
-    /// 
-    ///  ---  bit演算関連  ------
-    ///  
     /// List<int> getBitOnNo(byte[] bytes)                  OnBit位置の取得
     /// bool IsEmpty(byte[] bytes)                          Bit配列がすべて 0 かの確認
     /// bool bitAnd(byte[] bytesA, byte[] bytesB)           2つの　bitリストの and で同一のbitがあればtrue
@@ -2520,31 +2529,6 @@ namespace WpfLib
             }
             return true;
         }
-
-        //private string string2stringNum(string num)
-        //{
-        //    num = num.Replace(",", "");             //  桁区切りのカンマを除く
-        //    num = num.TrimStart(' ');               //  先頭の空白と0を除く
-        //    if (1 < num.Length && num[1] != '.')
-        //        num = num.TrimStart('0');           //  先頭の空白と0を除く
-        //    if (num.Length <= 0)
-        //        return "";
-        //    int n = 0;
-        //    string nbuf = "";
-        //    if (Char.IsDigit(num[0]) || num[0] == '-')
-        //        nbuf += num[0];
-        //    else
-        //        return "";
-        //    for (int i = 1; i < num.Length; i++) {
-        //        if (Char.IsDigit(num[i]) || num[i] == '.')
-        //            nbuf += num[i];
-        //        else
-        //            break;
-        //        if (0 < n && num[i] == '.')
-        //            break;
-        //    }
-        //    return nbuf;
-        //}
 
         private string ZenCode =
             "　！”＃＄％＆’（）＊＋，－．／" +
@@ -5537,6 +5521,281 @@ namespace WpfLib
         }
 
         /// <summary>
+        /// int データからbyte単位で値を取得
+        /// </summary>
+        /// <param name="value">int値</param>
+        /// <param name="n">n byte目</param>
+        /// <returns>byte値</returns>
+        public static Byte getInt2Byte(int value, int n)
+        {
+            return (Byte)((value >> (n * 8)) & 0xff);
+        }
+
+        /// <summary>
+        /// バイナリデータを比較する
+        /// </summary>
+        /// <param name="a">byte配列 a</param>
+        /// <param name="b">byte配列 b</param>
+        /// <returns></returns>
+        public static bool ByteComp(byte[] a, byte[] b)
+        {
+            if (a.Length == b.Length) {
+                for (int i = 0; i < a.Length; i++) {
+                    if (a[i] != b[i])
+                        return false;
+                }
+                return true;
+            } else
+                return false;
+        }
+
+        /// <summary>
+        /// バイナリデータを比較する
+        /// </summary>
+        /// <param name="a">byte配列 a</param>
+        /// <param name="astart">開始位置 a</param>
+        /// <param name="b">byte配列 b</param>
+        /// <param name="astart">開始位置 b</param>
+        /// <param name="size">比較するサイズ</param>
+        /// <returns></returns>
+        public static bool ByteComp(byte[] a, int astart, byte[] b, int bstart, int size)
+        {
+            if ((a.Length - astart) < size || (b.Length - bstart) < size)
+                return false;
+            for (int i = 0; i < size; i++) {
+                if (a[astart + i] != b[bstart + i])
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// byteデータの指定範囲をコピーする
+        /// </summary>
+        /// <param name="a">byte配列</param>
+        /// <param name="start">開始位置</param>
+        /// <param name="size">サイズ</param>
+        /// <returns>byte配列</returns>
+        public static byte[] ByteCopy(byte[] a, int start, int size)
+        {
+            byte[] b = new byte[size];
+            for (int i = 0; i < size; i++)
+                b[i] = a[i + start];
+            return b;
+        }
+
+        /// <summary>
+        /// byte配列にbyteデータを上書きする
+        /// </summary>
+        /// <param name="src">元データのbyte配列</param>
+        /// <param name="start">上書き開始位置</param>
+        /// <param name="dest">上書きデータのbyte配列</param>
+        /// <returns>変換データ</returns>
+        public static byte[] ByteOverWrite(byte[] src, int start, byte[] dest)
+        {
+            int j = 0;
+            for (int i = start; i < src.Length; i++) {
+                if (j < dest.Length)
+                    src[i] = dest[j++];
+            }
+            return src;
+        }
+
+        /// <summary>
+        /// byte配列同士を連結する
+        /// </summary>
+        /// <param name="src1">byte配列データ1</param>
+        /// <param name="src2">byte配列データ2</param>
+        /// <returns>連結データ</returns>
+        public static byte[] ByteCat(byte[] src1, byte[] src2)
+        {
+            byte[] dest = new byte[src1.Length + src2.Length];
+            dest = ByteOverWrite(dest, 0, src1);
+            dest = ByteOverWrite(dest, src1.Length, src2);
+            return dest;
+        }
+
+        /// <summary>
+        /// intリストをbyte配列に変換
+        /// </summary>
+        /// <param name="intlist">intリスト</param>
+        /// <returns>byte配列</returns>
+        public static byte[] intList2ByteArray(List<Int32> intlist)
+        {
+            byte[] byteArray = new byte[intlist.Count * sizeof(Int32)];
+            for (int i = 0; i < intlist.Count; i++) {
+                byte[] b = BitConverter.GetBytes(intlist[i]);
+                Buffer.BlockCopy(b, 0, byteArray, sizeof(Int32) * i, sizeof(Int32));
+            }
+            return byteArray;
+        }
+
+        /// <summary>
+        /// byteからサイズ分のデータを抽出(リトルエンディアンの時は逆順にする)
+        /// </summary>
+        /// <param name="data">byteデータ</param>
+        /// <param name="pos">位置</param>
+        /// <param name="size">データサイズ</param>
+        /// <param name="littleEndien">エンディアン</param>
+        /// <returns></returns>
+        public byte[] convByte(byte[] data, int pos, int size, bool littleEndien = true)
+        {
+            byte[] ret = new byte[size];
+            Array.Copy(data, pos, ret, 0, size);
+            if (!littleEndien)
+                Array.Reverse(ret);
+            return ret;
+        }
+
+        /// <summary>
+        /// 指定サイズのバイトデータを数値に変換
+        /// </summary>
+        /// <param name="data">バイトデータ</param>
+        /// <param name="size">データサイズ</param>
+        /// <param name="pos">データの位置</param>
+        /// <param name="littleEndien">エンディアン</param>
+        /// <returns>数値</returns>
+        public long toInt(byte[] data, int size, int pos = 0, bool littleEndien = true)
+        {
+            byte[] ret = new byte[size];
+            Array.Copy(data, pos, ret, 0, size);
+            if (!littleEndien)
+                Array.Reverse(ret);
+            return toInt(ret, size);
+        }
+
+        /// <summary>
+        /// 指定サイズのバイトデータを数値に変換
+        /// </summary>
+        /// <param name="data">バイトデータ</param>
+        /// <param name="size"><データサイズ/param>
+        /// <returns>数値</returns>
+        public long toInt(byte[] data, int size)
+        {
+            long n = 0;
+            for (int i = size - 1; 0 <= i; i--) {
+                n *= 0x100;
+                n += data[i];
+            }
+            if (size < 8) {
+                if ((long)(0x80 << 8 * (size - 1)) < n)
+                    n = n - (long)(0x100 << 8 * (size - 1));
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// 指定サイズのバイトデータを数値に変換
+        /// </summary>
+        /// <param name="data">バイトデータ</param>
+        /// <param name="size">データサイズ</param>
+        /// <param name="pos">データの位置</param>
+        /// <param name="littleEndien">エンディアン</param>
+        /// <returns>数値</returns>
+        public ulong toUInt(byte[] data, int size, int pos, bool littleEndien = true)
+        {
+            byte[] ret = new byte[size];
+            Array.Copy(data, pos, ret, 0, size);
+            //  ビックエンディアンの時は逆順にする
+            if (!littleEndien)
+                Array.Reverse(ret);
+            return toUInt(ret, size);
+        }
+
+        /// <summary>
+        /// 指定サイズのバイトデータを数値に変換
+        /// </summary>
+        /// <param name="data">バイトデータ</param>
+        /// <param name="size"><データサイズ/param>
+        /// <returns>数値</returns>
+        public ulong toUInt(byte[] data, int size)
+        {
+            ulong n = 0;
+            for (int i = size - 1; 0 <= i; i--) {
+                n *= 0x100;
+                n += data[i];
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// 10進数文字列をbyte配列文字列に変換
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="littleEndian"></param>
+        /// <returns></returns>
+        public string dec2Byte(string str, bool littleEndian = true)
+        {
+            long val = longParse(str);
+            return long2byteStr(val, littleEndian);
+        }
+
+        /// <summary>
+        /// longをbyte配列文字列に変換
+        /// </summary>
+        /// <param name="val"></param>
+        /// <param name="littleEndian"></param>
+        /// <returns></returns>
+        public string long2byteStr(long val, bool littleEndian = true)
+        {
+            byte[] bytes = BitConverter.GetBytes(val);
+            int n = 0;
+            for (n = bytes.Length - 1; 0 < n; n--)
+                if (bytes[n] != 0) break;
+            string buf = "";
+            if (littleEndian) {
+                for (int i = 0; i <= n && i < bytes.Length; i++)
+                    buf += bytes[i].ToString("X2") + " ";
+            } else {
+                for (int i = n; 0 <= i; i--)
+                    buf += bytes[i].ToString("X2") + " ";
+            }
+            return 0 < buf.Length ? buf.Remove(buf.Length - 1) : "";
+        }
+
+        /// <summary>
+        /// byte配列文字列を10進文字列に変換
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="endian"></param>
+        /// <returns></returns>
+        public string byte2Dec(string str, bool endian = true)
+        {
+            string[] datas = str.Split(' ');
+            long ret = 0;
+            if (endian) {
+                for (int i = datas.Length - 1; 0 <= i; i--) {
+                    if (0 < datas[i].Length)
+                        ret = ret * 256 + longHexParse(datas[i]);
+                }
+            } else {
+                for (int i = 0; i < datas.Length; i++) {
+                    if (0 < datas[i].Length)
+                        ret = ret * 256 + longHexParse(datas[i]);
+                }
+            }
+            return ret.ToString();
+        }
+
+        /// <summary>
+        /// byte配列の文字列を逆順にする(12 34 56 → 56 34 12)
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public string reverseByte(string str)
+        {
+            string[] strings = str.Split(' ');
+            Array.Reverse(strings);
+            string buf = "";
+            for (int i = 0; i < strings.Length; i++)
+                if (strings[i] != " ") buf += strings[i] + " ";
+            return 0 < buf.Length ? buf.Remove(buf.Length - 1) : "";
+        }
+
+
+        //  ---  bit演算関連  ------
+
+        /// <summary>
         /// byte配列からbit単位で数値を取り出す
         /// </summary>
         /// <param name="data">byte配列</param>
@@ -5644,117 +5903,6 @@ namespace WpfLib
             long b = bits >> 32;
             return bitsCount(a) + bitsCount(b);
         }
-
-        /// <summary>
-        /// int データからbyte単位で値を取得
-        /// </summary>
-        /// <param name="value">int値</param>
-        /// <param name="n">n byte目</param>
-        /// <returns>byte値</returns>
-        public static Byte getInt2Byte(int value, int n)
-        {
-            return (Byte)((value >> (n * 8)) & 0xff);
-        }
-
-        /// <summary>
-        /// バイナリデータを比較する
-        /// </summary>
-        /// <param name="a">byte配列 a</param>
-        /// <param name="b">byte配列 b</param>
-        /// <returns></returns>
-        public static bool ByteComp(byte[] a, byte[] b)
-        {
-            if (a.Length == b.Length) {
-                for (int i = 0; i < a.Length; i++) {
-                    if (a[i] != b[i])
-                        return false;
-                }
-                return true;
-            } else
-                return false;
-        }
-
-        /// <summary>
-        /// バイナリデータを比較する
-        /// </summary>
-        /// <param name="a">byte配列 a</param>
-        /// <param name="b">byte配列 b</param>
-        /// <param name="size">比較するサイズ</param>
-        /// <returns></returns>
-        public static bool ByteComp(byte[] a, int astart, byte[] b, int bstart, int size)
-        {
-            if ((a.Length - astart) < size || (b.Length - bstart) < size)
-                return false;
-            for (int i = 0; i < size; i++) {
-                if (a[astart + i] != b[bstart + i])
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// byteデータの指定範囲をコピーする
-        /// </summary>
-        /// <param name="a">byte配列</param>
-        /// <param name="start">開始位置</param>
-        /// <param name="size">サイズ</param>
-        /// <returns>byte配列</returns>
-        public static byte[] ByteCopy(byte[] a, int start, int size)
-        {
-            byte[] b = new byte[size];
-            for (int i = 0; i < size; i++)
-                b[i] = a[i + start];
-            return b;
-        }
-
-        /// <summary>
-        /// byte配列にbyteデータを上書きする
-        /// </summary>
-        /// <param name="src">元データのbyte配列</param>
-        /// <param name="start">上書き開始位置</param>
-        /// <param name="dest">上書きデータのbyte配列</param>
-        /// <returns>変換データ</returns>
-        public static byte[] ByteOverWrite(byte[] src, int start, byte[] dest)
-        {
-            int j = 0;
-            for (int i = start; i < src.Length; i++) {
-                if (j < dest.Length)
-                    src[i] = dest[j++];
-            }
-            return src;
-        }
-
-        /// <summary>
-        /// byte配列同士を連結する
-        /// </summary>
-        /// <param name="src1">byte配列データ1</param>
-        /// <param name="src2">byte配列データ2</param>
-        /// <returns>連結データ</returns>
-        public static byte[] ByteCat(byte[] src1, byte[] src2)
-        {
-            byte[] dest = new byte[src1.Length + src2.Length];
-            dest = ByteOverWrite(dest, 0, src1);
-            dest = ByteOverWrite(dest, src1.Length, src2);
-            return dest;
-        }
-
-        /// <summary>
-        /// intリストをbyte配列に変換
-        /// </summary>
-        /// <param name="intlist">intリスト</param>
-        /// <returns>byte配列</returns>
-        public static byte[] intList2ByteArray(List<Int32> intlist)
-        {
-            byte[] byteArray = new byte[intlist.Count * sizeof(Int32)];
-            for (int i = 0; i < intlist.Count; i++) {
-                byte[] b = BitConverter.GetBytes(intlist[i]);
-                Buffer.BlockCopy(b, 0, byteArray, sizeof(Int32) * i, sizeof(Int32));
-            }
-            return byteArray;
-        }
-
-
-        //  ---  bit演算関連  ------
 
         /// <summary>
         /// OnBit位置の取得
