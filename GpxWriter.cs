@@ -48,14 +48,18 @@ namespace WpfLib
         /// 座標データのGPXデータ作成
         /// </summary>
         /// <param name="gpsData">GPSデータ</param>
+        /// <param name="unversalTime">UniversalTimeデータ</param>
         /// <returns>文字列</returns>
-        private string locationData(GpsData gpsData)
+        private string locationData(GpsData gpsData, bool unversalTime = false)
         {
             // 位置データ
             var buffer = "<trkpt lat=\"" + gpsData.mLatitude.ToString() +
                     "\" lon=\"" + gpsData.mLongitude.ToString() + "\">";
             buffer += "<ele>" + gpsData.mElevator.ToString() + "</ele>";
-            buffer += "<time>" + gpsData.mDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") + "</time>";
+            if (unversalTime)
+                buffer += "<time>" + gpsData.mDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ") + "</time>";
+            else
+                buffer += "<time>" + gpsData.mDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") + "</time>";
             buffer += "</trkpt>";
             buffer += "\n";
             return buffer;
@@ -78,13 +82,14 @@ namespace WpfLib
         /// <summary>
         /// GPSデータの一括書き込み
         /// </summary>
+        /// <param name="unversalTime">UniversalTimeデータ</param>
         /// <returns></returns>
-        public bool writeDataAll()
+        public bool writeDataAll(bool universalTime = false)
         {
             try {
                 string buf = initData();
                 foreach (var data in mGpsDataList)
-                    buf += locationData(data);
+                    buf += locationData(data, universalTime);
                 buf += closeData();
                 ylib.saveTextFile(mGpxFilePath, buf);
 
