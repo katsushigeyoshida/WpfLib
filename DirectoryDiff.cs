@@ -347,6 +347,8 @@ namespace WpfLib
             targetFiles.RemoveAll(p => p.Length == 0);
             exceptFiles.RemoveAll(p => p.Length == 0);
             exceptDirectories.RemoveAll(p => p.Length == 0);
+            if (!Directory.Exists(folder))
+                return fileList;
             try {
                 DirectoryInfo di = new DirectoryInfo(folder);
                 foreach (DirectoryInfo dir in di.GetDirectories()) {
