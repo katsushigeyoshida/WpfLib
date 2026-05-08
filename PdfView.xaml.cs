@@ -19,7 +19,9 @@ namespace WpfLib
         public string mPdfFile;                                 //  PDFファイル名
         private string mPdfFilePath;                            //  PDFファイルパス(実行環境)
         private int mPageNo = 0;                                //  表示ページ
+#if DEBUG || !WINDOWS10  //  Windows10のReleseでコンパイルできない
         private Windows.Data.Pdf.PdfDocument mPdfDocument;      //  PdfDocument Class
+#endif
 
         public PdfView()
         {
@@ -145,6 +147,7 @@ namespace WpfLib
         /// <param name="pdfFile">ファイル名(絶対パス)</param>
         private async void pdfOpen(string pdfFile)
         {
+#if DEBUG || !WINDOWS10  //  Windows10のReleseでコンパイルできない
             if (File.Exists(pdfFile)) {
                 var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(pdfFile);
                 try {
@@ -156,6 +159,7 @@ namespace WpfLib
             } else {
                 MessageBox.Show(pdfFile + "\nが見つかりません");
             }
+#endif
         }
 
         /// <summary>
@@ -164,6 +168,7 @@ namespace WpfLib
         /// <param name="pageNo">表示ページ</param>
         private async void pdfPage(int pageNo)
         {
+#if DEBUG || !WINDOWS10  //  Windows10のReleseでコンパイルできない
             if (mPdfDocument != null) {
                 if (pageNo < 0)
                     pageNo = 0;
@@ -183,6 +188,7 @@ namespace WpfLib
                 }
                 mPageNo = pageNo;
             }
+#endif
         }
     }
 }

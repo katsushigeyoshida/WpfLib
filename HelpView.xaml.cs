@@ -75,9 +75,14 @@ namespace WpfLib
         private void CbPdfFile_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (0 <= CbPdfFile.SelectedIndex) {
+#if DEBUG || !WINDOWS10
                 WpfLib.PdfView pdfView = new WpfLib.PdfView();
                 pdfView.mPdfFile = CbPdfFile.Items[CbPdfFile.SelectedIndex].ToString();
                 pdfView.Show();
+#else
+                YLib ylib = new YLib();
+                ylib.openUrl(CbPdfFile.Items[CbPdfFile.SelectedIndex].ToString());
+#endif
             }
         }
 
